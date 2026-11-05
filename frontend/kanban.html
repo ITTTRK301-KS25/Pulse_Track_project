@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Bảng công việc | Pulse Track
+  </title>
+  <link href="css/style.css" rel="stylesheet"/>
+ </head>
+ <body class="auth-checking">
+  <div aria-live="polite" id="auth-guard-message" role="status">
+   Đang kiểm tra phiên đăng nhập...
+  </div>
+  <button hidden="" id="auth-guard-retry" type="button">
+   Thử lại
+  </button>
+  <div hidden="" id="app-error-message" role="alert">
+  </div>
+  <header class="app-header">
+   <a class="brand" href="dashboard.html">
+    <span class="pulse">
+     ⌁
+    </span>
+    Pulse Track
+   </a>
+   <nav>
+    <a href="dashboard.html">
+     Tổng quan
+    </a>
+    <a href="projects.html">
+     Dự án
+    </a>
+    <a href="kanban.html">
+     Kanban
+    </a>
+    <a href="login.html">
+     Đăng nhập
+    </a>
+   </nav>
+  </header>
+  <main class="content">
+   <span class="eyebrow">
+    KANBAN
+   </span>
+   <h1>
+    Bảng công việc
+   </h1>
+   <p class="muted">
+    Quản lý công việc theo trạng thái.
+   </p>
+   <div class="board">
+    <section class="lane">
+     <h3>
+      TODO
+      <span class="pill">
+       0
+      </span>
+     </h3>
+     <p>
+      Chưa có công việc
+     </p>
+    </section>
+    <section class="lane">
+     <h3>
+      IN PROGRESS
+      <span class="pill">
+       0
+      </span>
+     </h3>
+     <p>
+      Chưa có công việc
+     </p>
+    </section>
+    <section class="lane">
+     <h3>
+      DONE
+      <span class="pill">
+       0
+      </span>
+     </h3>
+     <p>
+      Chưa có công việc
+     </p>
+    </section>
+   </div>
+   <div class="status">
+    Đây là giao diện khung F01. Chức năng thực tế sẽ được phát triển theo các task F04, F06 và F16; chưa có dữ liệu từ Backend.
+   </div>
+  </main>
+  <script defer="" src="js/config.js">
+  </script>
+  <script defer="" src="js/api.js">
+  </script>
+  <script defer="" src="js/router.js">
+  </script>
+ </body>
+</html>

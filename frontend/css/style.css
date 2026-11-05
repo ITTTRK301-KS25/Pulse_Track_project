@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+:root{font-family:Inter,Arial,sans-serif;color:#182033;background:#f5f7fb;font-synthesis:none}*{box-sizing:border-box}body{margin:0}a{color:inherit;text-decoration:none}button,input{font:inherit}button{cursor:pointer}.auth{min-height:100vh;display:grid;grid-template-columns:1.1fr 0.9fr;background:#101827}.hero{padding:48px clamp(28px,5vw,85px);color:white;position:relative;overflow:hidden;background:radial-gradient(circle at 90% 85%,#38415c 0%,transparent 48%),linear-gradient(140deg,#0c1424,#1b2336)}.hero:after{content:"";position:absolute;width:420px;height:420px;border:90px solid #ffca2620;border-radius:50%;right:-300px;bottom:-270px}.brand{display:flex;align-items:center;gap:12px;font-size:27px;font-weight:800;letter-spacing:-1px}.pulse{font-size:35px;color:#ffc51b;line-height:1}.group{font-size:12px;color:#ffcb22;border:1px solid #c69b15;border-radius:100px;padding:7px 12px;letter-spacing:0;margin-left:8px}.hero h1{font-size:clamp(35px,3.4vw,56px);line-height:1.16;letter-spacing:-1.8px;margin:72px 0 20px;max-width:700px}.hero h1 em{color:#ffca22;font-style:normal}.hero p{color:#bfc8d9;font-size:17px;line-height:1.7;max-width:570px}.illustration{display:block;width:100%;max-width:700px;margin:36px auto 25px;filter:drop-shadow(0 24px 28px #0005)}.features{display:flex;gap:24px;flex-wrap:wrap;margin-top:24px;color:#e7eaf1;font-size:13px}.features span{display:flex;gap:8px;align-items:center}.features b{background:#ffcb2222;color:#ffcb22;padding:9px;border-radius:10px}.auth-right{background:#f7f8fb;display:flex;align-items:center;justify-content:center;padding:45px 30px}.panel{background:#fff;width:min(100%,520px);padding:clamp(28px,4vw,55px);border:1px solid #e9edf3;border-radius:26px;box-shadow:0 25px 80px #10182712}.panel .brand{justify-content:center;color:#111827;font-size:30px}.panel .group-line{text-align:center;margin:12px 0 30px;color:#a97800;font-size:13px;font-weight:700}.panel h2{font-size:33px;text-align:center;letter-spacing:-.8px;margin:0 0 12px}.subtitle{text-align:center;color:#687385;line-height:1.6;font-size:14px;margin:0 0 34px}.field{display:block;margin:18px 0 8px;font-size:14px;font-weight:700}.field input{display:block;width:100%;margin-top:9px;padding:15px 16px;border:1px solid #d8deea;border-radius:12px;outline:none;background:#fff}.field input:focus{border-color:#e9ae00;box-shadow:0 0 0 3px #ffcc332b}.password-wrap{position:relative}.password-wrap input{padding-right:65px}.show-password{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#687385;font-size:12px;padding:8px}.primary{background:#ffca20;color:#111827;border:0;border-radius:12px;width:100%;padding:16px;font-weight:800;margin-top:24px;box-shadow:0 8px 22px #f4bc303b}.primary:hover{background:#f5b900}.switch{text-align:center;font-size:14px;margin:25px 0 0}.switch a{color:#b78400;font-weight:700}.notice{border-top:1px solid #edf0f5;padding-top:20px;margin-top:27px;color:#788296;text-align:center;font-size:12px;line-height:1.5}.message{font-size:13px;margin-top:15px;min-height:18px;color:#b45309}.app-header{background:#111a2b;color:white;padding:18px clamp(20px,5vw,70px);display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}.app-header .brand{font-size:22px}.app-header nav{display:flex;gap:18px;flex-wrap:wrap;font-size:14px}.app-header nav a:hover{color:#ffcb22}.content{max-width:1180px;margin:50px auto;padding:0 24px}.eyebrow{color:#b98a06;font-size:12px;font-weight:800;letter-spacing:2px}.content h1{font-size:35px;margin:12px 0}.muted{color:#64748b}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:30px}.card,.lane{background:white;border:1px solid #e5e9f1;border-radius:18px;padding:22px;box-shadow:0 8px 30px #16243b09}.card strong{font-size:26px}.board{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:28px}.lane{min-height:230px}.lane h3{margin:0 0 22px}.lane p{color:#8490a3}.pill{background:#fff3c8;padding:6px 10px;border-radius:8px;font-size:12px}.back{display:inline-block;margin-top:20px;color:#ad7a00}.status{background:#fff4d6;border:1px solid #f6dfa2;border-radius:12px;padding:14px 18px;margin-top:22px;color:#79580d;font-size:14px}@media(max-width:950px){.auth{grid-template-columns:1fr}.hero{padding:28px 30px}.hero h1{margin-top:36px}.illustration{max-width:460px}.auth-right{padding:28px 18px}.cards,.board{grid-template-columns:1fr}}@media(max-width:520px){.hero h1{font-size:32px}.hero p{font-size:14px}.hero .brand{font-size:22px}.features{gap:12px}.panel{padding:28px 22px}.panel h2{font-size:27px}.group{font-size:11px}}
+
+/* F01: Không hiển thị nội dung trang riêng tư trước khi GET /auth/me thành công. */
+body.auth-checking > .app-header, body.auth-checking > .content { display: none !important; }
+#auth-guard-message:not(:empty) { margin: 12vh auto 16px; padding: 20px; max-width: 520px; text-align: center; font: 500 16px/1.5 system-ui; }
+#auth-guard-retry:not([hidden]) { display: block; margin: 0 auto; padding: 10px 22px; cursor: pointer; }
+#app-error-message:not([hidden]) { padding: 12px; background: #fff0f0; color: #922; text-align: center; }
+
+
+/* ===== F01 UI POLISH: can doi font chu, form, khoang cach ===== */
+html { -webkit-text-size-adjust: 100%; }
+body { font-size: 15px; line-height: 1.55; }
+.auth { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); min-height: 100vh; }
+.hero { display: flex; flex-direction: column; justify-content: center; padding: 38px clamp(32px, 4.5vw, 78px); }
+.hero > .brand { margin-bottom: auto; }
+.hero h1 { margin: 36px 0 14px; font-size: clamp(32px, 3.1vw, 50px); line-height: 1.2; letter-spacing: -1.25px; }
+.hero p { margin: 0; font-size: clamp(14px, 1.05vw, 16px); line-height: 1.75; }
+.illustration { width: min(100%, 590px); max-height: 36vh; object-fit: contain; margin: 22px auto; }
+.features { gap: 12px 20px; margin-top: auto; padding-top: 18px; font-size: 12.5px; line-height: 1.4; }
+.features b { padding: 7px 9px; }
+.auth-right { padding: 32px clamp(18px, 3vw, 44px); }
+.panel { width: min(100%, 480px); padding: clamp(28px, 3vw, 42px); border-radius: 22px; }
+.panel .brand { font-size: 26px; gap: 9px; letter-spacing: -.7px; }
+.panel .brand .pulse { font-size: 31px; }
+.panel .group-line { margin: 6px 0 22px; font-size: 11px; letter-spacing: 1.6px; }
+.panel h2 { margin: 0 0 8px; font-size: clamp(26px, 2vw, 30px); line-height: 1.25; letter-spacing: -.55px; }
+.subtitle { margin: 0 0 24px; font-size: 13.5px; line-height: 1.6; }
+.panel form { display: flex; flex-direction: column; gap: 15px; }
+.field { display: block; margin: 0; font-size: 13.5px; line-height: 1.45; font-weight: 650; color: #273246; }
+.field input { width: 100%; height: 46px; margin-top: 7px; padding: 0 14px; font-size: 14px; line-height: normal; border-radius: 10px; }
+.field input::placeholder { color: #9ba5b5; opacity: 1; }
+.password-wrap { margin-top: 7px; }
+.password-wrap input { margin-top: 0; padding-right: 70px; }
+.show-password { right: 8px; padding: 9px 10px; font-size: 12.5px; font-weight: 600; }
+.primary { min-height: 47px; margin-top: 4px; padding: 12px 18px; font-size: 14.5px; line-height: 1.4; }
+.message { min-height: 0; margin-top: 0; line-height: 1.5; }
+.message:empty { display: none; }
+.switch { margin: 20px 0 0; font-size: 13.5px; line-height: 1.5; }
+.notice { margin: 20px 0 0; padding-top: 15px; font-size: 11.5px; line-height: 1.55; }
+@media (max-width: 950px) {
+  .auth { grid-template-columns: 1fr; }
+  .hero { padding: 26px 28px 32px; }
+  .hero > .brand { margin-bottom: 0; }
+  .hero h1 { margin-top: 24px; }
+  .illustration { max-height: 270px; margin: 16px auto; }
+  .features { margin-top: 0; }
+  .auth-right { padding: 28px 18px 40px; }
+}
+@media (max-width: 520px) {
+  .hero { padding: 24px 20px; }
+  .hero h1 { font-size: 30px; }
+  .hero p { font-size: 13px; }
+  .hero .brand { font-size: 21px; }
+  .features { gap: 10px; font-size: 12px; }
+  .panel { padding: 26px 22px; }
+  .panel h2 { font-size: 27px; }
+  .field input { height: 45px; }
+}
+
+/* F01 - Bao ve trang truoc khi xac thuc */
+body.auth-checking > .app-header,
+body.auth-checking > .content {
+    display: none !important;
+}
+
+/* An thong bao khi khong co noi dung */
+#auth-guard-message:empty {
+    display: none;
+}
+
+/* Thong bao dang kiem tra phien */
+#auth-guard-message:not(:empty) {
+    max-width: 520px;
+    margin: 12vh auto 16px;
+    padding: 20px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+/* Nut thu lai */
+#auth-guard-retry:not([hidden]) {
+    display: block;
+    margin: 0 auto;
+    padding: 10px 22px;
+    cursor: pointer;
+}
+
+/* Thong bao loi khong du quyen */
+#app-error-message:not([hidden]) {
+    padding: 12px 18px;
+    background: #fff0f0;
+    color: #922;
+    text-align: center;
+}
