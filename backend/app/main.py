@@ -1,15 +1,30 @@
+
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.database.db import get_db, Base, engine
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:5500",
+        "http://localhost:5500"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
 Base.metadata.create_all(bind=engine)
+
 
 @app.get("/")
 async def read_root():
     return {"Hello": "World"}
+
 
 @app.get("/health/db")
 def check_database(db: Session = Depends(get_db)):
