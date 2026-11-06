@@ -1,4 +1,5 @@
-
+from app.core.exception import register_exception_handler
+from app.api import auth as auth_api
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -6,6 +7,8 @@ from sqlalchemy import text
 from app.database.db import get_db, Base, engine
 
 app = FastAPI()
+register_exception_handler(app)
+app.include_router(auth_api.router)
 
 app.add_middleware(
     CORSMiddleware,
