@@ -1,71 +1,65 @@
+
 <!DOCTYPE html>
 <html lang="vi">
- <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>
-   Dự án của tôi | Pulse Track
-  </title>
-  <link href="css/style.css" rel="stylesheet"/>
- </head>
- <body class="auth-checking">
-  <div aria-live="polite" id="auth-guard-message" role="status">
-   Đang kiểm tra phiên đăng nhập...
-  </div>
-  <button hidden="" id="auth-guard-retry" type="button">
-   Thử lại
-  </button>
-  <div hidden="" id="app-error-message" role="alert">
-  </div>
-  <header class="app-header">
-   <a class="brand" href="dashboard.html">
-    <span class="pulse">
-     ⌁
-    </span>
-    Pulse Track
-   </a>
-   <nav>
-    <a href="dashboard.html">
-     Tổng quan
-    </a>
-    <a href="projects.html">
-     Dự án
-    </a>
-    <a href="kanban.html">
-     Kanban
-    </a>
-    <a href="login.html">
-     Đăng nhập
-    </a>
-   </nav>
-  </header>
-  <main class="content">
-   <span class="eyebrow">
-    QUẢN LÝ DỰ ÁN
-   </span>
-   <h1>
-    Dự án của tôi
-   </h1>
-   <p class="muted">
-    Danh sách dự án và chức năng tạo mới sẽ triển khai ở F04.
-   </p>
-   <div class="card">
-    <strong>
-     Chưa có dữ liệu dự án
-    </strong>
-    <p class="muted">
-     Kết nối API Backend để tải danh sách dự án của bạn.
-    </p>
-   </div>
-   <div class="status">
-    Đây là giao diện khung F01. Chức năng thực tế sẽ được phát triển theo các task F04, F06 và F16; chưa có dữ liệu từ Backend.
-   </div>
-  </main>
-  <script defer="" src="js/config.js">
-  </script>
-  <script defer="" src="js/api.js">
-  </script>
-  <script defer="" src="js/router.js">
-  </script>
- </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dự án của tôi | Pulse Track</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-checking">
+
+    <div id="auth-guard-message" role="status" aria-live="polite">
+        Đang kiểm tra phiên đăng nhập...
+    </div>
+
+    <button id="auth-guard-retry" type="button" hidden>
+        Thử lại
+    </button>
+
+    <div id="app-error-message" role="alert" hidden></div>
+
+    <header class="app-header">
+        <a href="dashboard.html" class="brand">
+            <span class="pulse">⌁</span>
+            Pulse Track
+        </a>
+
+        <nav>
+            <a href="dashboard.html">Tổng quan</a>
+            <a href="projects.html">Dự án</a>
+            <a href="kanban.html">Kanban</a>
+            <a href="profile.html" data-user-name>Tài khoản</a>
+            <button type="button" class="logout-button" data-logout>
+                Đăng xuất
+            </button>
+        </nav>
+    </header>
+
+    <main class="content">
+        <span class="eyebrow">QUẢN LÝ DỰ ÁN</span>
+
+        <h1>Dự án của tôi</h1>
+
+        <p class="muted">
+            Danh sách dự án và chức năng tạo mới sẽ triển khai ở F04.
+        </p>
+
+        <div class="card">
+            <strong>Chưa có dữ liệu dự án</strong>
+
+            <p class="muted">
+                Kết nối API Backend để tải danh sách dự án của bạn.
+            </p>
+        </div>
+
+        <div class="status">
+            Đây là giao diện khung F01. Chức năng thực tế sẽ được phát triển theo các task F04, F06 và F16; chưa có dữ liệu từ Backend.
+        </div>
+    </main>
+
+    <script defer src="js/config.js"></script>
+    <script defer src="js/api.js"></script>
+    <script defer src="js/router.js"></script>
+</body>
 </html>

@@ -1,6 +1,8 @@
 
+"use strict";
+
 window.PULSE_CONFIG = Object.freeze({
-    API_BASE_URL: "http://localhost:8000",
+    API_BASE_URL: "http://127.0.0.1:8000",
 
     REQUEST_TIMEOUT_MS: 15000,
 
@@ -12,3 +14,4 @@ window.PULSE_CONFIG = Object.freeze({
 
     CSRF_META_NAME: "csrf-token"
 });
+

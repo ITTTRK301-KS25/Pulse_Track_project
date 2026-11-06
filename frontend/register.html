@@ -137,7 +137,11 @@
                         Đăng ký →
                     </button>
 
-                    <div class="message" role="status" aria-live="polite"></div>
+                    <div
+                        class="message"
+                        role="status"
+                        aria-live="polite"
+                    ></div>
                 </form>
 
                 <p class="switch">
@@ -147,6 +151,39 @@
             </div>
         </section>
     </main>
+
+    <!-- Popup đăng ký thành công -->
+    <div
+        id="register-success-modal"
+        class="success-modal"
+        hidden
+    >
+        <div
+            class="success-modal-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="register-success-title"
+            aria-describedby="register-success-description"
+        >
+            <div class="success-icon">✓</div>
+
+            <h2 id="register-success-title">
+                Đăng ký thành công!
+            </h2>
+
+            <p id="register-success-description">
+                Tài khoản của bạn đã được tạo thành công.
+                Hãy đăng nhập để bắt đầu sử dụng Pulse Track.
+            </p>
+
+            <a
+                href="login.html"
+                class="success-login-btn"
+            >
+                Đăng nhập →
+            </a>
+        </div>
+    </div>
 
     <script defer src="js/config.js"></script>
     <script defer src="js/api.js"></script>

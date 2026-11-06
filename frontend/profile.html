@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ cá nhân | Pulse Track</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-checking">
+
+    <div id="auth-guard-message" role="status" aria-live="polite">
+        Đang kiểm tra phiên đăng nhập...
+    </div>
+
+    <button id="auth-guard-retry" type="button" hidden>
+        Thử lại
+    </button>
+
+    <div id="app-error-message" role="alert" hidden></div>
+
+    <header class="app-header">
+        <a href="dashboard.html" class="brand">
+            <span class="pulse"></span>
+            Pulse Track
+        </a>
+
+        <nav>
+            <a href="dashboard.html">Tổng quan</a>
+            <a href="projects.html">Dự án</a>
+            <a href="kanban.html">Kanban</a>
+            <a href="profile.html" data-user-name>Tài khoản</a>
+            <button type="button" class="logout-button" data-logout>
+                Đăng xuất
+            </button>
+        </nav>
+    </header>
+
+    <main class="content">
+        <span class="eyebrow">PULSE TRACK</span>
+
+        <h1>Hồ sơ cá nhân</h1>
+
+        <p class="muted">
+            Xem và quản lý thông tin tài khoản của bạn.
+        </p>
+
+        <section class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar" id="profile-avatar">
+                    U
+                </div>
+
+                <div>
+                    <h2 id="profile-name">Đang tải...</h2>
+                    <p class="muted" id="profile-email"></p>
+                </div>
+            </div>
+
+            <hr class="profile-divider">
+
+            <h3>Thông tin cá nhân</h3>
+
+            <form id="profile-form" novalidate>
+                <div class="profile-field">
+                    <label for="display-name">
+                        Tên hiển thị
+                    </label>
+
+                    <input
+                        type="text"
+                        id="display-name"
+                        name="display_name"
+                        placeholder="Nhập tên hiển thị"
+                        autocomplete="name"
+                        maxlength="100"
+                        required
+                    >
+
+                    <small
+                        id="display-name-error"
+                        class="field-error"
+                        aria-live="polite"
+                    ></small>
+                </div>
+
+                <div class="profile-field">
+                    <label for="profile-email-input">
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        id="profile-email-input"
+                        readonly
+                    >
+
+                    <small class="muted">
+                        Email không thể thay đổi tại đây.
+                    </small>
+                </div>
+
+                <div
+                    id="profile-message"
+                    class="message"
+                    role="status"
+                    aria-live="polite"
+                ></div>
+
+                <button type="submit" id="save-profile">
+                    Lưu thay đổi
+                </button>
+            </form>
+        </section>
+    </main>
+
+    <script defer src="js/config.js"></script>
+    <script defer src="js/api.js"></script>
+    <script defer src="js/router.js"></script>
+    <script defer src="js/profile.js"></script>
+</body>
+</html>
