@@ -1,114 +1,121 @@
+
 <!DOCTYPE html>
 <html lang="vi">
- <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>
-   Đăng nhập | Pulse Track
-  </title>
-  <link href="css/style.css" rel="stylesheet"/>
- </head>
- <body>
-  <main class="auth">
-   <section class="hero">
-    <div class="brand">
-     <span class="pulse">
-      ⌁
-     </span>
-     Pulse Track
-     <span class="group">
-      NHÓM 2
-     </span>
-    </div>
-    <h1>
-     Quản lý công việc
-     <br/>
-     thông minh
-     <em>
-      với AI.
-     </em>
-    </h1>
-    <p>
-     Lập kế hoạch · Theo dõi tiến độ · Tạo báo cáo tự động.
-     <br/>
-     Giúp nhóm làm việc hiệu quả và đồng bộ hơn.
-    </p>
-    <img alt="Minh họa bảng Kanban và trợ lý AI của Pulse Track" class="illustration" src="assets/kanban-ai-illustration.webp"/>
-    <div class="features">
-     <span>
-      <b>
-       ✦
-      </b>
-      Phân rã công việc bằng AI
-     </span>
-     <span>
-      <b>
-       ▥
-      </b>
-      Báo cáo tiến độ tự động
-     </span>
-     <span>
-      <b>
-       ♧
-      </b>
-      Làm việc nhóm hiệu quả
-     </span>
-    </div>
-   </section>
-   <section class="auth-right">
-    <div class="panel">
-     <div class="brand">
-      <span class="pulse">
-       ⌁
-      </span>
-      Pulse Track
-     </div>
-     <div class="group-line">
-      NHÓM 2
-     </div>
-     <h2>
-      Đăng nhập
-     </h2>
-     <p class="subtitle">
-      Chào mừng đến với hệ thống quản lý công việc tích hợp AI.
-     </p>
-     <form data-demo-form="">
-      <label class="field">
-       Email
-       <input autocomplete="email" name="email" placeholder="email@example.com" required="" type="email"/>
-      </label>
-      <label class="field">
-       Mật khẩu
-       <div class="password-wrap">
-        <input autocomplete="current-password" id="password" name="password" placeholder="Nhập mật khẩu" required="" type="password"/>
-        <button class="show-password" data-toggle-password="password" type="button">
-         Hiện
-        </button>
-       </div>
-      </label>
-      <button class="primary" type="submit">
-       Đăng nhập →
-      </button>
-      <div aria-live="polite" class="message" role="status">
-      </div>
-     </form>
-     <p class="switch">
-      Chưa có tài khoản?
-      <a href="register.html">
-       Đăng ký ngay
-      </a>
-     </p>
-     <p class="notice">
-      F01: Giao diện mẫu. Chưa kết nối API xác thực; nút gửi chưa đăng nhập hoặc tạo tài khoản thật.
-     </p>
-    </div>
-   </section>
-  </main>
-  <script defer="" src="js/config.js">
-  </script>
-  <script defer="" src="js/api.js">
-  </script>
-  <script defer="" src="js/main.js">
-  </script>
- </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập | Pulse Track</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <main class="auth">
+        <section class="hero">
+            <div class="brand">
+                <span class="pulse">⌁</span>
+                Pulse Track
+                <span class="group">NHÓM 2</span>
+            </div>
+
+            <h1>
+                Quản lý công việc<br>
+                thông minh <em>với AI.</em>
+            </h1>
+
+            <p>
+                Lập kế hoạch · Theo dõi tiến độ · Tạo báo cáo tự động.<br>
+                Giúp nhóm làm việc hiệu quả và đồng bộ hơn.
+            </p>
+
+            <img
+                class="illustration"
+                src="assets/kanban-ai-illustration.webp"
+                alt="Minh họa bảng Kanban và trợ lý AI của Pulse Track"
+            >
+
+            <div class="features">
+                <span><b>✦</b> Phân rã công việc bằng AI</span>
+                <span><b>▥</b> Báo cáo tiến độ tự động</span>
+                <span><b>♧</b> Làm việc nhóm hiệu quả</span>
+            </div>
+        </section>
+
+        <section class="auth-right">
+            <div class="panel">
+                <div class="brand">
+                    <span class="pulse">⌁</span>
+                    Pulse Track
+                </div>
+
+                <div class="group-line">NHÓM 2</div>
+
+                <h2>Đăng nhập</h2>
+
+                <p class="subtitle">
+                    Chào mừng đến với hệ thống quản lý công việc tích hợp AI.
+                </p>
+
+                <form data-auth-form="login" novalidate>
+                    <label class="field">
+                        Email
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="email@example.com"
+                            autocomplete="email"
+                            aria-describedby="email-error"
+                            aria-invalid="false"
+                        >
+                        <span
+                            class="field-error"
+                            id="email-error"
+                            aria-live="polite"
+                        ></span>
+                    </label>
+
+                    <label class="field">
+                        Mật khẩu
+                        <div class="password-wrap">
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Nhập mật khẩu"
+                                autocomplete="current-password"
+                                aria-describedby="password-error"
+                                aria-invalid="false"
+                            >
+                            <button
+                                type="button"
+                                class="show-password"
+                                data-toggle-password="password"
+                            >
+                                Hiện
+                            </button>
+                        </div>
+                        <span
+                            class="field-error"
+                            id="password-error"
+                            aria-live="polite"
+                        ></span>
+                    </label>
+
+                    <button class="primary" type="submit">
+                        Đăng nhập →
+                    </button>
+
+                    <div class="message" role="status" aria-live="polite"></div>
+                </form>
+
+                <p class="switch">
+                    Chưa có tài khoản?
+                    <a href="register.html">Đăng ký ngay</a>
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script defer src="js/config.js"></script>
+    <script defer src="js/api.js"></script>
+    <script defer src="js/main.js"></script>
+</body>
 </html>
