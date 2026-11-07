@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dự án của tôi | Pulse Track</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/projects.css">
 </head>
 <body class="auth-checking">
 
@@ -37,29 +38,30 @@
     </header>
 
     <main class="content">
-        <span class="eyebrow">QUẢN LÝ DỰ ÁN</span>
-
-        <h1>Dự án của tôi</h1>
-
-        <p class="muted">
-            Danh sách dự án và chức năng tạo mới sẽ triển khai ở F04.
-        </p>
-
-        <div class="card">
-            <strong>Chưa có dữ liệu dự án</strong>
-
-            <p class="muted">
-                Kết nối API Backend để tải danh sách dự án của bạn.
-            </p>
+        <div class="page-head">
+            <div>
+                <span class="eyebrow">QUẢN LÝ DỰ ÁN</span>
+                <h1>Dự án của tôi</h1>
+                <p class="muted">Các dự án bạn đang tham gia.</p>
+            </div>
+            <button type="button" id="btn-new-project" class="btn btn-primary">+ Tạo dự án</button>
         </div>
 
-        <div class="status">
-            Đây là giao diện khung F01. Chức năng thực tế sẽ được phát triển theo các task F04, F06 và F16; chưa có dữ liệu từ Backend.
+        <div class="toolbar">
+            <label for="filter-status">Hiển thị</label>
+            <select id="filter-status">
+                <option value="active">Đang hoạt động</option>
+                <option value="archived">Đã lưu trữ</option>
+                <option value="all">Tất cả</option>
+            </select>
         </div>
+
+        <div id="project-list" class="project-grid" aria-live="polite"></div>
     </main>
 
     <script defer src="js/config.js"></script>
     <script defer src="js/api.js"></script>
     <script defer src="js/router.js"></script>
+    <script defer src="js/projects.js"></script>
 </body>
 </html>
