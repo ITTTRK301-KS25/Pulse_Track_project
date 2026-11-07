@@ -686,3 +686,449 @@ button[type="submit"]:disabled {
     }
 }
 
+/* ===== F04 - Danh sách dự án và Modal tạo mới ===== */
+
+.f04-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.f04-heading h1 {
+    margin: 8px 0;
+}
+
+.f04-heading p {
+    margin: 0;
+}
+
+.f04-primary,
+.f04-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 11px;
+    padding: 12px 19px;
+    font-weight: 700;
+    font-size: 14px;
+    border: 1px solid transparent;
+}
+
+.f04-primary {
+    background: #ffca20;
+    color: #111827;
+}
+
+.f04-primary:hover {
+    background: #f2b900;
+}
+
+.f04-secondary {
+    background: white;
+    color: #334155;
+    border-color: #d8deea;
+}
+
+.f04-secondary:hover {
+    background: #f8fafc;
+}
+
+.f04-primary:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.f04-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 22px 0;
+}
+
+.f04-toolbar label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.f04-toolbar select,
+.f04-field input,
+.f04-field textarea,
+.f04-field select {
+    font: inherit;
+    border: 1px solid #d8deea;
+    border-radius: 10px;
+    background: white;
+    color: #182033;
+    padding: 11px 13px;
+}
+
+.f04-toolbar select {
+    min-width: 185px;
+}
+
+.f04-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.f04-project-card {
+    min-width: 0;
+    background: white;
+    border: 1px solid #e5e9f1;
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 8px 30px #16243b09;
+}
+
+.f04-card-top,
+.f04-card-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.f04-project-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    background: #fff3c8;
+    border-radius: 12px;
+    color: #a36e00;
+    font-size: 25px;
+}
+
+.f04-project-state,
+.f04-role {
+    font-size: 12px;
+    font-weight: 700;
+    color: #166534;
+    background: #dcfce7;
+    border-radius: 100px;
+    padding: 5px 10px;
+}
+
+.f04-project-card h2 {
+    font-size: 19px;
+    line-height: 1.35;
+    margin: 18px 0 10px;
+    overflow-wrap: anywhere;
+}
+
+.f04-project-card p {
+    font-size: 14px;
+    min-height: 44px;
+    overflow-wrap: anywhere;
+}
+
+.f04-card-bottom {
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px solid #edf0f5;
+}
+
+.f04-role {
+    background: #eef2ff;
+    color: #4338ca;
+}
+
+.f04-timezone {
+    font-size: 12px;
+    color: #64748b;
+    overflow-wrap: anywhere;
+}
+
+.f04-empty {
+    text-align: center;
+    background: white;
+    border: 1px dashed #cbd5e1;
+    border-radius: 18px;
+    padding: 45px 18px;
+    color: #64748b;
+}
+
+.f04-empty h2 {
+    font-size: 20px;
+    color: #1e293b;
+}
+
+.f04-empty-icon {
+    font-size: 45px;
+    color: #d6a000;
+}
+
+.f04-alert {
+    padding: 13px 16px;
+    border-radius: 10px;
+    background: #fff1f2;
+    color: #be123c;
+    margin-bottom: 18px;
+    font-size: 14px;
+}
+
+.f04-alert[data-type="success"] {
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.f04-modal[hidden],
+.f04-alert[hidden],
+.f04-empty[hidden],
+#projects-loading[hidden] {
+    display: none !important;
+}
+
+.f04-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.68);
+    padding: 18px;
+    overflow: auto;
+}
+
+.f04-dialog {
+    background: white;
+    border-radius: 20px;
+    width: min(100%, 530px);
+    padding: 30px;
+    box-shadow: 0 25px 75px #0004;
+    max-height: calc(100vh - 36px);
+    overflow: auto;
+}
+
+.f04-dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.f04-dialog-header h2 {
+    margin: 6px 0 0;
+    font-size: 25px;
+}
+
+.f04-close {
+    border: 0;
+    background: #f1f5f9;
+    border-radius: 9px;
+    font-size: 26px;
+    width: 36px;
+    height: 36px;
+    line-height: 1;
+}
+
+.f04-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 18px;
+    font-size: 14px;
+    font-weight: 650;
+}
+
+.f04-field input,
+.f04-field textarea,
+.f04-field select {
+    width: 100%;
+    outline: none;
+    font-weight: 400;
+}
+
+.f04-field textarea {
+    resize: vertical;
+    min-height: 105px;
+}
+
+.f04-field input:focus,
+.f04-field textarea:focus,
+.f04-field select:focus {
+    border-color: #d8a100;
+    box-shadow: 0 0 0 3px #ffca2030;
+}
+
+.f04-field [aria-invalid="true"] {
+    border-color: #dc2626;
+}
+
+.f04-field-error {
+    font-size: 12px;
+    color: #b42318;
+    font-weight: 400;
+}
+
+.f04-field-error:empty {
+    display: none;
+}
+
+.f04-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.f04-modal-open {
+    overflow: hidden;
+}
+
+@media (max-width: 950px) {
+    .f04-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 620px) {
+    .f04-heading {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .f04-heading .f04-primary {
+        width: 100%;
+    }
+
+    .f04-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .f04-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .f04-dialog {
+        padding: 22px;
+    }
+
+    .f04-actions button {
+        flex: 1;
+    }
+}
+/* F04 - Giữ dấu bắt buộc cùng dòng với nhãn */
+
+.f04-field {
+    display: block;
+}
+
+.f04-field > span {
+    display: inline;
+    color: #dc2626;
+}
+
+.f04-field > input,
+.f04-field > textarea,
+.f04-field > select {
+    display: block;
+    margin-top: 8px;
+}
+
+.f04-field-error {
+    display: block;
+    margin-top: 5px;
+}
+
+/* F04 - Responsive Header Mobile */
+
+@media (max-width: 600px) {
+    .app-header {
+        padding: 16px 20px;
+        gap: 14px;
+    }
+
+    .app-header .brand {
+        font-size: 22px;
+    }
+
+    .app-header nav {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .app-header nav a {
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .app-header .logout-button {
+        font-size: 13px;
+        padding: 8px 12px;
+    }
+
+    .f04-toolbar {
+        gap: 10px;
+    }
+
+    .f04-toolbar select {
+        min-width: 0;
+        max-width: 100%;
+    }
+}
+
+/* F04 - Header nằm ngang trên mọi màn hình */
+
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.app-header .brand {
+    flex-shrink: 0;
+}
+
+.app-header nav {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    gap: 18px;
+}
+
+.app-header nav a,
+.app-header .logout-button {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+    .app-header {
+        padding: 12px 16px;
+        gap: 10px;
+    }
+
+    .app-header .brand {
+        font-size: 18px;
+    }
+
+    .app-header nav {
+        gap: 12px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .app-header nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .app-header nav a {
+        font-size: 12px;
+    }
+
+    .app-header .logout-button {
+        font-size: 12px;
+        padding: 7px 10px;
+    }
+}
