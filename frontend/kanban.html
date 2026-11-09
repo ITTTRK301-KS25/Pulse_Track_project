@@ -7,6 +7,7 @@
     <title>Bảng công việc | Pulse Track</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body class="auth-checking">
 
     <div id="auth-guard-message" role="status" aria-live="polite">
@@ -37,6 +38,7 @@
     </header>
 
     <main class="content">
+
         <span class="eyebrow">KANBAN</span>
 
         <h1>Bảng công việc</h1>
@@ -46,12 +48,20 @@
         </p>
 
         <div class="board">
+
             <section class="lane">
                 <h3>
-                    TODO
+                    BACKLOG
                     <span class="pill">0</span>
                 </h3>
+                <p>Chưa có công việc</p>
+            </section>
 
+            <section class="lane">
+                <h3>
+                    TO DO
+                    <span class="pill">0</span>
+                </h3>
                 <p>Chưa có công việc</p>
             </section>
 
@@ -60,27 +70,36 @@
                     IN PROGRESS
                     <span class="pill">0</span>
                 </h3>
-
                 <p>Chưa có công việc</p>
             </section>
 
             <section class="lane">
                 <h3>
-                    DONE
+                    COMPLETED
                     <span class="pill">0</span>
                 </h3>
-
                 <p>Chưa có công việc</p>
             </section>
+
+            <section class="lane">
+                <h3>
+                    APPROVED
+                    <span class="pill">0</span>
+                </h3>
+                <p>Chưa có công việc</p>
+            </section>
+
         </div>
 
         <div class="status">
             Đây là giao diện khung F01. Chức năng thực tế sẽ được phát triển theo các task F04, F06 và F16; chưa có dữ liệu từ Backend.
         </div>
+
     </main>
 
     <script defer src="js/config.js"></script>
     <script defer src="js/api.js"></script>
     <script defer src="js/router.js"></script>
+
 </body>
 </html>

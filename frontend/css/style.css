@@ -1132,3 +1132,62 @@ button[type="submit"]:disabled {
         padding: 7px 10px;
     }
 }
+
+/* Kanban - 5 columns */
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(180px, 1fr));
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 12px;
+}
+
+.board .lane {
+    min-width: 180px;
+}
+
+/* Kanban - Wider professional layout */
+
+body:has(.board) main.content {
+    width: 94%;
+    max-width: 1600px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+}
+
+body:has(.board) .board {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 20px;
+    width: 100%;
+    margin-top: 26px;
+    overflow-x: visible;
+}
+
+body:has(.board) .board .lane {
+    min-width: 0;
+    min-height: 300px;
+    box-sizing: border-box;
+}
+
+body:has(.board) .board .lane h3 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+body:has(.board) .status {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 30px;
+}
+
+@media (max-width: 1100px) {
+    body:has(.board) .board {
+        grid-template-columns: repeat(5, minmax(190px, 1fr));
+        overflow-x: auto;
+    }
+}

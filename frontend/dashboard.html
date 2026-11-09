@@ -6,75 +6,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tổng quan | Pulse Track</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/workspace.css">
 </head>
-<body class="auth-checking">
-
+<body class="auth-checking workspace-page">
     <div id="auth-guard-message" role="status" aria-live="polite">
         Đang kiểm tra phiên đăng nhập...
     </div>
-
-    <button id="auth-guard-retry" type="button" hidden>
-        Thử lại
-    </button>
-
+    <button id="auth-guard-retry" type="button" hidden>Thử lại</button>
     <div id="app-error-message" role="alert" hidden></div>
 
     <header class="app-header">
         <a href="dashboard.html" class="brand">
-            <span class="pulse">⌁</span>
-            Pulse Track
+            <span class="pulse">⌁</span> Pulse Track
         </a>
-
-        <nav>
-            <a href="dashboard.html">Tổng quan</a>
-
+        <nav aria-label="Điều hướng chính">
+            <a href="dashboard.html" aria-current="page">Tổng quan</a>
             <a href="projects.html">Dự án</a>
-
             <a href="kanban.html">Kanban</a>
-
-            <a href="profile.html" data-user-name>
-                Tài khoản
-            </a>
-
-            <button
-                type="button"
-                class="logout-button"
-                data-logout
-            >
+            <a href="profile.html" data-user-name>Tài khoản</a>
+            <button type="button" class="logout-button" data-logout>
                 Đăng xuất
             </button>
         </nav>
     </header>
 
-    <main class="content">
-        <span class="eyebrow">PULSE TRACK</span>
+    <main class="content workspace-content">
+        <div class="workspace-topline">
+            <span class="eyebrow">PULSE TRACK / KHÔNG GIAN LÀM VIỆC</span>
+            <span class="workspace-chip">TỔNG QUAN NHÓM</span>
+        </div>
 
-        <h1>Tổng quan</h1>
-
-        <p class="muted">
-            Theo dõi công việc và tiến độ dự án của nhóm.
-        </p>
-
-        <div class="cards">
-            <div class="card">
-                <p class="muted">Tổng công việc</p>
-                <strong>—</strong>
-            </div>
-
-            <div class="card">
-                <p class="muted">Đang thực hiện</p>
-                <strong>—</strong>
-            </div>
-
-            <div class="card">
-                <p class="muted">Đã hoàn thành</p>
-                <strong>—</strong>
+        <div class="workspace-heading">
+            <div>
+                <h1>Tổng quan</h1>
+                <p class="muted">
+                    Theo dõi công việc và tiến độ dự án của nhóm một cách tổng quan.
+                </p>
             </div>
         </div>
 
-        <div class="status">
-            Đây là giao diện khung F01. Chức năng thực tế sẽ được phát triển
-            theo các task F04, F06 và F16; chưa có dữ liệu từ Backend.
+        <div class="overview-cards">
+            <article class="overview-card">
+                <span class="overview-icon icon-total">▦</span>
+                <p>Tổng công việc</p>
+                <strong>—</strong>
+                <small>Chưa kết nối dữ liệu thống kê công việc</small>
+            </article>
+
+            <article class="overview-card">
+                <span class="overview-icon icon-progress">◷</span>
+                <p>Đang thực hiện</p>
+                <strong>—</strong>
+                <small>Đang chờ dữ liệu công việc</small>
+            </article>
+
+            <article class="overview-card">
+                <span class="overview-icon icon-done">✓</span>
+                <p>Công việc hoàn thành</p>
+                <strong>—</strong>
+                <small>Đang chờ dữ liệu công việc</small>
+            </article>
+        </div>
+
+        <div class="workspace-panel">
+            <div>
+                <span class="eyebrow">QUY TRÌNH LÀM VIỆC</span>
+                <h2>Quản lý công việc hiệu quả hơn.</h2>
+                <p class="muted">
+                    Theo dõi công việc qua 5 trạng thái và phối hợp
+                    cùng các thành viên trong nhóm.
+                </p>
+            </div>
+            <a class="workspace-link" href="kanban.html">
+                Xem bảng Kanban <span aria-hidden="true">→</span>
+            </a>
         </div>
     </main>
 
