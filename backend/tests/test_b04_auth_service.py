@@ -17,6 +17,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.core import security
 from app.database.db import Base
 from app.models.user import UserSession
 from app.services import auth_service, user_service
@@ -46,7 +47,7 @@ def _utc(value):
 def test_create_session_stores_only_token_hash_and_24h_expiry(db, user):
     token = auth_service.create_session(db, user)
     row = db.query(UserSession).one()
-    assert row.token_hash == auth_service.hash_token(token)
+    assert row.token_hash == security.hash_session_token(token)
     assert row.token_hash != token
     ttl = _utc(row.expires_at) - _utc(row.created_at)
     assert ttl == timedelta(hours=24)

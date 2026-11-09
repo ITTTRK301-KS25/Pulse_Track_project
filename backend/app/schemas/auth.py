@@ -5,6 +5,8 @@ from datetime import datetime
 from pydantic import BaseModel, field_validator
 from pydantic_core import PydanticCustomError
 
+from app.core.security import validate_password as _validate_password
+
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
@@ -39,11 +41,10 @@ class RegisterRequest(BaseModel):
     @field_validator("password")
     @classmethod
     def _password(cls, v: str) -> str:
-        if len(v) < 8:
-            raise PydanticCustomError("invalid_value", "Mật khẩu phải có ít nhất 8 ký tự")
-        if len(v.encode("utf-8")) > 72:
-            raise PydanticCustomError("invalid_value", "Mật khẩu tối đa 72 byte")
-        return v
+        try:
+            return _validate_password(v)
+        except ValueError as exc:
+            raise PydanticCustomError("invalid_value", str(exc)) from exc
 
     @field_validator("display_name")
     @classmethod

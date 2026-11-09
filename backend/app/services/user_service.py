@@ -7,15 +7,13 @@
 from datetime import timezone
 from typing import Optional
 
-import bcrypt
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core import security
 from app.models.user import User
 from app.repositories import user_repository
-
-MAX_PASSWORD_BYTES = 72  # giới hạn của bcrypt
 
 _dummy_hash: Optional[str] = None
 
@@ -24,25 +22,11 @@ def normalize_email(email: str) -> str:
     return email.strip().lower()
 
 
-def hash_password(password: str) -> str:
-    raw = password.encode("utf-8")
-    if len(raw) > MAX_PASSWORD_BYTES:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Mật khẩu tối đa 72 byte")
-    return bcrypt.hashpw(raw, bcrypt.gensalt()).decode("utf-8")
-
-
-def verify_password(password: str, password_hash: str) -> bool:
-    try:
-        return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
-    except ValueError:  # mật khẩu quá dài hoặc hash hỏng
-        return False
-
-
 def _get_dummy_hash() -> str:
     """Hash giả để thời gian phản hồi khi email không tồn tại gần bằng khi sai mật khẩu."""
     global _dummy_hash
     if _dummy_hash is None:
-        _dummy_hash = hash_password("dummy-password-for-timing")
+        _dummy_hash = security.hash_password("dummy-password-for-timing")
     return _dummy_hash
 
 
@@ -56,8 +40,13 @@ def register(db: Session, *, email: str, password: str, display_name: str) -> Us
         raise HTTPException(status.HTTP_409_CONFLICT, "Email đã được sử dụng")
 
     try:
+        password_hash = security.hash_password(password)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+
+    try:
         return user_repository.create(
-            db, email=email, password_hash=hash_password(password), display_name=display_name
+            db, email=email, password_hash=password_hash, display_name=display_name
         )
     except IntegrityError:  # hai request đăng ký cùng email chạy đồng thời
         db.rollback()
@@ -66,7 +55,9 @@ def register(db: Session, *, email: str, password: str, display_name: str) -> Us
 
 def authenticate(db: Session, *, email: str, password: str) -> User:
     user = user_repository.get_by_email(db, normalize_email(email))
-    password_ok = verify_password(password, user.password_hash if user else _get_dummy_hash())
+    password_ok = security.verify_password(
+        password, user.password_hash if user else _get_dummy_hash()
+    )
     if user is None or not password_ok:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email hoặc mật khẩu không đúng")
     return user
