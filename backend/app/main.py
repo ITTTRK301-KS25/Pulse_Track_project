@@ -1,18 +1,28 @@
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from app.database.db import get_db, Base, engine
+from app.database.db import engine, get_db, initialize_database
 from app.api import auth as auth_api
+from app.api import members as members_api
 from app.api import projects as projects_api
 from app.core.exception import register_exception_handler
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    initialize_database(engine)
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 register_exception_handler(app)
 app.include_router(auth_api.router)
 app.include_router(projects_api.router)
+app.include_router(members_api.router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,9 +34,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-
-Base.metadata.create_all(bind=engine)
-
 
 @app.get("/")
 async def read_root():

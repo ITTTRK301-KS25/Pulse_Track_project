@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pytest
 from fastapi import HTTPException
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -23,6 +23,11 @@ from app.services import user_service
 @pytest.fixture()
 def db():
     engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    event.listen(
+        engine,
+        "connect",
+        lambda connection, _: connection.create_function("CHAR_LENGTH", 1, len),
+    )
     Base.metadata.create_all(engine)
     session = sessionmaker(bind=engine, autoflush=False)()
     try:

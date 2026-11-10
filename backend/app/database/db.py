@@ -20,3 +20,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def initialize_database(bind):
+    from app.models.project import Project, ProjectMember
+    from app.models.user import User, UserSession
+
+    Base.metadata.create_all(bind=bind)
