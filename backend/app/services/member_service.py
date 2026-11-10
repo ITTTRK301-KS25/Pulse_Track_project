@@ -48,6 +48,17 @@ def list_members(db: Session, user: User, project_id: int) -> list[dict]:
     return [member_to_dict(m, u) for m, u in rows]
 
 
+def lookup_account(db: Session, actor: User, project_id: int, email: str) -> dict:
+    project, my_role = access.get_project_and_role(db, project_id, actor)
+    access.require(my_role, "member.manage")
+    access.require_active(project)
+
+    target = user_repository.get_by_email(db, email.strip().lower())
+    if target is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Không tìm thấy tài khoản với email này")
+    return {"email": target.email, "display_name": target.display_name}
+
+
 def add_member(db: Session, actor: User, project_id: int, *, email: str, role: str) -> dict:
     project, my_role = access.get_project_and_role(db, project_id, actor, lock=True)
     access.require(my_role, "member.manage")
