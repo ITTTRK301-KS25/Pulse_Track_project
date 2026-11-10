@@ -1,0 +1,18 @@
+/* F05: trang thành viên dự án. Dùng lại các class của projects.css (btn, badge, card, form-banner...). */
+.members-h{margin:0 0 12px;font-size:17px}
+.members-add{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.members-add label{font-size:13.5px;font-weight:650;color:#273246;display:block}
+.members-add .members-grow{flex:1 1 260px}
+.members-add input,.members-add select,.members-table select{display:block;margin-top:6px;padding:10px 12px;border:1px solid #d8deea;border-radius:10px;font:inherit;background:#fff}
+.members-add input{width:100%}
+.members-add .field-error{display:block;color:#b91c1c;font-size:12.5px;margin-top:4px;font-weight:500}.members-add .field-error:empty{display:none}
+#add-member-box{margin:18px 0}
+.members-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e5e9f1;border-radius:14px;overflow:hidden;margin-top:6px}
+.members-table th,.members-table td{padding:12px 14px;text-align:left;border-bottom:1px solid #eef1f6;font-size:14px;vertical-align:middle}
+.members-table th{background:#f8fafc;color:#475569;font-size:12.5px;text-transform:uppercase;letter-spacing:.4px}
+.members-table tr:last-child td{border-bottom:0}
+.members-table select{margin:0;padding:6px 10px;border-radius:8px;font-size:13px}
+.members-name{font-weight:650}.members-you{color:#a97800;font-size:12px;font-weight:700;margin-left:6px}
+.members-actions{text-align:right;white-space:nowrap}
+.scroll-x{overflow-x:auto}
+.members-empty{text-align:center;color:#64748b;padding:26px!important}
