@@ -9,7 +9,6 @@ def load(name, rel):
     spec = importlib.util.spec_from_file_location(name, A / rel); m = importlib.util.module_from_spec(spec)
     sys.modules[name] = m; spec.loader.exec_module(m); return m
 
-# schemas.task_update import "app.schemas.task": nạp giả để test chạy độc lập
 import types
 pkg = types.ModuleType("app"); pkg.__path__ = []; sys.modules.setdefault("app", pkg)
 sp = types.ModuleType("app.schemas"); sp.__path__ = []; sys.modules.setdefault("app.schemas", sp)
@@ -42,6 +41,12 @@ def test_explicit_null_clears_but_absent_is_kept():
     u = U(version=2, due_date=None, assignee_id=None)
     assert u.requested() == {"due_date": None, "assignee_id": None}
     assert U(version=2, title="B").requested() == {"title": "B"}
+
+
+def test_assignee_id_is_integer():
+    assert U(version=2, assignee_id="12").requested() == {"assignee_id": 12}
+    with pytest.raises(ValidationError):
+        U(version=2, assignee_id="not-an-id")
 
 
 def test_errors_json_serializable():

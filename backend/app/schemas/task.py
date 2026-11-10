@@ -38,18 +38,18 @@ def clean_due_date(v):
         raise PydanticCustomError("invalid_date", "Ngày hạn phải có dạng YYYY-MM-DD")
 
 
-def clean_assignee(v):
-    if v is None:
-        return None
-    v = str(v).strip()
-    return v or None
+def clean_assignee(v: int | str | None) -> int | str | None:
+    if isinstance(v, str):
+        v = v.strip()
+        return v or None
+    return v
 
 
 class CreateTaskRequest(BaseModel):
     title: str
     description: str | None = None
     due_date: str | None = None
-    assignee_id: str | None = None
+    assignee_id: int | None = None
 
     @field_validator("title")
     @classmethod
@@ -67,7 +67,7 @@ class CreateTaskRequest(BaseModel):
         d = clean_due_date(v)
         return d.isoformat() if d else None
 
-    @field_validator("assignee_id")
+    @field_validator("assignee_id", mode="before")
     @classmethod
     def _assignee(cls, v):
         return clean_assignee(v)

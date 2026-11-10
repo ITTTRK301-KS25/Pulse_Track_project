@@ -1,4 +1,4 @@
-"""Kiểm tra quyền theo dự án ở backend. Các task sau (Task, Thành viên, Comment, AI...) dùng lại các hàm này.
+"""Kiểm tra quyền theo dự án ở backend.
 
 - Không thuộc dự án và dự án không tồn tại đều trả 403 như nhau, để không lộ dữ liệu.
 - Dự án đã lưu trữ chỉ đọc: gọi require_active(project) trước mọi thao tác ghi (409).
@@ -7,17 +7,17 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.project import Project, ProjectMember
+from app.models.project import Project
+from app.models.project_member import ProjectMember
 from app.models.user import User
 
 OWNER, MEMBER, VIEWER = "OWNER", "MEMBER", "VIEWER"
 
 PERMISSIONS = {
     "project.read": (OWNER, MEMBER, VIEWER),
-    "project.edit": (OWNER,),            # sửa tên/mô tả, archive, restore
+    "project.edit": (OWNER,),
     "member.manage": (OWNER,),
     "task.write": (OWNER, MEMBER),
-    "comment.write": (OWNER, MEMBER),
 }
 
 
@@ -25,7 +25,7 @@ def can(role: str | None, action: str) -> bool:
     return role is not None and role in PERMISSIONS.get(action, ())
 
 
-def get_project_and_role(db: Session, project_id: str, user: User, *, lock: bool = False) -> tuple[Project, str]:
+def get_project_and_role(db: Session, project_id: int, user: User, *, lock: bool = False) -> tuple[Project, str]:
     q = select(Project).where(Project.id == project_id)
     if lock:
         q = q.with_for_update()

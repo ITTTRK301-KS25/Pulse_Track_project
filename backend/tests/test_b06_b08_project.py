@@ -28,15 +28,18 @@ def test_invalid_timezone(tz):
         proj.ProjectCreate(name="x", timezone=tz)
 
 
-def test_name_description_dates():
+def test_project_create_fields_match_contract():
     for bad in ["", "   ", "x" * 151]:
         with pytest.raises(ValidationError):
             proj.ProjectCreate(name=bad)
     with pytest.raises(ValidationError):
         proj.ProjectCreate(name="x", description="d" * 2001)
-    with pytest.raises(ValidationError):
-        proj.ProjectCreate(name="x", start_date="2026-10-10", end_date="2026-10-01")
-    assert proj.ProjectCreate(name="x", start_date="2026-10-01", end_date="2026-10-01")
+    project = proj.ProjectCreate(name="x", description="description", timezone="UTC")
+    assert project.model_dump() == {
+        "name": "x",
+        "description": "description",
+        "timezone": "UTC",
+    }
 
 
 def test_update_partial_and_timezone_locked():

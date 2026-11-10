@@ -6,6 +6,8 @@
 """
 from datetime import date
 
+from fastapi import HTTPException, status
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.models.task import Task
@@ -33,8 +35,8 @@ def task_to_dict(t: Task) -> dict:
     }
 
 
-def create_task(db: Session, user: User, project_id: str, title: str, description: str | None,
-                due_date: str | None, assignee_id: str | None) -> dict:
+def create_task(db: Session, user: User, project_id: int, title: str, description: str | None,
+                due_date: str | None, assignee_id: int | None) -> dict:
     project, role = access.get_project_and_role(db, project_id, user, lock=True)
     access.require(role, "task.write")
     access.require_active(project)
@@ -44,11 +46,50 @@ def create_task(db: Session, user: User, project_id: str, title: str, descriptio
                     due_date=date.fromisoformat(due_date) if due_date else None,
                     assignee_id=assignee_id, version=1, created_by=user.id)
         db.add(task)
-        db.flush()  # có task.id
+        db.flush()
         add_event(db, task, user.id, "CREATE", None, task_snapshot(task))
         db.commit()
     except Exception:
         db.rollback()
         raise
     db.refresh(task)
+    return task_to_dict(task)
+
+
+def list_tasks(
+    db: Session,
+    user: User,
+    project_id: int,
+    *,
+    status_filter: str | None = None,
+    assignee_id: int | None = None,
+    keyword: str | None = None,
+    due_date: date | None = None,
+    archived: bool = False,
+) -> list[dict]:
+    _, role = access.get_project_and_role(db, project_id, user)
+    access.require(role, "project.read")
+
+    query = select(Task).where(Task.project_id == project_id)
+    query = query.where(Task.archived_at.is_not(None) if archived else Task.archived_at.is_(None))
+    if status_filter is not None:
+        query = query.where(Task.status == status_filter)
+    if assignee_id is not None:
+        query = query.where(Task.assignee_id == assignee_id)
+    if due_date is not None:
+        query = query.where(Task.due_date == due_date)
+    if keyword and keyword.strip():
+        term = f"%{keyword.strip()}%"
+        query = query.where(or_(Task.title.ilike(term), Task.description.ilike(term)))
+
+    tasks = db.scalars(query.order_by(Task.created_at.desc(), Task.id)).all()
+    return [task_to_dict(task) for task in tasks]
+
+
+def get_task(db: Session, user: User, task_id: int) -> dict:
+    task = db.get(Task, task_id)
+    if task is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Không tìm thấy task")
+    _, role = access.get_project_and_role(db, task.project_id, user)
+    access.require(role, "project.read")
     return task_to_dict(task)

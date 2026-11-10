@@ -18,25 +18,24 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 def create_project(req: Request, body: ProjectCreate, user: User = Depends(get_current_user),
                    db: Session = Depends(get_db)):
     data = project_service.create_project(
-        db, user, name=body.name, description=body.description, start_date=body.start_date,
-        end_date=body.end_date, timezone_name=body.timezone)
+        db, user, name=body.name, description=body.description, timezone_name=body.timezone)
     return create_response(req, 201, "Tạo dự án thành công", data, None)
 
 
 @router.get("")
-def list_projects(req: Request, status: Literal["active", "archived", "all"] = "active",
+def list_projects(req: Request, status: Literal["active", "archived"] = "active",
                   user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return create_response(req, 200, "OK", project_service.list_projects(db, user, status), None)
 
 
 @router.get("/{project_id}")
-def get_project(req: Request, project_id: str, user: User = Depends(get_current_user),
+def get_project(req: Request, project_id: int, user: User = Depends(get_current_user),
                 db: Session = Depends(get_db)):
     return create_response(req, 200, "OK", project_service.get_project(db, user, project_id), None)
 
 
 @router.patch("/{project_id}")
-def update_project(req: Request, project_id: str, body: ProjectUpdate, user: User = Depends(get_current_user),
+def update_project(req: Request, project_id: int, body: ProjectUpdate, user: User = Depends(get_current_user),
                    db: Session = Depends(get_db)):
     changes = {k: getattr(body, k) for k in body.model_fields_set}
     return create_response(req, 200, "Cập nhật dự án thành công",
@@ -44,12 +43,12 @@ def update_project(req: Request, project_id: str, body: ProjectUpdate, user: Use
 
 
 @router.post("/{project_id}/archive")
-def archive_project(req: Request, project_id: str, user: User = Depends(get_current_user),
+def archive_project(req: Request, project_id: int, user: User = Depends(get_current_user),
                     db: Session = Depends(get_db)):
     return create_response(req, 200, "Đã lưu trữ dự án", project_service.set_archived(db, user, project_id, True), None)
 
 
 @router.post("/{project_id}/restore")
-def restore_project(req: Request, project_id: str, user: User = Depends(get_current_user),
+def restore_project(req: Request, project_id: int, user: User = Depends(get_current_user),
                     db: Session = Depends(get_db)):
     return create_response(req, 200, "Đã khôi phục dự án", project_service.set_archived(db, user, project_id, False), None)

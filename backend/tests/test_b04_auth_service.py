@@ -8,7 +8,6 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 os.environ.setdefault("DATABASE_URL", "sqlite://")
-os.environ.setdefault("SECRET_KEY", "test-secret")
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pytest
@@ -71,7 +70,7 @@ def test_revoke_session_then_resolve_returns_401(db, user):
     token = auth_service.create_session(db, user)
     _, session = auth_service.resolve_session(db, token)
     auth_service.revoke_session(db, session)
-    auth_service.revoke_session(db, session)  # gọi lại vẫn an toàn
+    auth_service.revoke_session(db, session)
     assert session.revoked_at is not None
     with pytest.raises(HTTPException) as e:
         auth_service.resolve_session(db, token)

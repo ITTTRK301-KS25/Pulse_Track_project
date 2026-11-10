@@ -16,7 +16,7 @@ from app.core import security
 from app.models.user import User, UserSession
 from app.repositories import session_repository, user_repository
 
-LAST_ACTIVE_UPDATE_SECONDS = 60  # chỉ ghi last_active_at tối đa mỗi 60 giây để tránh ghi DB ở mọi request
+LAST_ACTIVE_UPDATE_SECONDS = 60
 
 
 def _now() -> datetime:

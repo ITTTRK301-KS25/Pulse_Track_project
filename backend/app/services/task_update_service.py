@@ -23,16 +23,26 @@ from app.services.task_service import task_to_dict
 STALE_MSG = "Task đã được người khác cập nhật, vui lòng tải lại rồi thử lại"
 
 
-def update_task(db: Session, user: User, task_id: str, version: int, requested: dict) -> dict:
+def update_task(
+    db: Session,
+    user: User,
+    task_id: int,
+    version: int,
+    requested: dict,
+    *,
+    subtask_only: bool = False,
+) -> dict:
     task = db.get(Task, task_id)
     if task is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Không tìm thấy task")
     project, role = access.get_project_and_role(db, task.project_id, user, lock=True)
     access.require(role, "task.write")
     access.require_active(project)
-    db.refresh(task)  # đọc lại sau khi giữ khóa để lấy version mới nhất
+    db.refresh(task)
     if task.archived_at is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "Task đã lưu trữ, chỉ được đọc")
+    if subtask_only and task.parent_id is None:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Endpoint này chỉ áp dụng cho subtask")
     if is_stale(task.version, version):
         raise HTTPException(status.HTTP_409_CONFLICT, STALE_MSG)
 

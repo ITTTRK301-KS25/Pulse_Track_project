@@ -72,7 +72,7 @@ class UpdateMeRequest(BaseModel):
 
 
 class UserOut(BaseModel):
-    id: str
+    id: int
     email: str
     display_name: str
     created_at: datetime

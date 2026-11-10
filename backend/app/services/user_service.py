@@ -48,7 +48,7 @@ def register(db: Session, *, email: str, password: str, display_name: str) -> Us
         return user_repository.create(
             db, email=email, password_hash=password_hash, display_name=display_name
         )
-    except IntegrityError:  # hai request đăng ký cùng email chạy đồng thời
+    except IntegrityError:
         db.rollback()
         raise HTTPException(status.HTTP_409_CONFLICT, "Email đã được sử dụng")
 
@@ -73,7 +73,7 @@ def update_display_name(db: Session, user: User, display_name: str) -> User:
 def user_to_dict(user: User) -> dict:
     """Dữ liệu user trả ra API. Tuyệt đối không có password_hash."""
     created_at = user.created_at
-    if created_at.tzinfo is None:  # MySQL trả datetime không múi giờ, giá trị luôn là UTC
+    if created_at.tzinfo is None:
         created_at = created_at.replace(tzinfo=timezone.utc)
     return {
         "id": user.id,

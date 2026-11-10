@@ -5,7 +5,8 @@ from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models.project import Project, ProjectMember
+from app.models.project import Project
+from app.models.project_member import ProjectMember
 from app.models.user import User
 from app.services import project_access as access
 
@@ -24,12 +25,12 @@ def project_to_dict(p: Project, role: str | None = None, member_count: int | Non
         "id": p.id,
         "name": p.name,
         "description": p.description,
-        "start_date": p.start_date.isoformat() if p.start_date else None,
-        "end_date": p.end_date.isoformat() if p.end_date else None,
         "timezone": p.timezone,
+        "status": "archived" if p.archived_at is not None else "active",
         "archived_at": _iso(p.archived_at),
         "created_by": p.created_by,
         "created_at": _iso(p.created_at),
+        "role": role,
         "my_role": role,
     }
     if member_count is not None:
@@ -37,11 +38,9 @@ def project_to_dict(p: Project, role: str | None = None, member_count: int | Non
     return d
 
 
-# ---------- B06 ----------
-def create_project(db: Session, user: User, *, name, description, start_date, end_date, timezone_name) -> dict:
+def create_project(db: Session, user: User, *, name, description, timezone_name) -> dict:
     """Tạo dự án và gán người tạo làm OWNER trong cùng một transaction."""
-    project = Project(name=name, description=description, start_date=start_date, end_date=end_date,
-                      timezone=timezone_name, created_by=user.id)
+    project = Project(name=name, description=description, timezone=timezone_name, created_by=user.id)
     db.add(project)
     try:
         db.flush()
@@ -54,7 +53,6 @@ def create_project(db: Session, user: User, *, name, description, start_date, en
     return project_to_dict(project, access.OWNER, 1)
 
 
-# ---------- B07 ----------
 def list_projects(db: Session, user: User, status_filter: str = "active") -> list[dict]:
     q = (select(Project, ProjectMember.role)
          .join(ProjectMember, ProjectMember.project_id == Project.id)
@@ -62,10 +60,10 @@ def list_projects(db: Session, user: User, status_filter: str = "active") -> lis
          .order_by(Project.created_at.desc(), Project.id))
     if status_filter == "active":
         q = q.where(Project.archived_at.is_(None))
-    elif status_filter == "archived":
+    else:
         q = q.where(Project.archived_at.is_not(None))
     rows = db.execute(q).all()
-    counts: dict[str, int] = {}
+    counts: dict[int, int] = {}
     if rows:
         ids = [p.id for p, _ in rows]
         counts = dict(db.execute(
@@ -74,21 +72,16 @@ def list_projects(db: Session, user: User, status_filter: str = "active") -> lis
     return [project_to_dict(p, role, counts.get(p.id, 0)) for p, role in rows]
 
 
-def get_project(db: Session, user: User, project_id: str) -> dict:
+def get_project(db: Session, user: User, project_id: int) -> dict:
     project, role = access.get_project_and_role(db, project_id, user)
     count = db.scalar(select(func.count()).select_from(ProjectMember).where(ProjectMember.project_id == project_id))
     return project_to_dict(project, role, count)
 
 
-# ---------- B08 ----------
-def update_project(db: Session, user: User, project_id: str, changes: dict) -> dict:
+def update_project(db: Session, user: User, project_id: int, changes: dict) -> dict:
     project, role = access.get_project_and_role(db, project_id, user, lock=True)
     access.require(role, "project.edit")
     access.require_active(project)
-    start = changes.get("start_date", project.start_date)
-    end = changes.get("end_date", project.end_date)
-    if start and end and start > end:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Ngày bắt đầu phải trước hoặc bằng ngày kết thúc")
     for key, value in changes.items():
         setattr(project, key, value)
     db.commit()
@@ -96,7 +89,7 @@ def update_project(db: Session, user: User, project_id: str, changes: dict) -> d
     return project_to_dict(project, role)
 
 
-def set_archived(db: Session, user: User, project_id: str, archive: bool) -> dict:
+def set_archived(db: Session, user: User, project_id: int, archive: bool) -> dict:
     """Chỉ đổi archived_at; không đụng tới dữ liệu và múi giờ gốc."""
     project, role = access.get_project_and_role(db, project_id, user, lock=True)
     access.require(role, "project.edit")

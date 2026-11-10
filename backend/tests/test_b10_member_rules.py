@@ -28,7 +28,7 @@ def test_non_owner_changes_never_blocked():
     assert not rules.would_leave_no_owner(1, "MEMBER", "VIEWER")
     assert not rules.would_leave_no_owner(1, "VIEWER", None)
     assert not rules.would_leave_no_owner(1, "MEMBER", "OWNER")
-    assert not rules.would_leave_no_owner(1, "OWNER", "OWNER")   # giữ nguyên vai trò
+    assert not rules.would_leave_no_owner(1, "OWNER", "OWNER")
 
 
 def test_role_dto():

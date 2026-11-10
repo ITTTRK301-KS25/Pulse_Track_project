@@ -5,9 +5,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from app.database.db import get_db, Base, engine
+from app.core.config import settings
 from app.api import auth as auth_api
 from app.api import projects as projects_api
 from app.api import tasks as tasks_api
+from app.api import tasks_read as tasks_read_api
 from app.api import tasks_update as tasks_update_api
 from app.api import members as members_api
 from app.api import members_manage as members_manage_api
@@ -21,6 +23,7 @@ register_exception_handler(app)
 app.include_router(auth_api.router)
 app.include_router(projects_api.router)
 app.include_router(tasks_api.router)
+app.include_router(tasks_read_api.router)
 app.include_router(tasks_update_api.router)
 app.include_router(members_api.router)
 app.include_router(members_manage_api.router)
@@ -30,10 +33,11 @@ app.include_router(subtasks_api.router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
+    allow_origins=list(dict.fromkeys([
+        *settings.ALLOWED_ORIGINS,
         "http://127.0.0.1:5500",
-        "http://localhost:5500"
-    ],
+        "http://localhost:5500",
+    ])),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]

@@ -15,6 +15,13 @@ def test_minimal_and_trim():
     assert t.title == "Viết API" and t.description is None and t.due_date is None and t.assignee_id is None
 
 
+def test_assignee_id_is_integer():
+    assert Create(title="a", assignee_id="12").assignee_id == 12
+    assert Create(title="a", assignee_id="  ").assignee_id is None
+    with pytest.raises(ValidationError):
+        Create(title="a", assignee_id="not-an-id")
+
+
 def test_title_bounds():
     for bad in ("", "   "):
         with pytest.raises(ValidationError):

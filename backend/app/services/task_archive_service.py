@@ -18,7 +18,7 @@ from app.services.task_history_service import _iso, add_event
 from app.services.task_service import task_to_dict
 
 
-def _change(db: Session, user: User, task_id: str, action: str) -> dict:
+def _change(db: Session, user: User, task_id: int, action: str) -> dict:
     task = db.get(Task, task_id)
     if task is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Không tìm thấy task")
@@ -43,9 +43,9 @@ def _change(db: Session, user: User, task_id: str, action: str) -> dict:
     return task_to_dict(task)
 
 
-def archive_task(db: Session, user: User, task_id: str) -> dict:
+def archive_task(db: Session, user: User, task_id: int) -> dict:
     return _change(db, user, task_id, "archive")
 
 
-def restore_task(db: Session, user: User, task_id: str) -> dict:
+def restore_task(db: Session, user: User, task_id: int) -> dict:
     return _change(db, user, task_id, "restore")

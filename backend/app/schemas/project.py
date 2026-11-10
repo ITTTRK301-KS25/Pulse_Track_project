@@ -1,8 +1,7 @@
 """B06/B08: DTO dự án. Dùng PydanticCustomError để lỗi 422 luôn chuyển được sang JSON bằng handler của nhóm."""
-from datetime import date
 from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, field_validator
 from pydantic_core import PydanticCustomError
 
 DEFAULT_TIMEZONE = "Asia/Ho_Chi_Minh"
@@ -42,27 +41,17 @@ def clean_description(v: str | None) -> str | None:
 class ProjectCreate(BaseModel):
     name: str
     description: str | None = None
-    start_date: date | None = None
-    end_date: date | None = None
     timezone: str = DEFAULT_TIMEZONE
 
     _name = field_validator("name")(clean_name)
     _desc = field_validator("description")(clean_description)
     _tz = field_validator("timezone")(validate_iana)
 
-    @model_validator(mode="after")
-    def _dates(self):
-        if self.start_date and self.end_date and self.start_date > self.end_date:
-            raise _err("Ngày bắt đầu phải trước hoặc bằng ngày kết thúc")
-        return self
-
 
 class ProjectUpdate(BaseModel):
     """B08: sửa một phần. Múi giờ không được đổi sau khi tạo."""
     name: str | None = None
     description: str | None = None
-    start_date: date | None = None
-    end_date: date | None = None
     timezone: str | None = None
 
     @field_validator("name")

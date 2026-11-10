@@ -23,8 +23,8 @@ from app.services.task_history_service import add_event, task_snapshot
 from app.services.task_service import task_to_dict
 
 
-def create_subtask(db: Session, user: User, parent_id: str, title: str, description: str | None,
-                   due_date: str | None, assignee_id: str | None) -> dict:
+def create_subtask(db: Session, user: User, parent_id: int, title: str, description: str | None,
+                   due_date: str | None, assignee_id: int | None) -> dict:
     parent = db.get(Task, parent_id)
     if parent is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Không tìm thấy task cha")
@@ -53,5 +53,7 @@ def create_subtask(db: Session, user: User, parent_id: str, title: str, descript
     return task_to_dict(sub)
 
 
-def set_status(db: Session, user: User, task_id: str, new_status: str, version: int) -> dict:
-    return task_update_service.update_task(db, user, task_id, version, {"status": new_status})
+def set_status(db: Session, user: User, task_id: int, new_status: str, version: int) -> dict:
+    return task_update_service.update_task(
+        db, user, task_id, version, {"status": new_status}, subtask_only=True
+    )

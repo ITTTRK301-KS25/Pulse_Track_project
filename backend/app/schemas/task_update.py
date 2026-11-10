@@ -13,7 +13,7 @@ class UpdateTaskRequest(BaseModel):
     description: str | None = None
     status: str | None = None
     due_date: str | None = None
-    assignee_id: str | None = None
+    assignee_id: int | None = None
 
     @field_validator("title")
     @classmethod
@@ -43,7 +43,7 @@ class UpdateTaskRequest(BaseModel):
         d = clean_due_date(v)
         return d.isoformat() if d else None
 
-    @field_validator("assignee_id")
+    @field_validator("assignee_id", mode="before")
     @classmethod
     def _assignee(cls, v):
         return clean_assignee(v)

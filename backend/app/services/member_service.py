@@ -12,7 +12,7 @@ from sqlalchemy import case, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.models.project import ProjectMember
+from app.models.project_member import ProjectMember
 from app.models.user import User
 from app.repositories import user_repository
 from app.services import project_access as access
@@ -36,8 +36,8 @@ def member_to_dict(m: ProjectMember, u: User) -> dict:
     }
 
 
-def list_members(db: Session, user: User, project_id: str) -> list[dict]:
-    access.get_project_and_role(db, project_id, user)      # 403 nếu không thuộc dự án
+def list_members(db: Session, user: User, project_id: int) -> list[dict]:
+    access.get_project_and_role(db, project_id, user)
     order_role = case((ProjectMember.role == "OWNER", 0), (ProjectMember.role == "MEMBER", 1), else_=2)
     rows = db.execute(
         select(ProjectMember, User)
@@ -48,7 +48,7 @@ def list_members(db: Session, user: User, project_id: str) -> list[dict]:
     return [member_to_dict(m, u) for m, u in rows]
 
 
-def add_member(db: Session, actor: User, project_id: str, *, email: str, role: str) -> dict:
+def add_member(db: Session, actor: User, project_id: int, *, email: str, role: str) -> dict:
     project, my_role = access.get_project_and_role(db, project_id, actor, lock=True)
     access.require(my_role, "member.manage")
     access.require_active(project)
@@ -66,7 +66,7 @@ def add_member(db: Session, actor: User, project_id: str, *, email: str, role: s
     db.add(member)
     try:
         db.commit()
-    except IntegrityError:                                   # trùng do hai yêu cầu song song
+    except IntegrityError:
         db.rollback()
         raise HTTPException(status.HTTP_409_CONFLICT, "Người này đã là thành viên của dự án")
     db.refresh(member)

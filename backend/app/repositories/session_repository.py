@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.models.user import UserSession
 
 
-def create(db: Session, *, user_id: str, token_hash: str, now: datetime, expires_at: datetime) -> UserSession:
+def create(db: Session, *, user_id: int, token_hash: str, now: datetime, expires_at: datetime) -> UserSession:
     session = UserSession(
         user_id=user_id,
         token_hash=token_hash,

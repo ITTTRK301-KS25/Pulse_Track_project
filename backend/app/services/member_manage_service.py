@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.member_rules import would_leave_no_owner
-from app.models.project import ProjectMember
+from app.models.project_member import ProjectMember
 from app.models.user import User
 from app.services import project_access as access
 from app.services.member_service import member_to_dict
@@ -17,7 +17,7 @@ from app.services.member_service import member_to_dict
 LAST_OWNER_MSG = "Dự án phải còn ít nhất một OWNER"
 
 
-def _locked_context(db: Session, actor: User, project_id: str, target_user_id: str):
+def _locked_context(db: Session, actor: User, project_id: int, target_user_id: int):
     project, my_role = access.get_project_and_role(db, project_id, actor, lock=True)
     access.require(my_role, "member.manage")
     access.require_active(project)
@@ -30,7 +30,7 @@ def _locked_context(db: Session, actor: User, project_id: str, target_user_id: s
     return member, owners
 
 
-def change_role(db: Session, actor: User, project_id: str, target_user_id: str, new_role: str) -> dict:
+def change_role(db: Session, actor: User, project_id: int, target_user_id: int, new_role: str) -> dict:
     member, owners = _locked_context(db, actor, project_id, target_user_id)
     if member.role != new_role:
         if would_leave_no_owner(owners, member.role, new_role):
@@ -42,7 +42,7 @@ def change_role(db: Session, actor: User, project_id: str, target_user_id: str, 
     return member_to_dict(member, user)
 
 
-def remove_member(db: Session, actor: User, project_id: str, target_user_id: str) -> None:
+def remove_member(db: Session, actor: User, project_id: int, target_user_id: int) -> None:
     member, owners = _locked_context(db, actor, project_id, target_user_id)
     if would_leave_no_owner(owners, member.role, None):
         raise HTTPException(status.HTTP_409_CONFLICT, LAST_OWNER_MSG)

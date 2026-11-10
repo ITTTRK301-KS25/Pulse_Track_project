@@ -14,7 +14,7 @@ router = APIRouter(prefix="/tasks", tags=["subtasks"])
 
 
 @router.post("/{task_id}/subtasks", status_code=201)
-def create_subtask(req: Request, task_id: str, body: CreateTaskRequest,
+def create_subtask(req: Request, task_id: int, body: CreateTaskRequest,
                    user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     data = subtask_service.create_subtask(db, user, task_id, body.title, body.description,
                                           body.due_date, body.assignee_id)
@@ -22,7 +22,7 @@ def create_subtask(req: Request, task_id: str, body: CreateTaskRequest,
 
 
 @router.patch("/{task_id}/status")
-def set_status(req: Request, task_id: str, body: SetStatusRequest,
+def set_status(req: Request, task_id: int, body: SetStatusRequest,
                user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     data = subtask_service.set_status(db, user, task_id, body.status, body.version)
     return create_response(req, 200, "Đã đổi trạng thái", data, None)

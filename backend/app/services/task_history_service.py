@@ -24,7 +24,7 @@ def task_snapshot(task: Task) -> dict:
     }
 
 
-def add_event(db, task: Task, actor_id: str, event_type: str, before, after) -> TaskHistory:
+def add_event(db, task: Task, actor_id: int, event_type: str, before, after) -> TaskHistory:
     ev = TaskHistory(task_id=task.id, project_id=task.project_id, actor_id=actor_id,
                      event_type=event_type, before_value=before, after_value=after)
     db.add(ev)

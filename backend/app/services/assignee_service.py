@@ -1,19 +1,18 @@
-"""Quy tắc người thực hiện: phải là OWNER hoặc MEMBER hiện hành của CÙNG dự án (SRS/SDD).
+"""Người thực hiện phải là OWNER hoặc MEMBER hiện hành của cùng dự án.
 
-Chỉ kiểm tra khi gán hoặc đổi; để trống (None) luôn hợp lệ. Lịch sử giữ nguyên người đã rời dự án.
-B12 dùng lại hàm này.
+Chỉ kiểm tra khi gán hoặc đổi; để trống (None) luôn hợp lệ.
 """
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models.project import ProjectMember
+from app.models.project_member import ProjectMember
 
 ASSIGNABLE_ROLES = ("OWNER", "MEMBER")
 ASSIGNEE_MSG = "Người thực hiện phải là OWNER hoặc MEMBER của dự án"
 
 
-def validate_assignee(db: Session, project_id: str, assignee_id: str | None) -> None:
+def validate_assignee(db: Session, project_id: int, assignee_id: int | None) -> None:
     if assignee_id is None:
         return
     role = db.scalar(select(ProjectMember.role).where(
