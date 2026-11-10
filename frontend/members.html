@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -12,22 +11,40 @@
 </head>
 <body>
 
-    <header class="app-header">
-        <a href="dashboard.html" class="brand">
-            <span class="pulse">⌁</span>
-            Pulse Track
+
+<header class="app-header">
+    <a href="dashboard.html" class="brand">
+        <span class="pulse">⌁</span>
+        Pulse Track
+    </a>
+
+    <nav aria-label="Điều hướng chính">
+        <a href="dashboard.html">
+            Tổng quan
         </a>
 
-        <nav>
-            <a href="dashboard.html">Tổng quan</a>
-            <a href="projects.html">Dự án</a>
-            <a href="kanban.html">Kanban</a>
-            <a href="profile.html" data-user-name>Tài khoản</a>
-            <button type="button" class="logout-button" data-logout>
-                Đăng xuất
-            </button>
-        </nav>
-    </header>
+        <a href="projects.html" aria-current="page">
+            Dự án
+        </a>
+
+        <a href="kanban.html">
+            Quản lý công việc
+        </a>
+
+        <a href="profile.html" data-user-name>
+            Tài khoản
+        </a>
+
+        <button
+            type="button"
+            class="logout-button"
+            data-logout
+        >
+            Đăng xuất
+        </button>
+    </nav>
+</header>
+
 
     <main class="content">
         <a class="back" href="projects.html">← Danh sách dự án</a>
@@ -53,8 +70,10 @@
                     <select name="role">
                         <option value="MEMBER">MEMBER</option>
                         <option value="VIEWER">VIEWER</option>
-                        <option value="OWNER">OWNER</option>
                     </select>
+                </label>
+                <label class="members-description">Mô tả chức vụ (không bắt buộc)
+                    <textarea name="job_description" maxlength="500" rows="2" placeholder="Ví dụ: Phụ trách giao diện Frontend"></textarea>
                 </label>
                 <button type="submit" class="btn btn-primary">Thêm</button>
             </form>
@@ -63,7 +82,7 @@
         <div class="scroll-x">
             <table class="members-table" id="members-table">
                 <thead>
-                    <tr><th>Thành viên</th><th>Email</th><th>Vai trò</th><th>Tham gia</th><th></th></tr>
+                    <tr><th>Thành viên</th><th>Email</th><th>Vai trò</th><th>Mô tả chức vụ</th><th>Tham gia</th><th></th></tr>
                 </thead>
                 <tbody id="members-body"></tbody>
             </table>

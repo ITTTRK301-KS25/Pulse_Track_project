@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -20,22 +19,44 @@
 
     <div id="app-error-message" role="alert" hidden></div>
 
-    <header class="app-header">
-        <a href="dashboard.html" class="brand">
-            <span class="pulse"></span>
-            Pulse Track
+
+<header class="app-header">
+    <a href="dashboard.html" class="brand">
+        <span class="pulse">⌁</span>
+        Pulse Track
+    </a>
+
+    <nav aria-label="Điều hướng chính">
+        <a href="dashboard.html">
+            Tổng quan
         </a>
 
-        <nav>
-            <a href="dashboard.html">Tổng quan</a>
-            <a href="projects.html">Dự án</a>
-            <a href="kanban.html">Kanban</a>
-            <a href="profile.html" data-user-name>Tài khoản</a>
-            <button type="button" class="logout-button" data-logout>
-                Đăng xuất
-            </button>
-        </nav>
-    </header>
+        <a href="projects.html">
+            Dự án
+        </a>
+
+        <a href="kanban.html">
+            Quản lý công việc
+        </a>
+
+        <a
+            href="profile.html"
+            data-user-name
+            aria-current="page"
+        >
+            Tài khoản
+        </a>
+
+        <button
+            type="button"
+            class="logout-button"
+            data-logout
+        >
+            Đăng xuất
+        </button>
+    </nav>
+</header>
+
 
     <main class="content">
         <span class="eyebrow">PULSE TRACK</span>

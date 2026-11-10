@@ -14,6 +14,15 @@
     const subEl = document.getElementById("members-subtitle");
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const ROLES = ["OWNER", "MEMBER", "VIEWER"];
+    const descriptionKey = (uid) => `pulse_member_description_${projectId}_${uid}`;
+    const readDescription = (uid) => {
+        try { return localStorage.getItem(descriptionKey(uid)) || ""; }
+        catch { return ""; }
+    };
+    const saveDescription = (uid, value) => {
+        try { localStorage.setItem(descriptionKey(uid), value); }
+        catch { /* Local storage unavailable */ }
+    };
 
     let project = null;
     let members = [];
@@ -39,7 +48,7 @@
     // ---------- tải dữ liệu ----------
     async function load() {
         if (!projectId) { subEl.textContent = ""; showBanner("Thiếu mã dự án. Hãy mở trang này từ danh sách dự án."); body.innerHTML = ""; return; }
-        body.innerHTML = '<tr><td colspan="5" class="members-empty">Đang tải...</td></tr>';
+        body.innerHTML = '<tr><td colspan="6" class="members-empty">Đang tải...</td></tr>';
         try {
             const [p, m, me] = await Promise.all([
                 API.get(`/projects/${encodeURIComponent(projectId)}`),
@@ -66,7 +75,7 @@
         showBanner("");
         addBox.hidden = !writable();
 
-        if (!members.length) { body.innerHTML = '<tr><td colspan="5" class="members-empty">Chưa có thành viên.</td></tr>'; return; }
+        if (!members.length) { body.innerHTML = '<tr><td colspan="6" class="members-empty">Chưa có thành viên.</td></tr>'; return; }
         const me = meId();
         body.innerHTML = members.map((m) => `
             <tr data-uid="${esc(m.user_id)}">
@@ -75,6 +84,7 @@
                 <td>${writable()
                     ? `<select data-role aria-label="Vai trò của ${esc(m.display_name)}">${ROLES.map((r) => `<option value="${r}" ${r === m.role ? "selected" : ""}>${r}</option>`).join("")}</select>`
                     : `<span class="badge role-${esc(m.role)}">${esc(m.role)}</span>`}</td>
+                <td>${esc(readDescription(m.user_id) || "—")}</td>
                 <td>${esc(fmt(m.joined_at))}</td>
                 <td class="members-actions">${writable() ? '<button type="button" class="btn btn-small btn-danger" data-remove>Xóa</button>' : ""}</td>
             </tr>`).join("");
@@ -121,12 +131,17 @@
         e.preventDefault(); setFieldError("");
         const email = addForm.elements.email.value.trim().toLowerCase();
         const role = addForm.elements.role.value;
+        const jobDescription = addForm.elements.job_description.value.trim();
         if (!EMAIL_RE.test(email)) { setFieldError("Email không hợp lệ"); return; }
         const btn = addForm.querySelector("[type=submit]"); btn.disabled = true;
         try {
             await API.post(`/projects/${encodeURIComponent(projectId)}/members`, { email, role });
-            addForm.reset(); toast("Đã thêm thành viên", "success");
             await load();
+            const added = members.find((m) => m.email?.toLowerCase() === email);
+            if (added && jobDescription) saveDescription(added.user_id, jobDescription);
+            addForm.reset();
+            render();
+            toast("Đã thêm thành viên", "success");
         } catch (err) {
             if (err.status === 401) return;
             if (err.status === 404 || err.status === 409 || err.status === 422) setFieldError(err.message);
