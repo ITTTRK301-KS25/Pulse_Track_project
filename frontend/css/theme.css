@@ -1,4 +1,3 @@
-
 /* PULSE TRACK - CORPORATE COBALT THEME */
 
 :root {
@@ -508,5 +507,257 @@ body:has(.board) .board .lane:nth-child(5) .pill {
     .primary,
     .btn.btn-primary {
         transition: none;
+    }
+}
+
+/* Active navigation on every page */
+.app-header nav a[aria-current="page"] {
+    background: rgba(34, 121, 255, .24);
+    color: #fff;
+    box-shadow: inset 0 0 0 1px rgba(113, 174, 255, .2);
+}
+.project-openable { cursor: pointer; }
+.project-openable:focus-visible { outline: 3px solid #72b7ff; outline-offset: 3px; }
+.members-description { flex: 1 1 100%; }
+.members-description textarea {
+    display: block; width: 100%; margin-top: 6px; padding: 10px 12px;
+    border: 1px solid #cad9ef; border-radius: 10px; font: inherit;
+    background: #fff; resize: vertical;
+}
+
+.project-readonly {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+    font-weight: 600;
+    cursor: default;
+}
+
+.project-readonly:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.member-lookup-status {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.member-lookup-status.success {
+    color: #15803d;
+}
+
+.member-lookup-status.error {
+    color: #dc2626;
+}
+
+/* =========================================
+   PULSE TRACK - HEADER DONG BO
+   ========================================= */
+
+:root {
+    --pt-header-height: 76px;
+    --pt-header-bg: #101827;
+    --pt-header-text: #cbd5e1;
+}
+
+/* Header chung */
+.app-header,
+.workspace-page .app-header {
+    width: 100%;
+    height: var(--pt-header-height);
+    min-height: var(--pt-header-height);
+    max-height: var(--pt-header-height);
+
+    padding: 0 32px;
+    margin: 0;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+
+    background-color: var(--pt-header-bg);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Logo Pulse Track */
+.app-header .brand,
+.workspace-page .app-header .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    flex: 0 0 auto;
+
+    padding: 0;
+    margin: 0;
+
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+
+    color: #ffffff;
+    text-decoration: none;
+}
+
+/* Biểu tượng logo */
+.app-header .brand .pulse,
+.workspace-page .app-header .brand .pulse {
+    font-size: 26px;
+    line-height: 1;
+    color: #ffca20;
+}
+
+/* Navbar */
+.app-header nav,
+.workspace-page .app-header nav {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-end;
+
+    flex: 0 1 auto;
+    min-width: 0;
+
+    height: 100%;
+    gap: 8px;
+    padding: 0;
+    margin: 0;
+
+    white-space: nowrap;
+}
+
+/* Các liên kết trong navbar */
+.app-header nav a,
+.workspace-page .app-header nav a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 auto;
+
+    height: 40px;
+    min-height: 40px;
+    padding: 0 15px;
+    margin: 0;
+
+    box-sizing: border-box;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+
+    color: var(--pt-header-text);
+    background: transparent;
+
+    border: 1px solid transparent;
+    border-radius: 10px;
+
+    text-decoration: none;
+    white-space: nowrap;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+/* Hover */
+.app-header nav a:hover,
+.workspace-page .app-header nav a:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Trang đang mở */
+.app-header nav a[aria-current="page"],
+.workspace-page .app-header nav a[aria-current="page"] {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+    font-weight: 700;
+}
+
+/* Nút đăng xuất */
+.app-header nav .logout-button,
+.workspace-page .app-header nav .logout-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 auto;
+
+    height: 40px;
+    min-height: 40px;
+
+    padding: 0 18px;
+    margin: 0 0 0 8px;
+
+    box-sizing: border-box;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+
+    color: #ffffff;
+    background: #1e293b;
+
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.app-header nav .logout-button:hover,
+.workspace-page .app-header nav .logout-button:hover {
+    background: #334155;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .app-header,
+    .workspace-page .app-header {
+        padding: 0 16px;
+        gap: 14px;
+    }
+
+    .app-header .brand,
+    .workspace-page .app-header .brand {
+        font-size: 18px;
+    }
+
+    .app-header nav,
+    .workspace-page .app-header nav {
+        flex: 1 1 auto;
+        justify-content: flex-start;
+
+        overflow-x: auto;
+        overflow-y: hidden;
+
+        scrollbar-width: none;
+    }
+
+    .app-header nav::-webkit-scrollbar,
+    .workspace-page .app-header nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .app-header nav a,
+    .workspace-page .app-header nav a {
+        padding: 0 12px;
     }
 }

@@ -4,11 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bảng công việc | Pulse Track</title>
+    <title>Quản lý công việc | Pulse Track</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/theme.css">
 </head>
-
 <body class="auth-checking">
 
     <div id="auth-guard-message" role="status" aria-live="polite">
@@ -21,46 +20,58 @@
 
     <div id="app-error-message" role="alert" hidden></div>
 
-    <header class="app-header">
-        <a href="dashboard.html" class="brand">
-            <span class="pulse">⌁</span>
-            Pulse Track
+
+<header class="app-header">
+    <a href="dashboard.html" class="brand">
+        <span class="pulse">⌁</span>
+        Pulse Track
+    </a>
+
+    <nav aria-label="Điều hướng chính">
+        <a href="dashboard.html">
+            Tổng quan
         </a>
 
-        <nav>
-            <a href="dashboard.html">Tổng quan</a>
-            <a href="projects.html">Dự án</a>
-            <a href="kanban.html">Kanban</a>
-            <a href="profile.html" data-user-name>Tài khoản</a>
-            <button type="button" class="logout-button" data-logout>
-                Đăng xuất
-            </button>
-        </nav>
-    </header>
+        <a href="projects.html">
+            Dự án
+        </a>
+
+        <a href="kanban.html" aria-current="page">
+            Quản lý công việc
+        </a>
+
+        <a href="profile.html" data-user-name>
+            Tài khoản
+        </a>
+
+        <button
+            type="button"
+            class="logout-button"
+            data-logout
+        >
+            Đăng xuất
+        </button>
+    </nav>
+</header>
+
 
     <main class="content">
 
-        <span class="eyebrow">KANBAN</span>
+        <span class="eyebrow">QUẢN LÝ CÔNG VIỆC</span>
 
-        <h1>Bảng công việc</h1>
+        <h1>Quản lý công việc</h1>
 
         <p class="muted">
-            Quản lý công việc theo trạng thái.
+            Theo dõi và quản lý công việc theo 5 trạng thái.
         </p>
+
+        <p id="current-project-name" class="muted"></p>
 
         <div class="board">
 
             <section class="lane">
                 <h3>
-                    BACKLOG
-                    <span class="pill">0</span>
-                </h3>
-                <p>Chưa có công việc</p>
-            </section>
-
-            <section class="lane">
-                <h3>
-                    TO DO
+                    SPRINT BACKLOG
                     <span class="pill">0</span>
                 </h3>
                 <p>Chưa có công việc</p>
@@ -76,7 +87,7 @@
 
             <section class="lane">
                 <h3>
-                    COMPLETED
+                    REVIEW
                     <span class="pill">0</span>
                 </h3>
                 <p>Chưa có công việc</p>
@@ -84,7 +95,15 @@
 
             <section class="lane">
                 <h3>
-                    APPROVED
+                    TESTING/QA
+                    <span class="pill">0</span>
+                </h3>
+                <p>Chưa có công việc</p>
+            </section>
+
+            <section class="lane">
+                <h3>
+                    DONE
                     <span class="pill">0</span>
                 </h3>
                 <p>Chưa có công việc</p>
@@ -93,7 +112,7 @@
         </div>
 
         <div class="status">
-            Đây là giao diện khung F01. Chức năng thực tế sẽ được phát triển theo các task F04, F06 và F16; chưa có dữ liệu từ Backend.
+            Bảng quản lý công việc đang chờ tích hợp API công việc.
         </div>
 
     </main>
@@ -101,6 +120,41 @@
     <script defer src="js/config.js"></script>
     <script defer src="js/api.js"></script>
     <script defer src="js/router.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const nameElement = document.getElementById(
+                "current-project-name"
+            );
+
+            const params = new URLSearchParams(
+                window.location.search
+            );
+
+            const projectId = params.get("project");
+
+            if (!projectId) {
+                nameElement.textContent =
+                    "Chọn một dự án để xem bảng công việc.";
+                return;
+            }
+
+            const savedId = sessionStorage.getItem(
+                "selectedProjectId"
+            );
+
+            const savedName = sessionStorage.getItem(
+                "selectedProjectName"
+            );
+
+            if (savedId === projectId && savedName) {
+                nameElement.textContent = "Dự án: " + savedName;
+            } else {
+                nameElement.textContent =
+                    "Đang xem dự án có mã: " + projectId;
+            }
+        });
+    </script>
 
 </body>
 </html>

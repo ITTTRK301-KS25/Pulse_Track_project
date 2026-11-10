@@ -11,70 +11,55 @@
     const API = window.PulseAPI;
     const DEFAULT_TZ = "Asia/Ho_Chi_Minh";
 
-    const esc = (value) => String(value ?? "").replace(
-        /[&<>"']/g,
-        (char) => ({
+    function esc(value) {
+        return String(value ?? "").replace(/[&<>"']/g, char => ({
             "&": "&amp;",
             "<": "&lt;",
             ">": "&gt;",
             '"': "&quot;",
             "'": "&#39;"
-        }[char])
-    );
+        }[char]));
+    }
 
     function fmtDate(value) {
         if (!value) return "";
-
-        const [year, month, day] = String(value).slice(0, 10).split("-");
-
-        if (!year || !month || !day) return "";
-
-        return `${day}/${month}/${year}`;
-    }
-
-    function toDisplayDate(value) {
-        return fmtDate(value);
+        const [y, m, d] = String(value).slice(0, 10).split("-");
+        return y && m && d ? `${d}/${m}/${y}` : "";
     }
 
     function toApiDate(value) {
         const text = value.trim();
-
-        if (!text) {
-            return { valid: true, value: null };
-        }
+        if (!text) return { valid: true, value: null };
 
         const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(text);
+        if (!match) return { valid: false, value: null };
 
-        if (!match) {
+        const d = Number(match[1]);
+        const m = Number(match[2]);
+        const y = Number(match[3]);
+
+        if (y < 1 || y > 9999 || m < 1 || m > 12) {
             return { valid: false, value: null };
         }
 
-        const day = Number(match[1]);
-        const month = Number(match[2]);
-        const year = Number(match[3]);
-
-        if (year < 1 || year > 9999 || month < 1 || month > 12) {
-            return { valid: false, value: null };
-        }
-
-        const leap = year % 4 === 0 &&
-            (year % 100 !== 0 || year % 400 === 0);
+        const leap = y % 4 === 0 &&
+            (y % 100 !== 0 || y % 400 === 0);
 
         const days = [
-            31, leap ? 29 : 28, 31, 30, 31, 30,
-            31, 31, 30, 31, 30, 31
+            31, leap ? 29 : 28, 31, 30, 31,
+            30, 31, 31, 30, 31, 30, 31
         ];
 
-        if (day < 1 || day > days[month - 1]) {
+        if (d < 1 || d > days[m - 1]) {
             return { valid: false, value: null };
         }
 
         return {
             valid: true,
             value:
-                `${String(year).padStart(4, "0")}-` +
-                `${String(month).padStart(2, "0")}-` +
-                `${String(day).padStart(2, "0")}`
+                `${String(y).padStart(4, "0")}-` +
+                `${String(m).padStart(2, "0")}-` +
+                `${String(d).padStart(2, "0")}`
         };
     }
 
@@ -91,7 +76,6 @@
         const el = document.createElement("div");
         el.className = `toast ${type}`;
         el.textContent = message;
-
         wrap.appendChild(el);
 
         setTimeout(() => el.remove(), 4500);
@@ -107,21 +91,17 @@
             </div>
         `;
 
-        const close = () => {
+        const onKey = event => {
+            if (event.key === "Escape") close();
+        };
+
+        function close() {
             back.remove();
             document.removeEventListener("keydown", onKey);
-        };
+        }
 
-        const onKey = (event) => {
-            if (event.key === "Escape") {
-                close();
-            }
-        };
-
-        back.addEventListener("mousedown", (event) => {
-            if (event.target === back) {
-                close();
-            }
+        back.addEventListener("mousedown", event => {
+            if (event.target === back) close();
         });
 
         document.addEventListener("keydown", onKey);
@@ -142,17 +122,16 @@
             list = [];
         }
 
-        const base = [
+        return Array.from(new Set([
             DEFAULT_TZ,
             "Asia/Bangkok",
             "Asia/Singapore",
             "Asia/Tokyo",
             "Europe/London",
             "America/New_York",
-            "UTC"
-        ];
-
-        return Array.from(new Set([...base, ...list]));
+            "UTC",
+            ...list
+        ]));
     }
 
     async function load() {
@@ -164,25 +143,21 @@
 
         try {
             const res = await API.get("/projects", {
-                query: {
-                    status: filterEl.value
-                }
+                query: { status: filterEl.value }
             });
 
-            const items = Array.isArray(res?.data) ? res.data : [];
-
-            render(items);
+            render(Array.isArray(res?.data) ? res.data : []);
         } catch (err) {
             if (err.status === 401) return;
 
             listEl.innerHTML = `
                 <div class="empty-box">
-                    ${esc(err.message || "Không tải được danh sách dự án")}
+                    ${esc(err.message || "Không tải được dự án")}
                     <p>
                         <button
+                            type="button"
                             class="btn btn-small"
                             id="retry-load"
-                            type="button"
                         >
                             Thử lại
                         </button>
@@ -192,6 +167,285 @@
 
             document.getElementById("retry-load").onclick = load;
         }
+    }
+
+    function openProjectBoard(project) {
+        if (!project || project.id == null) return;
+
+        sessionStorage.setItem(
+            "selectedProjectId",
+            String(project.id)
+        );
+
+        sessionStorage.setItem(
+            "selectedProjectName",
+            project.name || ""
+        );
+
+        window.location.href =
+            "kanban.html?project=" +
+            encodeURIComponent(project.id);
+    }
+
+    function openAddMemberModal(project) {
+        if (!project || project.id == null) return;
+
+        const modal = openModal(`
+            <h2>Thêm thành viên</h2>
+
+            <form class="form-grid" novalidate>
+                <label>
+                    Dự án đang chọn
+                    <input
+                        type="text"
+                        name="project_name"
+                        value="${esc(project.name)}"
+                        class="project-readonly"
+                        readonly
+                    >
+                </label>
+
+                <label>
+                    Email thành viên *
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Nhập email đã đăng ký"
+                        maxlength="254"
+                        autocomplete="off"
+                        required
+                    >
+                    <span
+                        class="field-error"
+                        data-err="email"
+                    ></span>
+                </label>
+
+                <label>
+                    Tên thành viên
+                    <input
+                        type="text"
+                        name="display_name"
+                        placeholder="Tự động hiển thị khi tìm thấy email"
+                        class="project-readonly"
+                        readonly
+                    >
+                    <span
+                        class="member-lookup-status"
+                        aria-live="polite"
+                    ></span>
+                </label>
+
+                <label>
+                    Vai trò *
+                    <select name="role" required>
+                        <option value="MEMBER">Member</option>
+                        <option value="VIEWER">Viewer</option>
+                    </select>
+                </label>
+
+                <label>
+                    Mô tả chức vụ
+                    <textarea
+                        name="job_description"
+                        placeholder="Ví dụ: Phụ trách Frontend"
+                        maxlength="500"
+                        rows="4"
+                    ></textarea>
+                </label>
+
+                <div
+                    class="form-banner"
+                    role="alert"
+                    hidden
+                ></div>
+
+                <div class="modal-actions">
+                    <button
+                        type="button"
+                        class="btn"
+                        data-close
+                    >
+                        Hủy
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                        disabled
+                    >
+                        Thêm thành viên
+                    </button>
+                </div>
+            </form>
+        `);
+
+        const form = modal.el.querySelector("form");
+        const banner = form.querySelector(".form-banner");
+        const emailInput = form.elements.email;
+        const nameInput = form.elements.display_name;
+        const roleInput = form.elements.role;
+        const descriptionInput = form.elements.job_description;
+
+        const emailError = form.querySelector(
+            '[data-err="email"]'
+        );
+
+        const statusEl = form.querySelector(
+            ".member-lookup-status"
+        );
+
+        const submitBtn = form.querySelector(
+            'button[type="submit"]'
+        );
+
+        let verifiedEmail = "";
+        let lookupTimer = null;
+        let lookupVersion = 0;
+        let closed = false;
+
+        function closeMemberModal() {
+            closed = true;
+            lookupVersion++;
+            clearTimeout(lookupTimer);
+            modal.close();
+        }
+
+        modal.el.querySelector("[data-close]").onclick =
+            closeMemberModal;
+
+        emailInput.addEventListener("input", function () {
+            clearTimeout(lookupTimer);
+            lookupVersion++;
+
+            const version = lookupVersion;
+            const email = emailInput.value.trim().toLowerCase();
+
+            verifiedEmail = "";
+            nameInput.value = "";
+            submitBtn.disabled = true;
+            emailError.textContent = "";
+            statusEl.textContent = "";
+            statusEl.className = "member-lookup-status";
+
+            if (!email) return;
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                emailError.textContent = "Email chưa hợp lệ";
+                return;
+            }
+
+            statusEl.textContent = "Đang kiểm tra tài khoản...";
+
+            lookupTimer = setTimeout(async () => {
+                try {
+                    // Backend cần hỗ trợ API này.
+                    // Phản hồi dự kiến:
+                    // { data: { display_name: "Nguyễn Văn A" } }
+
+                    const response = await API.get(
+                        "/users/lookup",
+                        { query: { email } }
+                    );
+
+                    if (
+                        closed ||
+                        version !== lookupVersion ||
+                        emailInput.value.trim().toLowerCase() !== email
+                    ) {
+                        return;
+                    }
+
+                    const user = response?.data;
+
+                    if (user?.display_name) {
+                        nameInput.value = user.display_name;
+                        verifiedEmail = email;
+
+                        statusEl.textContent =
+                            "Đã tìm thấy tài khoản";
+
+                        statusEl.classList.add("success");
+                        submitBtn.disabled = false;
+                    } else {
+                        statusEl.textContent =
+                            "Không tìm thấy tài khoản";
+
+                        statusEl.classList.add("error");
+                    }
+                } catch (err) {
+                    if (closed || version !== lookupVersion) {
+                        return;
+                    }
+
+                    statusEl.textContent =
+                        err.status === 404
+                            ? "Không tìm thấy tài khoản hoặc API chưa có"
+                            : "Không thể kiểm tra tài khoản";
+
+                    statusEl.classList.add("error");
+                }
+            }, 500);
+        });
+
+        form.addEventListener("submit", async event => {
+            event.preventDefault();
+
+            banner.hidden = true;
+            banner.textContent = "";
+
+            const email = emailInput.value.trim().toLowerCase();
+            const role = roleInput.value;
+            const description = descriptionInput.value.trim();
+
+            if (!email || verifiedEmail !== email) {
+                banner.textContent =
+                    "Vui lòng nhập email đã được xác thực.";
+
+                banner.hidden = false;
+                return;
+            }
+
+            if (!["MEMBER", "VIEWER"].includes(role)) {
+                banner.textContent = "Vai trò không hợp lệ.";
+                banner.hidden = false;
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Đang thêm...";
+
+            try {
+                await API.post(
+                    `/projects/${encodeURIComponent(project.id)}/members`,
+                    { email, role }
+                );
+
+                // Chỉ lưu mô tả tại trình duyệt.
+                // Chưa đồng bộ mô tả với Backend.
+                if (description) {
+                    localStorage.setItem(
+                        `pulse_member_description_${project.id}_${email}`,
+                        description
+                    );
+                }
+
+                closeMemberModal();
+                toast("Thêm thành viên thành công", "success");
+                await load();
+            } catch (err) {
+                if (err.status === 401) return;
+
+                banner.textContent =
+                    err.message || "Không thể thêm thành viên";
+
+                banner.hidden = false;
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Thêm thành viên";
+            }
+        });
+
+        emailInput.focus();
     }
 
     function render(items) {
@@ -208,9 +462,11 @@
             return;
         }
 
-        listEl.innerHTML = items.map((p) => `
-            <article class="card project-card" data-id="${esc(p.id)}">
-
+        listEl.innerHTML = items.map(p => `
+            <article
+                class="card project-card"
+                data-id="${esc(p.id)}"
+            >
                 <div class="project-meta">
                     <span class="badge role-${esc(p.my_role)}">
                         ${esc(p.my_role)}
@@ -247,12 +503,19 @@
                 }
 
                 <div class="project-meta">
-                    <a
-                        class="btn btn-small"
-                        href="kanban.html?project=${encodeURIComponent(p.id)}"
-                    >
-                        Mở bảng
-                    </a>
+                    ${
+                        p.my_role === "OWNER" && !p.archived_at
+                            ? `
+                                <button
+                                    type="button"
+                                    class="btn btn-small"
+                                    data-act="add-member"
+                                >
+                                    Thêm thành viên
+                                </button>
+                            `
+                            : ""
+                    }
 
                     ${
                         p.my_role === "OWNER"
@@ -284,21 +547,63 @@
                             : ""
                     }
                 </div>
-
             </article>
         `).join("");
 
-        listEl.querySelectorAll("[data-act]").forEach((btn) => {
+        listEl.querySelectorAll(".project-card").forEach(card => {
+            const project = items.find(
+                item => String(item.id) === card.dataset.id
+            );
+
+            if (!project) return;
+
+            card.style.cursor = "pointer";
+            card.tabIndex = 0;
+            card.setAttribute("role", "link");
+
+            card.setAttribute(
+                "aria-label",
+                "Mở bảng công việc dự án " + project.name
+            );
+
+            card.addEventListener("click", event => {
+                if (
+                    event.target.closest(
+                        "button, a, input, select, textarea"
+                    )
+                ) {
+                    return;
+                }
+
+                openProjectBoard(project);
+            });
+
+            card.addEventListener("keydown", event => {
+                if (event.target !== card) return;
+
+                if (
+                    event.key === "Enter" ||
+                    event.key === " "
+                ) {
+                    event.preventDefault();
+                    openProjectBoard(project);
+                }
+            });
+        });
+
+        listEl.querySelectorAll("[data-act]").forEach(btn => {
             btn.addEventListener("click", () => {
                 const card = btn.closest("[data-id]");
 
                 const project = items.find(
-                    (item) => String(item.id) === card.dataset.id
+                    item => String(item.id) === card.dataset.id
                 );
 
                 if (!project) return;
 
-                if (btn.dataset.act === "edit") {
+                if (btn.dataset.act === "add-member") {
+                    openAddMemberModal(project);
+                } else if (btn.dataset.act === "edit") {
                     openForm(project);
                 } else {
                     toggleArchive(project, btn.dataset.act);
@@ -338,7 +643,7 @@
     function openForm(project) {
         const editing = Boolean(project);
 
-        const tzOptions = timezones().map((zone) => `
+        const tzOptions = timezones().map(zone => `
             <option
                 value="${esc(zone)}"
                 ${
@@ -355,7 +660,6 @@
             <h2>${editing ? "Sửa dự án" : "Tạo dự án mới"}</h2>
 
             <form class="form-grid" novalidate>
-
                 <label>
                     Tên dự án *
                     <input
@@ -364,7 +668,10 @@
                         value="${esc(project?.name || "")}"
                         required
                     >
-                    <span class="field-error" data-err="name"></span>
+                    <span
+                        class="field-error"
+                        data-err="name"
+                    ></span>
                 </label>
 
                 <label>
@@ -373,7 +680,11 @@
                         name="description"
                         maxlength="2000"
                     >${esc(project?.description || "")}</textarea>
-                    <span class="field-error" data-err="description"></span>
+
+                    <span
+                        class="field-error"
+                        data-err="description"
+                    ></span>
                 </label>
 
                 <div class="row2">
@@ -386,9 +697,12 @@
                             placeholder="dd/mm/yyyy"
                             maxlength="10"
                             autocomplete="off"
-                            value="${esc(toDisplayDate(project?.start_date))}"
+                            value="${esc(fmtDate(project?.start_date))}"
                         >
-                        <span class="field-error" data-err="start_date"></span>
+                        <span
+                            class="field-error"
+                            data-err="start_date"
+                        ></span>
                     </label>
 
                     <label>
@@ -400,16 +714,22 @@
                             placeholder="dd/mm/yyyy"
                             maxlength="10"
                             autocomplete="off"
-                            value="${esc(toDisplayDate(project?.end_date))}"
+                            value="${esc(fmtDate(project?.end_date))}"
                         >
-                        <span class="field-error" data-err="end_date"></span>
+                        <span
+                            class="field-error"
+                            data-err="end_date"
+                        ></span>
                     </label>
                 </div>
 
                 <label>
                     Múi giờ ${
-                        editing ? "(không đổi được sau khi tạo)" : ""
+                        editing
+                            ? "(không đổi được sau khi tạo)"
+                            : ""
                     }
+
                     <select
                         name="timezone"
                         ${editing ? "disabled" : ""}
@@ -436,38 +756,47 @@
                         ${editing ? "Lưu" : "Tạo dự án"}
                     </button>
                 </div>
-
             </form>
         `);
 
         const form = modal.el.querySelector("form");
         const banner = form.querySelector(".form-banner");
 
-        const setErr = (field, message = "") => {
-            const el = form.querySelector(`[data-err="${field}"]`);
+        function setErr(field, message = "") {
+            const el = form.querySelector(
+                `[data-err="${field}"]`
+            );
 
-            if (el) {
-                el.textContent = message;
-            }
-        };
+            if (el) el.textContent = message;
+        }
 
-        modal.el.querySelector("[data-close]").onclick = modal.close;
+        modal.el.querySelector("[data-close]").onclick =
+            modal.close;
 
-        form.addEventListener("submit", async (event) => {
+        form.addEventListener("submit", async event => {
             event.preventDefault();
 
-            ["name", "description", "start_date", "end_date"].forEach(
-                (field) => setErr(field)
-            );
+            [
+                "name",
+                "description",
+                "start_date",
+                "end_date"
+            ].forEach(field => setErr(field));
 
             banner.hidden = true;
 
-            const startDate = toApiDate(form.elements.start_date.value);
-            const endDate = toApiDate(form.elements.end_date.value);
+            const startDate = toApiDate(
+                form.elements.start_date.value
+            );
+
+            const endDate = toApiDate(
+                form.elements.end_date.value
+            );
 
             const body = {
                 name: form.elements.name.value.trim(),
-                description: form.elements.description.value.trim() || null,
+                description:
+                    form.elements.description.value.trim() || null,
                 start_date: startDate.value,
                 end_date: endDate.value
             };
@@ -475,22 +804,37 @@
             let invalid = false;
 
             if (!body.name || body.name.length > 150) {
-                setErr("name", "Tên dự án phải từ 1 đến 150 ký tự");
+                setErr(
+                    "name",
+                    "Tên dự án phải từ 1 đến 150 ký tự"
+                );
                 invalid = true;
             }
 
-            if (body.description && body.description.length > 2000) {
-                setErr("description", "Mô tả tối đa 2000 ký tự");
+            if (
+                body.description &&
+                body.description.length > 2000
+            ) {
+                setErr(
+                    "description",
+                    "Mô tả tối đa 2000 ký tự"
+                );
                 invalid = true;
             }
 
             if (!startDate.valid) {
-                setErr("start_date", "Nhập ngày hợp lệ theo dd/mm/yyyy");
+                setErr(
+                    "start_date",
+                    "Nhập ngày hợp lệ theo dd/mm/yyyy"
+                );
                 invalid = true;
             }
 
             if (!endDate.valid) {
-                setErr("end_date", "Nhập ngày hợp lệ theo dd/mm/yyyy");
+                setErr(
+                    "end_date",
+                    "Nhập ngày hợp lệ theo dd/mm/yyyy"
+                );
                 invalid = true;
             }
 
@@ -505,7 +849,6 @@
                     "end_date",
                     "Ngày kết thúc phải sau hoặc bằng ngày bắt đầu"
                 );
-
                 invalid = true;
             }
 
@@ -515,8 +858,11 @@
                 body.timezone = form.elements.timezone.value;
             }
 
-            const submit = form.querySelector('[type="submit"]');
-            submit.disabled = true;
+            const submitBtn = form.querySelector(
+                '[type="submit"]'
+            );
+
+            submitBtn.disabled = true;
 
             try {
                 if (editing) {
@@ -545,7 +891,7 @@
                 banner.textContent =
                     err.message || "Không lưu được dự án";
 
-                submit.disabled = false;
+                submitBtn.disabled = false;
             }
         });
 
@@ -562,7 +908,6 @@
 
     function start() {
         if (started) return;
-
         started = true;
         load();
     }
@@ -574,7 +919,7 @@
         start();
     }
 
-    window.addEventListener("pulse:auth-changed", (event) => {
+    window.addEventListener("pulse:auth-changed", event => {
         if (event.detail?.status === "authenticated") {
             start();
         }
