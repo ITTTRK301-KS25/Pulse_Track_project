@@ -18,6 +18,13 @@ def list_members(req: Request, project_id: int, user: User = Depends(get_current
     return create_response(req, 200, "OK", member_service.list_members(db, user, project_id), None)
 
 
+@router.get("/lookup")
+def lookup_account(req: Request, project_id: int, email: str,
+                   user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    data = member_service.lookup_account(db, user, project_id, email)
+    return create_response(req, 200, "Đã tìm thấy tài khoản", data, None)
+
+
 @router.post("", status_code=201)
 def add_member(req: Request, project_id: int, body: AddMemberRequest, user: User = Depends(get_current_user),
                db: Session = Depends(get_db)):
