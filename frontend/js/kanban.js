@@ -1,3 +1,4 @@
+
 "use strict";
 
 (function () {
@@ -9,6 +10,7 @@
     const projectName = document.getElementById("current-project-name");
     const message = document.getElementById("kanban-message");
     const newTaskButton = document.getElementById("btn-new-task");
+
     const STATUSES = ["TODO", "IN_PROGRESS", "DONE"];
 
     let project = null;
@@ -17,6 +19,7 @@
     let membersLoaded = false;
     let membersError = "";
     let draggedTaskId = "";
+    let loading = false;
 
     function esc(value) {
         return String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -25,7 +28,7 @@
             ">": "&gt;",
             '"': "&quot;",
             "'": "&#39;"
-        }[char]));
+        })[char]);
     }
 
     function canCreate() {
@@ -45,6 +48,8 @@
     }
 
     function showMessage(text, type = "") {
+        if (!message) return;
+
         message.textContent = text || "";
         message.hidden = !text;
         message.classList.toggle("kanban-error", type === "error");
@@ -53,6 +58,7 @@
 
     function toast(text, type = "") {
         let wrap = document.querySelector(".toast-wrap");
+
         if (!wrap) {
             wrap = document.createElement("div");
             wrap.className = "toast-wrap";
@@ -64,6 +70,7 @@
         item.className = `toast ${type}`;
         item.textContent = text;
         wrap.appendChild(item);
+
         setTimeout(() => item.remove(), 4500);
     }
 
@@ -72,27 +79,51 @@
     }
 
     function saveTask(task) {
-        const index = tasks.findIndex(item => String(item.id) === String(task.id));
-        if (index === -1) tasks.push(task);
-        else tasks[index] = task;
+        if (!task || task.id == null) {
+            throw new Error("Dữ liệu task không hợp lệ.");
+        }
+
+        const index = tasks.findIndex(
+            item => String(item.id) === String(task.id)
+        );
+
+        if (index === -1) {
+            tasks.push(task);
+        } else {
+            tasks[index] = task;
+        }
     }
 
     function formatDate(value) {
         if (!value) return "";
-        const [year, month, day] = String(value).slice(0, 10).split("-");
-        return year && month && day ? `${day}/${month}/${year}` : "";
+
+        const [year, month, day] = String(value)
+            .slice(0, 10)
+            .split("-");
+
+        return year && month && day
+            ? `${day}/${month}/${year}`
+            : "";
     }
 
     function memberName(id) {
         if (id == null) return "";
-        const member = members.find(item => String(item.user_id) === String(id));
+
+        const member = members.find(
+            item => String(item.user_id) === String(id)
+        );
+
         return member?.display_name || "";
     }
 
     function renderCard(task) {
         const assignedTo = memberName(task.assignee_id);
+
         const subtaskCount = tasks.filter(
-            item => String(item.parent_id) === String(task.id)
+            item =>
+                item.parent_id != null &&
+                String(item.parent_id) === String(task.id) &&
+                !item.archived_at
         ).length;
 
         return `
@@ -107,27 +138,38 @@
                     data-open-task="${esc(task.id)}"
                     aria-label="Xem chi tiết ${esc(task.title)}"
                 >
-                    <span class="kanban-task-title">${esc(task.title)}</span>
-                    <span class="kanban-task-action">Mở chi tiết &amp; subtask →</span>
+                    <span class="kanban-task-title">
+                        ${esc(task.title)}
+                    </span>
+
+                    <span class="kanban-task-action">
+                        Mở chi tiết &amp; subtask →
+                    </span>
                 </button>
+
                 ${
                     task.description
-                        ? `<p class="kanban-task-description">${esc(task.description)}</p>`
+                        ? `<p class="kanban-task-description">
+                            ${esc(task.description)}
+                           </p>`
                         : ""
                 }
+
                 <div class="kanban-task-meta">
                     ${
                         task.due_date
                             ? `<span>Hạn: ${esc(formatDate(task.due_date))}</span>`
                             : ""
                     }
+
                     ${
                         assignedTo
                             ? `<span>Phụ trách: ${esc(assignedTo)}</span>`
                             : task.assignee_id != null
-                                ? `<span>Đã phân công</span>`
+                                ? "<span>Đã phân công</span>"
                                 : ""
                     }
+
                     ${
                         subtaskCount
                             ? `<span>${subtaskCount} subtask</span>`
@@ -150,13 +192,22 @@
             const count = lane.querySelector("[data-count]");
             const cards = lane.querySelector("[data-cards]");
 
-            if (!status) {
+            if (!count || !cards) return;
+
+            if (!status || !STATUSES.includes(status)) {
                 count.textContent = "0";
-                cards.innerHTML = '<p class="kanban-empty">Trạng thái này chưa được hỗ trợ bởi API.</p>';
+                cards.innerHTML = `
+                    <p class="kanban-empty">
+                        Trạng thái này chưa được hỗ trợ bởi API.
+                    </p>
+                `;
                 return;
             }
 
-            const laneTasks = parentTasks.filter(task => task.status === status);
+            const laneTasks = parentTasks.filter(
+                task => task.status === status
+            );
+
             count.textContent = String(laneTasks.length);
 
             cards.innerHTML = laneTasks.length
@@ -171,96 +222,181 @@
             });
         });
 
-        newTaskButton.hidden = !canCreate();
+        if (newTaskButton) {
+            newTaskButton.hidden = !canCreate();
+        }
     }
 
     async function refreshTasks() {
         const response = await API.get(
             `/projects/${encodeURIComponent(projectId)}/tasks`
         );
+
         if (!Array.isArray(response?.data)) {
-            throw new Error("Dữ liệu công việc từ máy chủ không hợp lệ.");
+            throw new Error(
+                "Dữ liệu công việc từ máy chủ không hợp lệ."
+            );
         }
+
         tasks = response.data;
         renderBoard();
     }
 
     async function loadWorkspace() {
+        if (loading) return;
+
         if (!projectId) {
-            projectName.textContent = "Hãy chọn một dự án từ danh sách dự án.";
-            showMessage("Thiếu mã dự án. Mở bảng Kanban từ trang Dự án.", "error");
-            board.querySelectorAll("[data-cards]").forEach(cards => {
-                cards.innerHTML = '<p class="kanban-empty">Chưa chọn dự án</p>';
-            });
+            if (projectName) {
+                projectName.textContent =
+                    "Hãy chọn một dự án từ danh sách dự án.";
+            }
+
+            showMessage(
+                "Thiếu mã dự án. Mở bảng Kanban từ trang Dự án.",
+                "error"
+            );
+
+            if (newTaskButton) newTaskButton.hidden = true;
             return;
         }
 
+        if (!API) {
+            showMessage(
+                "Chưa tải được HTTP client PulseAPI.",
+                "error"
+            );
+            return;
+        }
+
+        loading = true;
+
         try {
-            const [projectResponse, tasksResponse] = await Promise.all([
-                API.get(`/projects/${encodeURIComponent(projectId)}`),
-                API.get(`/projects/${encodeURIComponent(projectId)}/tasks`)
-            ]);
+            const [projectResponse, tasksResponse] =
+                await Promise.all([
+                    API.get(
+                        `/projects/${encodeURIComponent(projectId)}`
+                    ),
+                    API.get(
+                        `/projects/${encodeURIComponent(projectId)}/tasks`
+                    )
+                ]);
 
             project = projectResponse?.data;
+
             if (!project || !Array.isArray(tasksResponse?.data)) {
-                throw new Error("Dữ liệu dự án hoặc công việc không hợp lệ.");
+                throw new Error(
+                    "Dữ liệu dự án hoặc công việc không hợp lệ."
+                );
             }
 
             tasks = tasksResponse.data;
-            projectName.textContent = `Dự án: ${project.name}`;
+
+            if (projectName) {
+                projectName.textContent = `Dự án: ${project.name}`;
+            }
+
+            members = [];
+            membersLoaded = false;
+            membersError = "";
 
             try {
                 const membersResponse = await API.get(
                     `/projects/${encodeURIComponent(projectId)}/members`
                 );
+
                 if (!Array.isArray(membersResponse?.data)) {
-                    throw new Error("Danh sách thành viên từ máy chủ không hợp lệ.");
+                    throw new Error(
+                        "Danh sách thành viên không hợp lệ."
+                    );
                 }
+
                 members = membersResponse.data;
                 membersLoaded = true;
             } catch (error) {
                 if (error.status === 401) return;
-                membersError = error.message || "Không thể tải danh sách thành viên.";
+
+                membersError =
+                    error.message ||
+                    "Không thể tải danh sách thành viên.";
             }
 
             renderBoard();
+
             if (project.archived_at) {
-                showMessage("Dự án đã lưu trữ: bảng chỉ xem, không thể chỉnh sửa.");
+                showMessage(
+                    "Dự án đã lưu trữ: bảng chỉ xem, không thể chỉnh sửa."
+                );
             } else if (!canCreate()) {
-                showMessage("Bạn có quyền VIEWER: chỉ có thể xem công việc.");
+                showMessage(
+                    "Bạn có quyền VIEWER: chỉ có thể xem công việc."
+                );
             } else if (membersError) {
-                showMessage(`Không tải được danh sách thành viên để phân công: ${membersError}`, "error");
+                showMessage(
+                    `Không tải được danh sách thành viên: ${membersError}`,
+                    "error"
+                );
             } else {
                 showMessage("");
             }
         } catch (error) {
             if (error.status === 401) return;
-            projectName.textContent = "Không tải được dự án.";
-            showMessage(error.message || "Không tải được bảng công việc.", "error");
+
+            project = null;
+
+            if (projectName) {
+                projectName.textContent = "Không tải được dự án.";
+            }
+
+            if (newTaskButton) newTaskButton.hidden = true;
+
+            showMessage(
+                error.message || "Không tải được bảng công việc.",
+                "error"
+            );
+
             board.querySelectorAll("[data-cards]").forEach(cards => {
-                cards.innerHTML = '<p class="kanban-empty">Không tải được công việc</p>';
+                cards.innerHTML = `
+                    <p class="kanban-empty">
+                        Không tải được công việc
+                    </p>
+                `;
             });
+        } finally {
+            loading = false;
         }
     }
 
     function memberOptions(selectedId) {
         const options = members
-            .filter(member => ["OWNER", "MEMBER"].includes(member.role))
+            .filter(member =>
+                ["OWNER", "MEMBER"].includes(member.role)
+            )
             .map(member => `
                 <option
                     value="${esc(member.user_id)}"
-                    ${String(member.user_id) === String(selectedId ?? "") ? "selected" : ""}
-                >${esc(member.display_name)} (${esc(member.role)})</option>
+                    ${
+                        String(member.user_id) === String(selectedId ?? "")
+                            ? "selected"
+                            : ""
+                    }
+                >
+                    ${esc(member.display_name)} (${esc(member.role)})
+                </option>
             `);
 
         if (
             selectedId != null &&
             selectedId !== "" &&
-            !members.some(member => String(member.user_id) === String(selectedId))
+            !members.some(
+                member =>
+                    String(member.user_id) === String(selectedId)
+            )
         ) {
-            options.push(
-                `<option value="${esc(selectedId)}" selected>Thành viên hiện tại (#${esc(selectedId)})</option>`
-            );
+            options.push(`
+                <option value="${esc(selectedId)}" selected>
+                    Thành viên hiện tại (#${esc(selectedId)})
+                </option>
+            `);
         }
 
         return [
@@ -272,7 +408,16 @@
     function openModal(html) {
         const backdrop = document.createElement("div");
         backdrop.className = "modal-backdrop";
-        backdrop.innerHTML = `<div class="modal kanban-modal" role="dialog" aria-modal="true">${html}</div>`;
+
+        backdrop.innerHTML = `
+            <div
+                class="modal kanban-modal"
+                role="dialog"
+                aria-modal="true"
+            >
+                ${html}
+            </div>
+        `;
 
         function close() {
             backdrop.remove();
@@ -286,18 +431,57 @@
         backdrop.addEventListener("mousedown", event => {
             if (event.target === backdrop) close();
         });
+
         document.addEventListener("keydown", onKeyDown);
         document.body.appendChild(backdrop);
-        return { element: backdrop.firstElementChild, close };
+
+        return {
+            element: backdrop.firstElementChild,
+            close
+        };
+    }
+
+    function showTaskMessage(text, type = "") {
+        const box = document.querySelector(
+            ".kanban-modal [data-task-message]"
+        );
+
+        if (!box) return;
+
+        box.textContent = text || "";
+        box.className = `form-banner${type ? ` ${type}` : ""}`;
+        box.hidden = !text;
+    }
+
+    async function reloadTasksAfterConflict() {
+        try {
+            await refreshTasks();
+            return true;
+        } catch (error) {
+            showTaskMessage(
+                `${error.message || "Không thể tải lại công việc."} ` +
+                "Hãy đóng cửa sổ và tải lại bảng.",
+                "error"
+            );
+            return false;
+        }
     }
 
     function renderSubtasks(parentTask, list) {
-        const subtasks = tasks.filter(
-            task => String(task.parent_id) === String(parentTask.id)
+        if (!list) return;
+
+        const subtasks = tasks.filter(task =>
+            task.parent_id != null &&
+            String(task.parent_id) === String(parentTask.id) &&
+            !task.archived_at
         );
 
         if (!subtasks.length) {
-            list.innerHTML = '<li class="subtask-empty">Chưa có subtask.</li>';
+            list.innerHTML = `
+                <li class="subtask-empty">
+                    Chưa có subtask.
+                </li>
+            `;
             return;
         }
 
@@ -308,9 +492,18 @@
                         type="checkbox"
                         data-subtask-id="${esc(task.id)}"
                         ${task.status === "DONE" ? "checked" : ""}
-                        ${canEdit() && !task.archived_at ? "" : "disabled"}
+                        ${
+                            canEdit() && !task.archived_at
+                                ? ""
+                                : "disabled"
+                        }
                     >
-                    <span class="${task.status === "DONE" ? "is-done" : ""}">${esc(task.title)}</span>
+
+                    <span class="${
+                        task.status === "DONE" ? "is-done" : ""
+                    }">
+                        ${esc(task.title)}
+                    </span>
                 </label>
             </li>
         `).join("");
@@ -318,8 +511,16 @@
         list.querySelectorAll("[data-subtask-id]").forEach(input => {
             input.addEventListener("change", async () => {
                 const task = taskById(input.dataset.subtaskId);
-                if (!task) return;
+
+                if (!task || !canEdit()) {
+                    if (task) {
+                        input.checked = task.status === "DONE";
+                    }
+                    return;
+                }
+
                 input.disabled = true;
+                showTaskMessage("");
 
                 try {
                     const response = await API.patch(
@@ -329,64 +530,103 @@
                             version: task.version
                         }
                     );
-                    saveTask(response?.data);
-                    renderBoard();
+
+                    if (!response?.data || response.data.id == null) {
+                        throw new Error(
+                            "Máy chủ trả về subtask không hợp lệ."
+                        );
+                    }
+
+                    await refreshTasks();
                     renderSubtasks(parentTask, list);
+
+                    toast(
+                        "Đã cập nhật trạng thái subtask.",
+                        "success"
+                    );
                 } catch (error) {
                     input.checked = task.status === "DONE";
                     input.disabled = false;
+
                     if (error.status === 401) return;
+
                     if (error.status === 409) {
                         showTaskMessage(
-                            `Subtask đã được người khác cập nhật. ${error.message || "Tải lại dữ liệu trước khi thử lại."}`,
+                            "Subtask đã được người khác cập nhật. " +
+                            (error.message || "Đang tải lại dữ liệu."),
                             "error"
                         );
-                        await reloadTasksAfterConflict();
-                        renderSubtasks(parentTask, list);
+
+                        const reloaded =
+                            await reloadTasksAfterConflict();
+
+                        if (reloaded) {
+                            renderSubtasks(parentTask, list);
+                        }
+
                         return;
                     }
-                    showTaskMessage(error.message || "Không thể cập nhật subtask.", "error");
+
+                    showTaskMessage(
+                        error.message ||
+                        "Không thể cập nhật subtask.",
+                        "error"
+                    );
                 }
             });
         });
     }
 
-    function showTaskMessage(text, type = "") {
-        const box = document.querySelector(".kanban-modal [data-task-message]");
-        if (!box) return;
-        box.textContent = text || "";
-        box.className = `form-banner${type ? ` ${type}` : ""}`;
-        box.hidden = !text;
-    }
+    function openTaskModal(task = null) {
+        const isNew = !task;
+        const creatable = canCreate();
+        const editable = canEdit();
 
-    async function reloadTasksAfterConflict() {
-        try {
-            await refreshTasks();
-        } catch (error) {
-            showTaskMessage(
-                `${error.message || "Không thể tải lại công việc."} Hãy đóng cửa sổ và tải lại bảng.`,
+        // OWNER và MEMBER được tạo task.
+        // Chỉ OWNER được sửa task đã tồn tại.
+        const canModifyForm = isNew ? creatable : editable;
+
+        if (isNew && !creatable) {
+            showMessage(
+                "Bạn không có quyền tạo task.",
                 "error"
             );
+            return;
         }
-    }
 
-    async function openTaskModal(task = null) {
-        const isNew = !task;
-        const editable = canEdit();
-        const creatable = canCreate();
         const assignedId = task?.assignee_id ?? "";
+
         const subtasksSection = isNew ? "" : `
-            <section class="task-subtasks" aria-labelledby="subtasks-heading">
+            <section
+                class="task-subtasks"
+                aria-labelledby="subtasks-heading"
+            >
                 <div class="subtask-heading">
                     <h3 id="subtasks-heading">Subtask</h3>
-                    <span class="kanban-version">Tối đa một cấp</span>
+                    <span class="kanban-version">
+                        Tối đa một cấp
+                    </span>
                 </div>
-                <ul class="subtask-list" data-subtask-list></ul>
+
+                <ul
+                    class="subtask-list"
+                    data-subtask-list
+                ></ul>
+
                 ${
                     creatable && !task.archived_at
                         ? `
-                            <form class="subtask-add-form" data-subtask-form>
-                                <label class="sr-only" for="new-subtask-title">Tên subtask</label>
+                            <form
+                                class="subtask-add-form"
+                                data-subtask-form
+                            >
+                                <label
+                                    class="sr-only"
+                                    for="new-subtask-title"
+                                >
+                                    Tên subtask
+                                </label>
+
                                 <input
                                     id="new-subtask-title"
                                     name="title"
@@ -394,7 +634,13 @@
                                     placeholder="Thêm subtask nhanh..."
                                     required
                                 >
-                                <button type="submit" class="btn btn-small">Thêm</button>
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-small"
+                                >
+                                    Thêm
+                                </button>
                             </form>
                         `
                         : ""
@@ -404,69 +650,135 @@
 
         const modal = openModal(`
             <div class="kanban-modal-heading">
-                <h2>${isNew ? "Tạo task mới" : "Chi tiết task"}</h2>
-                <button type="button" class="modal-close" data-close aria-label="Đóng">×</button>
+                <h2>
+                    ${isNew ? "Tạo task mới" : "Chi tiết task"}
+                </h2>
+
+                <button
+                    type="button"
+                    class="modal-close"
+                    data-close
+                    aria-label="Đóng"
+                >
+                    ×
+                </button>
             </div>
+
             ${
                 !isNew
-                    ? `<p class="kanban-version">Trạng thái: ${esc(task.status)} · Phiên bản ${esc(task.version)}</p>`
+                    ? `
+                        <p class="kanban-version">
+                            Trạng thái: ${esc(task.status)}
+                            · Phiên bản ${esc(task.version)}
+                        </p>
+                    `
                     : ""
             }
-            <div class="form-banner" data-task-message role="alert" hidden></div>
+
+            <div
+                class="form-banner"
+                data-task-message
+                role="alert"
+                hidden
+            ></div>
+
             ${
                 membersError
-                    ? `<p class="kanban-field-hint">${esc(membersError)} Task sẽ được lưu mà không thay đổi người phụ trách.</p>`
+                    ? `
+                        <p class="kanban-field-hint">
+                            ${esc(membersError)}
+                            Không thể thay đổi người phụ trách
+                            cho đến khi tải được thành viên.
+                        </p>
+                    `
                     : ""
             }
-            <form class="form-grid kanban-task-form" data-task-form>
+
+            <form
+                class="form-grid kanban-task-form"
+                data-task-form
+            >
                 <label>
                     Tiêu đề *
+
                     <input
                         name="title"
                         value="${esc(task?.title || "")}"
                         maxlength="200"
                         required
-                        ${editable ? "" : "disabled"}
+                        ${canModifyForm ? "" : "disabled"}
                     >
                 </label>
+
                 <label>
                     Mô tả
+
                     <textarea
                         name="description"
                         maxlength="5000"
                         rows="4"
-                        ${editable ? "" : "disabled"}
+                        ${canModifyForm ? "" : "disabled"}
                     >${esc(task?.description || "")}</textarea>
                 </label>
+
                 <div class="row2">
                     <label>
                         Hạn hoàn thành
+
                         <input
                             type="date"
                             name="due_date"
-                            value="${esc(task?.due_date || "")}"
-                            ${editable ? "" : "disabled"}
+                            value="${esc(
+                                String(task?.due_date || "").slice(0, 10)
+                            )}"
+                            ${canModifyForm ? "" : "disabled"}
                         >
                     </label>
+
                     <label>
                         Người phụ trách
+
                         <select
                             name="assignee_id"
-                            ${editable && membersLoaded ? "" : "disabled"}
-                        >${memberOptions(assignedId)}</select>
+                            ${
+                                canModifyForm && membersLoaded
+                                    ? ""
+                                    : "disabled"
+                            }
+                        >
+                            ${memberOptions(assignedId)}
+                        </select>
                     </label>
                 </div>
+
                 <div class="modal-actions">
-                    <button type="button" class="btn" data-close>Đóng</button>
+                    <button
+                        type="button"
+                        class="btn"
+                        data-close
+                    >
+                        Đóng
+                    </button>
+
                     ${
-                        isNew
-                            ? creatable
-                                ? '<button type="submit" class="btn btn-primary">Tạo task</button>'
-                                : ""
-                            : '<button type="submit" class="btn btn-primary">Lưu thay đổi</button>'
+                        canModifyForm
+                            ? `
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary"
+                                >
+                                    ${
+                                        isNew
+                                            ? "Tạo task"
+                                            : "Lưu thay đổi"
+                                    }
+                                </button>
+                            `
+                            : ""
                     }
                 </div>
             </form>
+
             ${subtasksSection}
         `);
 
@@ -474,39 +786,68 @@
             button.addEventListener("click", modal.close);
         });
 
-        const taskForm = modal.element.querySelector("[data-task-form]");
+        const taskForm = modal.element.querySelector(
+            "[data-task-form]"
+        );
+
         taskForm.addEventListener("submit", async event => {
             event.preventDefault();
-            if (isNew ? !canCreate() : !canEdit()) {
+
+            const hasPermission = isNew
+                ? canCreate()
+                : canEdit();
+
+            if (!hasPermission) {
                 showTaskMessage(
                     project?.archived_at
                         ? "Dự án đã lưu trữ, không thể chỉnh sửa."
-                        : "Bạn không có quyền chỉnh sửa task.",
+                        : "Bạn không có quyền thực hiện thao tác này.",
                     "error"
                 );
                 return;
             }
 
-            const title = taskForm.elements.title.value.trim();
+            const titleInput = taskForm.elements.namedItem("title");
+            const descriptionInput =
+                taskForm.elements.namedItem("description");
+            const dueDateInput =
+                taskForm.elements.namedItem("due_date");
+            const assigneeInput =
+                taskForm.elements.namedItem("assignee_id");
+
+            const title = titleInput.value.trim();
+
             if (!title) {
-                showTaskMessage("Tiêu đề task không được để trống.", "error");
-                taskForm.elements.title.focus();
+                showTaskMessage(
+                    "Tiêu đề task không được để trống.",
+                    "error"
+                );
+                titleInput.focus();
                 return;
             }
 
             const payload = {
                 title,
-                description: taskForm.elements.description.value.trim() || null,
-                due_date: taskForm.elements.due_date.value || null
+                description: descriptionInput.value.trim() || null,
+                due_date: dueDateInput.value || null
             };
+
             if (membersLoaded) {
-                payload.assignee_id = taskForm.elements.assignee_id.value
-                    ? Number(taskForm.elements.assignee_id.value)
+                payload.assignee_id = assigneeInput.value
+                    ? Number(assigneeInput.value)
                     : null;
             }
-            if (!isNew) payload.version = task.version;
 
-            const submit = taskForm.querySelector('[type="submit"]');
+            if (!isNew) {
+                payload.version = task.version;
+            }
+
+            const submit = taskForm.querySelector(
+                '[type="submit"]'
+            );
+
+            if (!submit) return;
+
             submit.disabled = true;
             showTaskMessage("");
 
@@ -522,124 +863,252 @@
                     );
 
                 if (!response?.data || response.data.id == null) {
-                    throw new Error("Máy chủ trả về task không hợp lệ.");
+                    throw new Error(
+                        "Máy chủ trả về task không hợp lệ."
+                    );
                 }
+
                 saveTask(response.data);
                 renderBoard();
                 modal.close();
-                toast(isNew ? "Đã tạo task." : "Đã cập nhật task.", "success");
+
+                toast(
+                    isNew
+                        ? "Đã tạo task."
+                        : "Đã cập nhật task.",
+                    "success"
+                );
             } catch (error) {
                 if (error.status === 401) return;
+
                 submit.disabled = false;
+
                 if (error.status === 409 && !isNew) {
                     showTaskMessage(
-                        `Xung đột phiên bản (409): ${error.message || "Task đã được người khác cập nhật."} Thay đổi của bạn chưa được lưu. Tải lại bảng rồi mở task mới nhất.`,
+                        `Xung đột phiên bản (409): ${
+                            error.message ||
+                            "Task đã được người khác cập nhật."
+                        } Thay đổi chưa được lưu. ` +
+                        "Đóng cửa sổ, tải lại bảng và thử lại.",
                         "error"
                     );
                     return;
                 }
-                showTaskMessage(error.message || "Không thể lưu task.", "error");
+
+                showTaskMessage(
+                    error.message || "Không thể lưu task.",
+                    "error"
+                );
             }
         });
 
         if (!isNew) {
-            const subtaskList = modal.element.querySelector("[data-subtask-list]");
+            const subtaskList = modal.element.querySelector(
+                "[data-subtask-list]"
+            );
+
             renderSubtasks(task, subtaskList);
 
-            const subtaskForm = modal.element.querySelector("[data-subtask-form]");
+            const subtaskForm = modal.element.querySelector(
+                "[data-subtask-form]"
+            );
+
             if (subtaskForm) {
-                subtaskForm.addEventListener("submit", async event => {
-                    event.preventDefault();
-                    const titleInput = subtaskForm.elements.title;
-                    const title = titleInput.value.trim();
-                    if (!title) return;
+                subtaskForm.addEventListener(
+                    "submit",
+                    async event => {
+                        event.preventDefault();
 
-                    const submit = subtaskForm.querySelector('[type="submit"]');
-                    submit.disabled = true;
-                    showTaskMessage("");
-
-                    try {
-                        const response = await API.post(
-                            `/tasks/${encodeURIComponent(task.id)}/subtasks`,
-                            { title }
-                        );
-                        if (!response?.data || response.data.id == null) {
-                            throw new Error("Máy chủ trả về subtask không hợp lệ.");
+                        if (!canCreate()) {
+                            showTaskMessage(
+                                "Bạn không có quyền thêm subtask.",
+                                "error"
+                            );
+                            return;
                         }
-                        saveTask(response.data);
-                        renderBoard();
-                        renderSubtasks(task, subtaskList);
-                        subtaskForm.reset();
-                    } catch (error) {
-                        if (error.status === 401) return;
-                        showTaskMessage(error.message || "Không thể thêm subtask.", "error");
-                    } finally {
-                        submit.disabled = false;
+
+                        const titleInput =
+                            subtaskForm.elements.namedItem("title");
+
+                        const title = titleInput.value.trim();
+
+                        if (!title) {
+                            showTaskMessage(
+                                "Tên subtask không được để trống.",
+                                "error"
+                            );
+                            return;
+                        }
+
+                        const submit = subtaskForm.querySelector(
+                            '[type="submit"]'
+                        );
+
+                        submit.disabled = true;
+                        showTaskMessage("");
+
+                        try {
+                            const response = await API.post(
+                                `/tasks/${encodeURIComponent(task.id)}/subtasks`,
+                                { title }
+                            );
+
+                            // Kiểm tra API tạo subtask thành công.
+                            if (
+                                !response?.data ||
+                                response.data.id == null
+                            ) {
+                                throw new Error(
+                                    "Máy chủ trả về dữ liệu không hợp lệ."
+                                );
+                            }
+
+                            // Tải lại dữ liệu thật từ Backend.
+                            // Không giả định API trả về task con
+                            // hay task cha.
+                            await refreshTasks();
+
+                            // Cập nhật danh sách subtask
+                            // và số lượng trên Kanban.
+                            renderSubtasks(task, subtaskList);
+
+                            subtaskForm.reset();
+
+                            toast(
+                                "Đã thêm subtask.",
+                                "success"
+                            );
+                        } catch (error) {
+                            if (error.status === 401) return;
+
+                            showTaskMessage(
+                                error.message ||
+                                "Không thể thêm hoặc tải lại subtask.",
+                                "error"
+                            );
+                        } finally {
+                            submit.disabled = false;
+                        }
                     }
-                });
+                );
             }
         }
 
-        const titleInput = taskForm.elements.title;
-        if (editable) titleInput.focus();
+        if (canModifyForm) {
+            taskForm.elements.namedItem("title").focus();
+        }
     }
 
     async function moveTask(task, status) {
-        if (!canEdit() || !task || task.status === status) return;
+        if (
+            !canEdit() ||
+            !task ||
+            !STATUSES.includes(status) ||
+            task.status === status
+        ) {
+            return;
+        }
 
         try {
             const response = await API.patch(
                 `/tasks/${encodeURIComponent(task.id)}`,
-                { status, version: task.version }
+                {
+                    status,
+                    version: task.version
+                }
             );
-            if (!response?.data) {
-                throw new Error("Máy chủ trả về task không hợp lệ.");
+
+            if (!response?.data || response.data.id == null) {
+                throw new Error(
+                    "Máy chủ trả về task không hợp lệ."
+                );
             }
+
             saveTask(response.data);
             renderBoard();
-            showMessage(`Đã chuyển task sang ${status}.`, "success");
+
+            showMessage(
+                `Đã chuyển task sang ${status}.`,
+                "success"
+            );
         } catch (error) {
             if (error.status === 401) return;
+
             if (error.status === 409) {
                 showMessage(
-                    `Xung đột phiên bản (409): ${error.message || "Task đã được người khác cập nhật."} Đang tải lại bảng.`,
+                    "Xung đột phiên bản (409): " +
+                    (error.message || "Task đã được cập nhật.") +
+                    " Đang tải lại bảng.",
                     "error"
                 );
+
                 try {
                     await refreshTasks();
                 } catch (reloadError) {
-                    showMessage(reloadError.message || "Không tải lại được bảng.", "error");
+                    showMessage(
+                        reloadError.message ||
+                        "Không tải lại được bảng.",
+                        "error"
+                    );
                 }
                 return;
             }
-            showMessage(error.message || "Không thể đổi trạng thái task.", "error");
+
+            showMessage(
+                error.message || "Không thể đổi trạng thái task.",
+                "error"
+            );
         }
     }
 
     board.addEventListener("dragstart", event => {
         const card = event.target.closest(".kanban-task");
-        if (!canEdit() || !card) return;
+
+        if (!canEdit() || !card) {
+            event.preventDefault();
+            return;
+        }
 
         draggedTaskId = card.dataset.taskId;
+
         event.dataTransfer.effectAllowed = "move";
-        event.dataTransfer.setData("text/plain", draggedTaskId);
+        event.dataTransfer.setData(
+            "text/plain",
+            draggedTaskId
+        );
+
         card.classList.add("is-dragging");
     });
 
     board.addEventListener("dragend", event => {
         const card = event.target.closest(".kanban-task");
-        if (card) card.classList.remove("is-dragging");
+
+        if (card) {
+            card.classList.remove("is-dragging");
+        }
+
         draggedTaskId = "";
-        board.querySelectorAll(".lane.kanban-drop-target").forEach(lane => {
+
+        board.querySelectorAll(
+            ".lane.kanban-drop-target"
+        ).forEach(lane => {
             lane.classList.remove("kanban-drop-target");
         });
     });
 
     board.querySelectorAll(".lane").forEach(lane => {
         lane.addEventListener("dragover", event => {
-            if (!canEdit() || !draggedTaskId || !lane.dataset.status) return;
+            if (
+                !canEdit() ||
+                !draggedTaskId ||
+                !STATUSES.includes(lane.dataset.status)
+            ) {
+                return;
+            }
+
             event.preventDefault();
             event.dataTransfer.dropEffect = "move";
+
             lane.classList.add("kanban-drop-target");
         });
 
@@ -650,25 +1119,47 @@
         });
 
         lane.addEventListener("drop", async event => {
-            if (!canEdit() || !lane.dataset.status) return;
+            if (
+                !canEdit() ||
+                !STATUSES.includes(lane.dataset.status)
+            ) {
+                return;
+            }
+
             event.preventDefault();
+
             lane.classList.remove("kanban-drop-target");
-            const taskId = event.dataTransfer.getData("text/plain") || draggedTaskId;
+
+            const taskId =
+                event.dataTransfer.getData("text/plain") ||
+                draggedTaskId;
+
             const task = taskById(taskId);
+
             await moveTask(task, lane.dataset.status);
         });
     });
 
-    newTaskButton.addEventListener("click", () => openTaskModal());
+    if (newTaskButton) {
+        newTaskButton.addEventListener("click", () => {
+            openTaskModal();
+        });
+    }
 
     function start() {
         loadWorkspace();
     }
 
-    if (!window.PulseAuth || window.PulseAuth.status === "authenticated") {
+    if (
+        !window.PulseAuth ||
+        window.PulseAuth.status === "authenticated"
+    ) {
         start();
     }
+
     window.addEventListener("pulse:auth-changed", event => {
-        if (event.detail?.status === "authenticated") start();
+        if (event.detail?.status === "authenticated") {
+            start();
+        }
     });
 })();
