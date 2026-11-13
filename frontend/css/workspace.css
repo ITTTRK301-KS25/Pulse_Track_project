@@ -384,3 +384,269 @@
         font-size: 12px;
     }
 }
+
+/* F06-F08: task cards, actions and details within the existing five-column board. */
+#btn-new-task[hidden] {
+    display: none;
+}
+
+.status.kanban-error {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.status.kanban-success {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.lane.kanban-drop-target {
+    outline: 2px solid #5598ee;
+    outline-offset: -2px;
+}
+
+.kanban-cards {
+    display: grid;
+    gap: 10px;
+}
+
+.kanban-empty {
+    color: #8c9ab0;
+    font-size: 12px;
+}
+
+.kanban-task {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid #e1e7f0;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 5px 16px #15243a08;
+}
+
+.kanban-task[draggable="true"] {
+    cursor: grab;
+}
+
+.kanban-task.is-dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.kanban-task-open {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #17233c;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 750;
+    line-height: 1.45;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+.kanban-task-open:hover {
+    color: #9a6b00;
+}
+
+.kanban-task-action {
+    display: block;
+    margin-top: 8px;
+    color: #2455a0;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.kanban-task-open:focus-visible,
+.subtask-add-form button:focus-visible {
+    outline: 3px solid #ffca2080;
+    outline-offset: 3px;
+}
+
+.kanban-task-description {
+    display: -webkit-box;
+    margin: 8px 0 0;
+    overflow: hidden;
+    color: #68778d;
+    font-size: 12px;
+    line-height: 1.5;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+}
+
+.kanban-task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    margin-top: 12px;
+    color: #718097;
+    font-size: 11px;
+}
+
+.kanban-modal {
+    width: min(100%, 680px);
+}
+
+.kanban-modal-heading,
+.subtask-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.kanban-modal-heading h2,
+.subtask-heading h3 {
+    margin: 0;
+    color: #17233c;
+}
+
+.modal-close {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: 9px;
+    background: #f1f4f8;
+    color: #53627a;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    background: #e5eaf1;
+}
+
+.kanban-version,
+.kanban-field-hint {
+    margin: 8px 0 15px;
+    color: #718097;
+    font-size: 12px;
+}
+
+.kanban-task-form {
+    margin-top: 15px;
+}
+
+.kanban-task-form .modal-actions {
+    margin-top: 4px;
+}
+
+.kanban-task-form .modal-actions .btn-primary {
+    width: auto;
+    margin: 0;
+    box-shadow: none;
+}
+
+.kanban-task-form input:disabled,
+.kanban-task-form textarea:disabled,
+.kanban-task-form select:disabled {
+    background: #f5f7fb;
+    color: #64748b;
+    cursor: not-allowed;
+}
+
+.task-subtasks {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e6eaf0;
+}
+
+.subtask-heading h3 {
+    font-size: 16px;
+}
+
+.subtask-list {
+    display: grid;
+    gap: 8px;
+    margin: 14px 0;
+    padding: 0;
+    list-style: none;
+}
+
+.subtask-item {
+    padding: 9px 11px;
+    border: 1px solid #e6eaf0;
+    border-radius: 9px;
+    background: #fafbfd;
+}
+
+.subtask-item label {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #344258;
+    font-size: 13px;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+}
+
+.subtask-item input {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    accent-color: #159a6c;
+}
+
+.subtask-item input:disabled {
+    cursor: not-allowed;
+}
+
+.subtask-item .is-done {
+    color: #8c9ab0;
+    text-decoration: line-through;
+}
+
+.subtask-empty {
+    color: #8c9ab0;
+    font-size: 12px;
+}
+
+.subtask-add-form {
+    display: flex;
+    gap: 8px;
+}
+
+.subtask-add-form input {
+    min-width: 0;
+    flex: 1;
+    padding: 9px 11px;
+    border: 1px solid #d8deea;
+    border-radius: 9px;
+    font: inherit;
+}
+
+.subtask-add-form input:focus {
+    outline: none;
+    border-color: #e9ae00;
+    box-shadow: 0 0 0 3px #ffcc332b;
+}
+
+.subtask-add-form button {
+    flex: 0 0 auto;
+}
+
+.kanban-modal .form-banner.error {
+    margin-top: 14px;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
+@media (max-width: 600px) {
+    .kanban-modal {
+        padding: 20px;
+    }
+}

@@ -2,7 +2,7 @@
 
 Quy trình (một giao dịch):
 1. Khóa dòng dự án (FOR UPDATE) -> các cập nhật cùng dự án xếp hàng, không ghi đè nhau.
-2. Kiểm tra quyền (OWNER/MEMBER), dự án và task chưa lưu trữ.
+2. Kiểm tra quyền (chỉ OWNER), dự án và task chưa lưu trữ.
 3. version client gửi khác version hiện tại -> 409, KHÔNG ghi gì.
 4. Chỉ trường thực sự đổi mới ghi: cập nhật task, version + 1, thêm sự kiện lịch sử tương ứng.
 Gửi đúng giá trị cũ cho mọi trường -> 200, không tăng version, không ghi lịch sử.
@@ -36,7 +36,7 @@ def update_task(
     if task is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Không tìm thấy task")
     project, role = access.get_project_and_role(db, task.project_id, user, lock=True)
-    access.require(role, "task.write")
+    access.require(role, "task.edit")
     access.require_active(project)
     db.refresh(task)
     if task.archived_at is not None:

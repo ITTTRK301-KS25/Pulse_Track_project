@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý công việc | Pulse Track</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/projects.css">
+    <link rel="stylesheet" href="css/workspace.css">
     <link rel="stylesheet" href="css/theme.css">
 </head>
 <body class="auth-checking">
@@ -67,52 +69,66 @@
 
         <p id="current-project-name" class="muted"></p>
 
-        <div class="board">
+        <button type="button" id="btn-new-task" class="btn btn-primary" hidden>
+            + Tạo task
+        </button>
 
-            <section class="lane">
+        <p id="kanban-message" class="status" role="status" aria-live="polite">
+            Đang tải công việc...
+        </p>
+
+        <div id="kanban-board" class="board">
+
+            <section class="lane" data-status="TODO">
                 <h3>
                     SPRINT BACKLOG
-                    <span class="pill">0</span>
+                    <span class="pill" data-count>0</span>
                 </h3>
-                <p>Chưa có công việc</p>
+                <div class="kanban-cards" data-cards>
+                    <p>Chưa có công việc</p>
+                </div>
             </section>
 
-            <section class="lane">
+            <section class="lane" data-status="IN_PROGRESS">
                 <h3>
                     IN PROGRESS
-                    <span class="pill">0</span>
+                    <span class="pill" data-count>0</span>
                 </h3>
-                <p>Chưa có công việc</p>
+                <div class="kanban-cards" data-cards>
+                    <p>Chưa có công việc</p>
+                </div>
             </section>
 
-            <section class="lane">
+            <section class="lane" data-unsupported-status>
                 <h3>
                     REVIEW
-                    <span class="pill">0</span>
+                    <span class="pill" data-count>0</span>
                 </h3>
-                <p>Chưa có công việc</p>
+                <div class="kanban-cards" data-cards>
+                    <p>Chưa có công việc</p>
+                </div>
             </section>
 
-            <section class="lane">
+            <section class="lane" data-unsupported-status>
                 <h3>
                     TESTING/QA
-                    <span class="pill">0</span>
+                    <span class="pill" data-count>0</span>
                 </h3>
-                <p>Chưa có công việc</p>
+                <div class="kanban-cards" data-cards>
+                    <p>Chưa có công việc</p>
+                </div>
             </section>
 
-            <section class="lane">
+            <section class="lane" data-status="DONE">
                 <h3>
                     DONE
-                    <span class="pill">0</span>
+                    <span class="pill" data-count>0</span>
                 </h3>
-                <p>Chưa có công việc</p>
+                <div class="kanban-cards" data-cards>
+                    <p>Chưa có công việc</p>
+                </div>
             </section>
 
-        </div>
-
-        <div class="status">
-            Bảng quản lý công việc đang chờ tích hợp API công việc.
         </div>
 
     </main>
@@ -120,41 +136,7 @@
     <script defer src="js/config.js"></script>
     <script defer src="js/api.js"></script>
     <script defer src="js/router.js"></script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const nameElement = document.getElementById(
-                "current-project-name"
-            );
-
-            const params = new URLSearchParams(
-                window.location.search
-            );
-
-            const projectId = params.get("project");
-
-            if (!projectId) {
-                nameElement.textContent =
-                    "Chọn một dự án để xem bảng công việc.";
-                return;
-            }
-
-            const savedId = sessionStorage.getItem(
-                "selectedProjectId"
-            );
-
-            const savedName = sessionStorage.getItem(
-                "selectedProjectName"
-            );
-
-            if (savedId === projectId && savedName) {
-                nameElement.textContent = "Dự án: " + savedName;
-            } else {
-                nameElement.textContent =
-                    "Đang xem dự án có mã: " + projectId;
-            }
-        });
-    </script>
+    <script defer src="js/kanban.js"></script>
 
 </body>
 </html>
