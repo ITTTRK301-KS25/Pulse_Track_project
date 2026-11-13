@@ -15,6 +15,8 @@ from app.api import members as members_api
 from app.api import members_manage as members_manage_api
 from app.api import tasks_archive as tasks_archive_api
 from app.api import subtasks as subtasks_api
+from app.api import comments as comments_api
+from app.api import history as history_api
 
 from app.core.exception import register_exception_handler
 
@@ -29,6 +31,8 @@ app.include_router(members_api.router)
 app.include_router(members_manage_api.router)
 app.include_router(tasks_archive_api.router)
 app.include_router(subtasks_api.router)
+app.include_router(comments_api.router)
+app.include_router(history_api.router)
 
 
 app.add_middleware(
