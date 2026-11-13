@@ -21,6 +21,7 @@ from app.models.user import User
 from app.services.task_service import get_task, list_tasks
 from app.services.subtask_service import set_status
 from app.services.project_service import project_to_dict
+from app.services.task_update_service import update_task
 
 
 @pytest.fixture()
@@ -71,6 +72,29 @@ def test_status_endpoint_rejects_non_subtask_and_updates_subtask(db):
     history = db.query(TaskHistory).one()
     assert history.task_id == child.id
     assert history.event_type == "STATUS_CHANGE"
+
+
+def test_member_cannot_edit_task_or_change_subtask_status(db):
+    owner, parent, child = create_task_tree(db)
+    member = User(email="member@example.com", password_hash="hash", display_name="Member")
+    db.add(member)
+    db.flush()
+    db.add(ProjectMember(project_id=parent.project_id, user_id=member.id, role="MEMBER"))
+    db.commit()
+
+    with pytest.raises(HTTPException) as edit_error:
+        update_task(db, member, parent.id, 1, {"title": "Changed"})
+    assert edit_error.value.status_code == 403
+
+    with pytest.raises(HTTPException) as status_error:
+        set_status(db, member, child.id, "DONE", 1)
+    assert status_error.value.status_code == 403
+
+    db.refresh(parent)
+    db.refresh(child)
+    assert parent.title == "Parent" and parent.version == 1
+    assert child.status == "TODO" and child.version == 1
+    assert db.query(TaskHistory).count() == 0
 
 
 def test_task_read_endpoints_apply_filters_and_allow_viewers(db):

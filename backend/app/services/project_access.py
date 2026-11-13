@@ -18,6 +18,7 @@ PERMISSIONS = {
     "project.edit": (OWNER,),
     "member.manage": (OWNER,),
     "task.write": (OWNER, MEMBER),
+    "task.edit": (OWNER,),
 }
 
 

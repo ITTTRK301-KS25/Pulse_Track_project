@@ -10,6 +10,7 @@
 
     const API = window.PulseAPI;
     const DEFAULT_TZ = "Asia/Ho_Chi_Minh";
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     function esc(value) {
         return String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -294,7 +295,6 @@
         const statusEl = form.querySelector(
             ".member-lookup-status"
         );
-
         const submitBtn = form.querySelector(
             'button[type="submit"]'
         );
@@ -311,9 +311,6 @@
             modal.close();
         }
 
-        modal.el.querySelector("[data-close]").onclick =
-            closeMemberModal;
-
         emailInput.addEventListener("input", function () {
             clearTimeout(lookupTimer);
             lookupVersion++;
@@ -323,28 +320,23 @@
 
             verifiedEmail = "";
             nameInput.value = "";
-            submitBtn.disabled = true;
             emailError.textContent = "";
             statusEl.textContent = "";
             statusEl.className = "member-lookup-status";
+            submitBtn.disabled = true;
 
             if (!email) return;
 
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            if (!EMAIL_RE.test(email)) {
                 emailError.textContent = "Email chưa hợp lệ";
                 return;
             }
 
             statusEl.textContent = "Đang kiểm tra tài khoản...";
-
             lookupTimer = setTimeout(async () => {
                 try {
-                    // Backend cần hỗ trợ API này.
-                    // Phản hồi dự kiến:
-                    // { data: { display_name: "Nguyễn Văn A" } }
-
                     const response = await API.get(
-                        "/users/lookup",
+                        `/projects/${encodeURIComponent(project.id)}/members/lookup`,
                         { query: { email } }
                     );
 
@@ -356,37 +348,28 @@
                         return;
                     }
 
-                    const user = response?.data;
-
-                    if (user?.display_name) {
-                        nameInput.value = user.display_name;
-                        verifiedEmail = email;
-
-                        statusEl.textContent =
-                            "Đã tìm thấy tài khoản";
-
-                        statusEl.classList.add("success");
-                        submitBtn.disabled = false;
-                    } else {
-                        statusEl.textContent =
-                            "Không tìm thấy tài khoản";
-
-                        statusEl.classList.add("error");
+                    const account = response?.data;
+                    if (!account?.display_name) {
+                        throw new Error("Thông tin tài khoản không hợp lệ");
                     }
+
+                    nameInput.value = account.display_name;
+                    verifiedEmail = email;
+                    statusEl.textContent = "Đã tìm thấy tài khoản";
+                    statusEl.classList.add("success");
+                    submitBtn.disabled = false;
                 } catch (err) {
-                    if (closed || version !== lookupVersion) {
-                        return;
-                    }
+                    if (closed || version !== lookupVersion) return;
 
-                    statusEl.textContent =
-                        err.status === 404
-                            ? "Không tìm thấy tài khoản hoặc API chưa có"
-                            : "Không thể kiểm tra tài khoản";
-
+                    statusEl.textContent = err.status === 404
+                        ? "Không tìm thấy tài khoản với email này"
+                        : "Không thể kiểm tra tài khoản";
                     statusEl.classList.add("error");
                 }
             }, 500);
         });
+
+        modal.el.querySelector("[data-close]").onclick = closeMemberModal;
 
         form.addEventListener("submit", async event => {
             event.preventDefault();
@@ -399,8 +382,7 @@
             const description = descriptionInput.value.trim();
 
             if (!email || verifiedEmail !== email) {
-                banner.textContent =
-                    "Vui lòng nhập email đã được xác thực.";
+                banner.textContent = "Vui lòng nhập email đã được xác thực.";
 
                 banner.hidden = false;
                 return;
