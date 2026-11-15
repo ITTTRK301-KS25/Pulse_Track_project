@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="css/projects.css">
     <link rel="stylesheet" href="css/workspace.css">
     <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/comments.css">
 </head>
 <body class="auth-checking">
 
@@ -22,40 +23,38 @@
 
     <div id="app-error-message" role="alert" hidden></div>
 
-
-<header class="app-header">
-    <a href="dashboard.html" class="brand">
-        <span class="pulse">⌁</span>
-        Pulse Track
-    </a>
-
-    <nav aria-label="Điều hướng chính">
-        <a href="dashboard.html">
-            Tổng quan
+    <header class="app-header">
+        <a href="dashboard.html" class="brand">
+            <span class="pulse">⌁</span>
+            Pulse Track
         </a>
 
-        <a href="projects.html">
-            Dự án
-        </a>
+        <nav aria-label="Điều hướng chính">
+            <a href="dashboard.html">
+                Tổng quan
+            </a>
 
-        <a href="kanban.html" aria-current="page">
-            Quản lý công việc
-        </a>
+            <a href="projects.html">
+                Dự án
+            </a>
 
-        <a href="profile.html" data-user-name>
-            Tài khoản
-        </a>
+            <a href="kanban.html" aria-current="page">
+                Quản lý công việc
+            </a>
 
-        <button
-            type="button"
-            class="logout-button"
-            data-logout
-        >
-            Đăng xuất
-        </button>
-    </nav>
-</header>
+            <a href="profile.html" data-user-name>
+                Tài khoản
+            </a>
 
+            <button
+                type="button"
+                class="logout-button"
+                data-logout
+            >
+                Đăng xuất
+            </button>
+        </nav>
+    </header>
 
     <main class="content">
 
@@ -69,11 +68,21 @@
 
         <p id="current-project-name" class="muted"></p>
 
-        <button type="button" id="btn-new-task" class="btn btn-primary" hidden>
+        <button
+            type="button"
+            id="btn-new-task"
+            class="btn btn-primary"
+            hidden
+        >
             + Tạo task
         </button>
 
-        <p id="kanban-message" class="status" role="status" aria-live="polite">
+        <p
+            id="kanban-message"
+            class="status"
+            role="status"
+            aria-live="polite"
+        >
             Đang tải công việc...
         </p>
 
@@ -136,6 +145,7 @@
     <script defer src="js/config.js"></script>
     <script defer src="js/api.js"></script>
     <script defer src="js/router.js"></script>
+    <script defer src="js/comments.js"></script>
     <script defer src="js/kanban.js"></script>
 
 </body>

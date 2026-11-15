@@ -1,0 +1,391 @@
+
+.comments-section {
+    margin-top: 24px;
+    padding-top: 22px;
+    border-top: 1px solid #e2e8f0;
+    font-family: inherit;
+}
+
+.comments-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.comments-heading h3 {
+    margin: 0;
+    color: #17233b;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.comments-count {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 11px;
+    border: 1px solid #dbe5f2;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.comment-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #f8fafc;
+}
+
+.comment-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 15px;
+    font-weight: 700;
+    user-select: none;
+}
+
+.comment-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.comment-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    margin-bottom: 7px;
+}
+
+.comment-author {
+    color: #17233b;
+    font-size: 14px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.comment-time {
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.comment-content {
+    margin: 0;
+    color: #334155;
+    font-size: 14px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.comments-empty {
+    margin: 0;
+    padding: 18px 14px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+.comments-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.comments-textarea {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    min-height: 100px;
+    padding: 13px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    outline: none;
+    background: #ffffff;
+    color: #17233b;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: vertical;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.comments-textarea::placeholder {
+    color: #94a3b8;
+}
+
+.comments-textarea:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.comments-textarea:disabled {
+    background: #f1f5f9;
+    cursor: not-allowed;
+}
+
+.comments-form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.comments-counter {
+    color: #64748b;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.comments-form-footer .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 39px;
+    padding: 9px 17px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.comments-form-footer .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.comments-readonly {
+    margin: 14px 0 0;
+    padding: 12px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.comments-message {
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    background: #f0fdf4;
+    color: #166534;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.comments-message.is-error {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.comments-message[hidden] {
+    display: none;
+}
+
+.comments-list > .btn {
+    align-self: center;
+    margin-top: 2px;
+}
+
+@media (max-width: 600px) {
+    .comments-section {
+        margin-top: 18px;
+        padding-top: 18px;
+    }
+
+    .comments-heading h3 {
+        font-size: 16px;
+    }
+
+    .comment-item {
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .comment-avatar {
+        flex-basis: 34px;
+        width: 34px;
+        height: 34px;
+        font-size: 13px;
+    }
+
+    .comment-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
+    }
+
+    .comments-form-footer {
+        flex-wrap: wrap;
+    }
+
+    .comments-form-footer .btn {
+        margin-left: auto;
+    }
+}
+
+/* ===== F09 - Cân chỉnh giao diện Chi tiết Task ===== */
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+    background: rgba(15, 23, 42, 0.55);
+    overflow-y: auto;
+}
+
+.modal-backdrop .kanban-modal {
+    box-sizing: border-box;
+    width: min(100%, 580px);
+    max-width: 580px;
+    max-height: calc(100dvh - 48px);
+    margin: auto;
+    padding: 24px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.kanban-modal-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.kanban-modal-heading h2 {
+    margin: 0;
+    font-size: 21px;
+    line-height: 1.4;
+}
+
+.kanban-modal .form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.kanban-modal .form-grid > label {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.kanban-modal .row2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.kanban-modal .row2 > label {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.kanban-modal input,
+.kanban-modal select,
+.kanban-modal textarea {
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+.kanban-modal .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.kanban-modal .task-subtasks {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.kanban-modal .comments-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.kanban-modal .comments-list {
+    margin-bottom: 16px;
+}
+
+.kanban-modal .comments-form {
+    margin-top: 14px;
+}
+
+.kanban-modal .comments-textarea {
+    min-height: 90px;
+}
+
+@media (max-width: 600px) {
+    .modal-backdrop {
+        padding: 12px;
+    }
+
+    .modal-backdrop .kanban-modal {
+        width: 100%;
+        max-height: calc(100dvh - 24px);
+        padding: 18px;
+        border-radius: 14px;
+    }
+
+    .kanban-modal .row2 {
+        grid-template-columns: 1fr;
+    }
+
+    .kanban-modal-heading h2 {
+        font-size: 19px;
+    }
+}
