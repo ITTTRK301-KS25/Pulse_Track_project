@@ -252,7 +252,7 @@
             }
 
             showMessage(
-                "Thiếu mã dự án. Mở bảng Kanban từ trang Dự án.",
+                "Thiếu mã dự án. Mở bảng Quản lý công việc từ trang Dự án.",
                 "error"
             );
 
@@ -782,18 +782,162 @@
             ${subtasksSection}
         `);
 
-        if (!isNew && window.PulseComments) {
 
+        if (!isNew && window.PulseComments) {
             window.PulseComments.mount(modal.element, {
-                projectId,
+                projectId: projectId,
                 taskId: task.id,
                 canPost: canCreate() && !task.archived_at
             });
         }
 
+        if (!isNew && window.PulseHistory) {
+            const modalContent = modal.element;
+
+            const taskForm = modalContent.querySelector(
+                "[data-task-form]"
+            );
+
+            const subtasks = modalContent.querySelector(
+                ".task-subtasks"
+            );
+
+            const comments = modalContent.querySelector(
+                ".comments-section"
+            );
+
+            const tabs = document.createElement("div");
+            tabs.className = "task-detail-tabs";
+            tabs.setAttribute("role", "tablist");
+            tabs.setAttribute(
+                "aria-label",
+                "Thông tin và lịch sử công việc"
+            );
+
+            const detailTab = document.createElement("button");
+            detailTab.type = "button";
+            detailTab.className =
+                "task-detail-tab is-active";
+            detailTab.textContent = "Chi tiết";
+            detailTab.id = `task-detail-tab-${task.id}`;
+            detailTab.setAttribute("role", "tab");
+            detailTab.setAttribute("aria-selected", "true");
+
+            const historyTab = document.createElement("button");
+            historyTab.type = "button";
+            historyTab.className = "task-detail-tab";
+            historyTab.textContent = "Lịch sử";
+            historyTab.id = `task-history-tab-${task.id}`;
+            historyTab.setAttribute("role", "tab");
+            historyTab.setAttribute("aria-selected", "false");
+
+            tabs.append(detailTab, historyTab);
+
+            const detailPanel = document.createElement("div");
+            detailPanel.className = "task-detail-panel";
+            detailPanel.id = `task-detail-panel-${task.id}`;
+            detailPanel.setAttribute("role", "tabpanel");
+            detailPanel.setAttribute(
+                "aria-labelledby",
+                detailTab.id
+            );
+
+            const historyPanel = document.createElement("div");
+            historyPanel.className = "task-detail-panel";
+            historyPanel.id = `task-history-panel-${task.id}`;
+            historyPanel.setAttribute("role", "tabpanel");
+            historyPanel.setAttribute(
+                "aria-labelledby",
+                historyTab.id
+            );
+            historyPanel.hidden = true;
+
+            detailTab.setAttribute(
+                "aria-controls",
+                detailPanel.id
+            );
+
+            historyTab.setAttribute(
+                "aria-controls",
+                historyPanel.id
+            );
+
+            if (taskForm) {
+                detailPanel.appendChild(taskForm);
+            }
+
+            if (subtasks) {
+                detailPanel.appendChild(subtasks);
+            }
+
+            if (comments) {
+                detailPanel.appendChild(comments);
+            }
+
+            const history = window.PulseHistory.mount(
+                modalContent,
+                {
+                    projectId: projectId,
+                    taskId: task.id
+                }
+            );
+
+            if (history) {
+                historyPanel.appendChild(history.element);
+            }
+
+            modalContent.append(
+                tabs,
+                detailPanel,
+                historyPanel
+            );
+
+            function switchTab(selected) {
+                const showHistory = selected === "history";
+
+                detailPanel.hidden = showHistory;
+                historyPanel.hidden = !showHistory;
+
+                detailTab.classList.toggle(
+                    "is-active",
+                    !showHistory
+                );
+
+                historyTab.classList.toggle(
+                    "is-active",
+                    showHistory
+                );
+
+                detailTab.setAttribute(
+                    "aria-selected",
+                    String(!showHistory)
+                );
+
+                historyTab.setAttribute(
+                    "aria-selected",
+                    String(showHistory)
+                );
+
+                if (showHistory && history) {
+                    history.load();
+                }
+            }
+
+            detailTab.addEventListener("click", () => {
+                switchTab("detail");
+            });
+
+            historyTab.addEventListener("click", () => {
+                switchTab("history");
+            });
+
+            switchTab("detail");
+        }
+
         modal.element.querySelectorAll("[data-close]").forEach(button => {
             button.addEventListener("click", modal.close);
         });
+
 
         const taskForm = modal.element.querySelector(
             "[data-task-form]"
