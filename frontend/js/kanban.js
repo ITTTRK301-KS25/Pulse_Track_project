@@ -782,6 +782,15 @@
             ${subtasksSection}
         `);
 
+        if (!isNew && window.PulseComments) {
+
+            window.PulseComments.mount(modal.element, {
+                projectId,
+                taskId: task.id,
+                canPost: canCreate() && !task.archived_at
+            });
+        }
+
         modal.element.querySelectorAll("[data-close]").forEach(button => {
             button.addEventListener("click", modal.close);
         });
@@ -953,7 +962,6 @@
                                 { title }
                             );
 
-                            // Kiểm tra API tạo subtask thành công.
                             if (
                                 !response?.data ||
                                 response.data.id == null
@@ -963,15 +971,8 @@
                                 );
                             }
 
-                            // Tải lại dữ liệu thật từ Backend.
-                            // Không giả định API trả về task con
-                            // hay task cha.
                             await refreshTasks();
-
-                            // Cập nhật danh sách subtask
-                            // và số lượng trên Kanban.
                             renderSubtasks(task, subtaskList);
-
                             subtaskForm.reset();
 
                             toast(
