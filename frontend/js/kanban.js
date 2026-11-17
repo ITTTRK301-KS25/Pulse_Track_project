@@ -953,6 +953,25 @@
             renderSubtasks(task, subtaskList);
         }
 
+        if (!isNew && window.PulseAIBreakdown) {
+            window.PulseAIBreakdown.mount({
+                task,
+                project,
+                container: modalElement,
+                onApproved: async () => {
+                    await refreshTasks();
+
+                    const updatedTask = taskById(task.id);
+
+                    if (updatedTask && subtaskList) {
+                        renderSubtasks(updatedTask, subtaskList);
+                    }
+
+                    toast("Đã tạo Subtask từ AI thành công.", "success");
+                }
+            });
+        }
+
         if (taskForm && canModifyForm) {
             taskForm.addEventListener("submit", async event => {
                 event.preventDefault();
