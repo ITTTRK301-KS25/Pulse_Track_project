@@ -522,6 +522,7 @@
     outline-offset: 3px;
 }
 
+
 .kanban-task-description {
     display: -webkit-box;
     margin: 8px 0 0;
@@ -531,7 +532,9 @@
     line-height: 1.5;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
 }
+
 
 .kanban-task-meta {
     display: flex;
@@ -716,5 +719,82 @@
 
     .kanban-filter-summary {
         grid-column: 1;
+    }
+}
+
+/* KANBAN - CHON DU AN */
+
+#kanban-select-project[hidden],
+#kanban-filters[hidden],
+#kanban-board[hidden],
+#btn-new-task[hidden],
+#btn-ai-planner[hidden] {
+    display: none !important;
+}
+
+.kanban-select-project {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 1050px;
+    min-height: 300px;
+    margin: 28px auto 0;
+    padding: 44px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: #ffffff;
+    border: 1px solid #dbe5f1;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+}
+
+.kanban-select-icon {
+    width: 68px;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    background: #eaf2ff;
+    border-radius: 20px;
+    font-size: 32px;
+}
+
+.kanban-select-project h2 {
+    margin: 0 0 10px;
+    color: #10203f;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.kanban-select-project p {
+    max-width: 480px;
+    margin: 0 0 22px;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.kanban-select-project .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 24px;
+    text-decoration: none;
+    border-radius: 10px;
+}
+
+@media (max-width: 700px) {
+    .kanban-select-project {
+        min-height: 260px;
+        padding: 30px 18px;
+        margin-top: 20px;
+    }
+
+    .kanban-select-project h2 {
+        font-size: 21px;
     }
 }

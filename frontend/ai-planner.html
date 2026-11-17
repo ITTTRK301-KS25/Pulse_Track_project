@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trợ lý AI lập kế hoạch | Pulse Track</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/projects.css">
+    <link rel="stylesheet" href="css/workspace.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/ai-planner.css">
+</head>
+
+<body class="auth-checking">
+    <div id="auth-guard-message" role="status" aria-live="polite">
+        Đang kiểm tra phiên đăng nhập...
+    </div>
+
+    <button id="auth-guard-retry" type="button" hidden>
+        Thử lại
+    </button>
+
+    <div id="app-error-message" role="alert" hidden></div>
+
+    <header class="app-header">
+        <a href="dashboard.html" class="brand">
+            <span class="pulse">⌁</span>
+            Pulse Track
+        </a>
+
+        <nav aria-label="Điều hướng chính">
+            <a href="dashboard.html">Tổng quan</a>
+            <a href="projects.html">Dự án</a>
+            <a id="planner-kanban-link" href="projects.html">
+                Quản lý công việc
+            </a>
+            <a href="profile.html" data-user-name>
+                Tài khoản
+            </a>
+            <button type="button" class="logout-button" data-logout>
+                Đăng xuất
+            </button>
+        </nav>
+    </header>
+
+    <main class="content ai-planner-page">
+        <a id="planner-back-link" href="projects.html"
+           class="ai-back-link">
+            ← Quay lại Kanban
+        </a>
+
+        <div class="ai-heading">
+            <span class="eyebrow">TRỢ LÝ AI</span>
+            <h1>Lập kế hoạch dự án với AI</h1>
+            <p class="muted">
+                Nhập mục tiêu và phạm vi dự án.
+                AI sẽ đề xuất danh sách công việc để bạn
+                xem xét trước khi phê duyệt.
+            </p>
+            <p id="planner-project-name" class="ai-project-name"></p>
+        </div>
+
+        <div id="planner-message" class="ai-message"
+             role="status" aria-live="polite" hidden></div>
+
+        <section class="ai-panel">
+            <div class="ai-panel-heading">
+                <div>
+                    <span class="ai-step">BƯỚC 01</span>
+                    <h2>Thông tin lập kế hoạch</h2>
+                </div>
+            </div>
+
+            <form id="planner-form">
+                <div class="ai-field">
+                    <label for="planner-goal">Mục tiêu dự án *</label>
+                    <textarea id="planner-goal" rows="5"
+                        maxlength="3000" required
+                        placeholder="Ví dụ: Xây dựng hệ thống quản lý công việc cho nhóm 3 người, hỗ trợ Kanban, phân quyền và báo cáo AI."></textarea>
+                    <small>Mô tả kết quả mà dự án cần đạt được.</small>
+                </div>
+
+                <div class="ai-field">
+                    <label for="planner-scope">Phạm vi dự án *</label>
+                    <textarea id="planner-scope" rows="4"
+                        maxlength="2000" required
+                        placeholder="Ví dụ: Đăng nhập, quản lý dự án, quản lý thành viên, Kanban, bình luận, lịch sử thay đổi và báo cáo AI."></textarea>
+                    <small>Nêu các chức năng và giới hạn triển khai.</small>
+                </div>
+
+                <div class="ai-form-actions">
+                    <button id="planner-generate" type="submit"
+                            class="btn btn-primary" disabled>
+                        ✦ Tạo kế hoạch với AI
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section id="planner-loading" class="ai-panel"
+                 role="status" aria-live="polite" hidden>
+            <div class="ai-loading">
+                <span class="ai-spinner" aria-hidden="true"></span>
+                <div>
+                    <strong>AI đang phân tích dự án...</strong>
+                    <p>Vui lòng chờ trong khi AI đề xuất công việc.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="planner-draft" class="ai-panel" hidden>
+            <div class="ai-panel-heading">
+                <div>
+                    <span class="ai-step">BƯỚC 02</span>
+                    <h2>Danh sách công việc đề xuất</h2>
+                    <p class="ai-hint">
+                        Bạn có thể sửa tiêu đề, mô tả hoặc
+                        xóa công việc không cần thiết.
+                    </p>
+                </div>
+                <span id="planner-draft-count" class="ai-count"></span>
+            </div>
+
+            <div id="planner-task-list" class="ai-task-list"></div>
+
+            <div class="ai-draft-footer">
+                <p>
+                    Công việc chỉ được tạo trên Kanban
+                    sau khi Backend phê duyệt thành công.
+                </p>
+
+                <div class="ai-actions">
+                    <button id="planner-cancel" type="button"
+                            class="btn ai-secondary">
+                        Hủy bản nháp
+                    </button>
+
+                    <button id="planner-approve" type="button"
+                            class="btn btn-primary">
+                        Phê duyệt và tạo Task
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script defer src="js/config.js"></script>
+    <script defer src="js/api.js"></script>
+    <script defer src="js/router.js"></script>
+    <script defer src="js/planner-api.js"></script>
+    <script defer src="js/ai-planner.js"></script>
+</body>
+</html>
