@@ -623,6 +623,55 @@
         }
     }
 
+    function updateSubtaskProgress(parentTask, list) {
+        const section = list?.closest(".task-subtasks");
+        if (!section) return;
+
+        const children = tasks.filter(item =>
+            item.parent_id != null &&
+            String(item.parent_id) === String(parentTask.id) &&
+            !item.archived_at
+        );
+
+        const total = children.length;
+        const done = children.filter(
+            item => item.status === "DONE"
+        ).length;
+
+        const percent = total
+            ? Math.round((done / total) * 100)
+            : 0;
+
+        const counter = section.querySelector(
+            "[data-subtask-progress-count]"
+        );
+
+        const bar = section.querySelector(
+            "[data-subtask-progress-bar]"
+        );
+
+        const label = section.querySelector(
+            "[data-subtask-progress-percent]"
+        );
+
+        if (counter) {
+            counter.textContent = `${done}/${total} hoàn thành`;
+        }
+
+        if (bar) {
+            bar.style.width = `${percent}%`;
+            bar.parentElement?.setAttribute(
+                "aria-valuenow",
+                String(percent)
+            );
+        }
+
+        if (label) {
+            label.textContent = `${percent}%`;
+        }
+    }
+
+
     function renderSubtasks(parentTask, list) {
         if (!list) return;
 
@@ -632,37 +681,120 @@
             !task.archived_at
         );
 
+        updateSubtaskProgress(parentTask, list);
+
         if (!subtasks.length) {
             list.innerHTML = `
                 <li class="subtask-empty">
-                    Chưa có subtask.
+                    <span
+                        class="subtask-empty-illustration"
+                        aria-hidden="true"
+                    >☑</span>
+
+                    <strong>Chưa có công việc con</strong>
+
+                    <span>
+                        Thêm thủ công hoặc để AI gợi ý
+                        các bước thực hiện.
+                    </span>
                 </li>
             `;
             return;
         }
 
+        const canManageSubtasks = canEdit();
+
+        const editIcon = `
+            <svg viewBox="0 0 24 24"
+                 width="16" height="16"
+                 fill="none" stroke="currentColor"
+                 stroke-width="1.8"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/>
+            </svg>
+        `;
+
+        const deleteIcon = `
+            <svg viewBox="0 0 24 24"
+                 width="16" height="16"
+                 fill="none" stroke="currentColor"
+                 stroke-width="1.8"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="M3 6h18"/>
+                <path d="M8 6V4h8v2"/>
+                <path d="M19 6l-1 14H6L5 6"/>
+                <path d="M10 10v6M14 10v6"/>
+            </svg>
+        `;
+
         list.innerHTML = subtasks.map(task => `
-            <li class="subtask-item">
-                <label>
-                    <input
-                        type="checkbox"
-                        data-subtask-id="${esc(task.id)}"
-                        ${task.status === "DONE" ? "checked" : ""}
-                        ${
-                            canEdit() && !task.archived_at
-                                ? ""
-                                : "disabled"
-                        }
-                    >
-                    <span class="${
-                        task.status === "DONE" ? "is-done" : ""
-                    }">
-                        ${esc(task.title)}
-                    </span>
-                </label>
+            <li
+                class="subtask-item"
+                data-subtask-row="${esc(task.id)}"
+            >
+                <div class="subtask-row-main">
+                    <label class="subtask-check-label">
+                        <input
+                            type="checkbox"
+                            data-subtask-id="${esc(task.id)}"
+                            ${task.status === "DONE" ? "checked" : ""}
+                            ${
+                                canManageSubtasks && !task.archived_at
+                                    ? ""
+                                    : "disabled"
+                            }
+                        >
+
+                        <span class="subtask-title ${
+                            task.status === "DONE" ? "is-done" : ""
+                        }">
+                            ${esc(task.title)}
+                        </span>
+                    </label>
+
+                    ${
+                        canManageSubtasks
+                            ? `
+                                <div class="subtask-row-actions">
+                                    <button
+                                        type="button"
+                                        class="subtask-icon-btn subtask-edit-btn"
+                                        data-edit-subtask="${esc(task.id)}"
+                                        aria-label="Sửa subtask"
+                                        title="Sửa subtask"
+                                    >
+                                        ${editIcon}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="subtask-icon-btn subtask-delete-btn"
+                                        data-delete-subtask="${esc(task.id)}"
+                                        aria-label="Xóa subtask"
+                                        title="Xóa subtask"
+                                    >
+                                        ${deleteIcon}
+                                    </button>
+                                </div>
+                            `
+                            : ""
+                    }
+                </div>
+
+                <div
+                    class="subtask-inline-panel"
+                    data-subtask-panel="${esc(task.id)}"
+                    hidden
+                ></div>
             </li>
         `).join("");
 
+        // Giữ nguyên chức năng checkbox hiện tại
         list.querySelectorAll("[data-subtask-id]").forEach(input => {
             input.addEventListener("change", async () => {
                 const task = taskById(input.dataset.subtaskId);
@@ -729,7 +861,169 @@
                 }
             });
         });
+
+        // Đóng các panel đang mở
+        function closePanels() {
+            list.querySelectorAll("[data-subtask-panel]")
+                .forEach(panel => {
+                    panel.hidden = true;
+                    panel.innerHTML = "";
+                });
+
+            list.querySelectorAll(".subtask-item")
+                .forEach(row => {
+                    row.classList.remove("is-editing");
+                    row.classList.remove("is-deleting");
+                });
+        }
+
+        // Giao diện sửa Subtask
+        list.querySelectorAll("[data-edit-subtask]")
+            .forEach(button => {
+                button.addEventListener("click", () => {
+                    const id = button.dataset.editSubtask;
+                    const task = taskById(id);
+
+                    if (!task || !canEdit()) return;
+
+                    const row = button.closest(".subtask-item");
+                    const panel = row.querySelector(
+                        "[data-subtask-panel]"
+                    );
+
+                    const wasOpen =
+                        row.classList.contains("is-editing");
+
+                    closePanels();
+
+                    if (wasOpen) return;
+
+                    row.classList.add("is-editing");
+                    panel.hidden = false;
+
+                    panel.innerHTML = `
+                        <div class="subtask-edit-panel">
+                            <label class="subtask-panel-label">
+                                Chỉnh sửa tên Subtask
+                            </label>
+
+                            <input
+                                type="text"
+                                class="subtask-edit-input"
+                                maxlength="200"
+                                value="${esc(task.title)}"
+                                aria-label="Tên subtask"
+                            >
+
+                            <div class="subtask-panel-actions">
+                                <button
+                                    type="button"
+                                    class="subtask-cancel-btn"
+                                    data-cancel-subtask
+                                >
+                                    Hủy
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="subtask-save-btn"
+                                    disabled
+                                    title="Chờ Backend hỗ trợ"
+                                >
+                                    Lưu thay đổi
+                                </button>
+                            </div>
+
+                            <p class="subtask-demo-note">
+                                Giao diện đã sẵn sàng.
+                                Chức năng lưu đang chờ Backend.
+                            </p>
+                        </div>
+                    `;
+
+                    panel.querySelector(
+                        "[data-cancel-subtask]"
+                    ).addEventListener("click", closePanels);
+
+                    panel.querySelector(
+                        ".subtask-edit-input"
+                    ).focus();
+                });
+            });
+
+        // Giao diện xác nhận xóa Subtask
+        list.querySelectorAll("[data-delete-subtask]")
+            .forEach(button => {
+                button.addEventListener("click", () => {
+                    const id = button.dataset.deleteSubtask;
+                    const task = taskById(id);
+
+                    if (!task || !canEdit()) return;
+
+                    const row = button.closest(".subtask-item");
+                    const panel = row.querySelector(
+                        "[data-subtask-panel]"
+                    );
+
+                    const wasOpen =
+                        row.classList.contains("is-deleting");
+
+                    closePanels();
+
+                    if (wasOpen) return;
+
+                    row.classList.add("is-deleting");
+                    panel.hidden = false;
+
+                    panel.innerHTML = `
+                        <div class="subtask-confirm-panel">
+                            <div class="subtask-confirm-heading">
+                                <span class="subtask-warning-icon">
+                                    !
+                                </span>
+
+                                <div>
+                                    <strong>Xóa Subtask?</strong>
+                                    <p>
+                                   Bạn có chắc chắn muốn xóa Subtask
+                                    "${esc(task.title)}" không?
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="subtask-panel-actions">
+                                <button
+                                    type="button"
+                                    class="subtask-cancel-btn"
+                                    data-cancel-subtask
+                                >
+                                    Hủy
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="subtask-confirm-delete-btn"
+                                    disabled
+                                    title="Chờ Backend hỗ trợ"
+                                >
+                                    Xác nhận xóa
+                                </button>
+                            </div>
+
+                            <p class="subtask-demo-note">
+                                Chức năng xóa đang chờ Backend.
+                                Chưa có dữ liệu nào bị xóa.
+                            </p>
+                        </div>
+                    `;
+
+                    panel.querySelector(
+                        "[data-cancel-subtask]"
+                    ).addEventListener("click", closePanels);
+                });
+            });
     }
+
 
     function openTaskModal(task = null) {
         const isNew = !task;
@@ -755,12 +1049,44 @@
                 class="task-subtasks"
                 aria-labelledby="subtasks-heading"
             >
-                <div class="subtask-heading">
-                    <h3 id="subtasks-heading">Subtask</h3>
-                    <span class="kanban-version">
-                        Tối đa một cấp
-                    </span>
-                </div>
+
+        <div class="subtask-heading">
+            <h3 id="subtasks-heading">
+                <span
+                    class="task-detail-list-icon"
+                    aria-hidden="true"
+                >☷</span>
+                Subtask
+            </h3>
+
+            <div class="subtask-progress">
+                <span
+                    class="subtask-progress-count"
+                    data-subtask-progress-count
+                >
+                    0/0 hoàn thành
+                </span>
+
+                <span
+                    class="subtask-progress-track"
+                    role="progressbar"
+                    aria-label="Tiến độ Subtask"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-valuenow="0"
+                >
+                    <span data-subtask-progress-bar></span>
+                </span>
+
+                <span
+                    class="subtask-progress-percent"
+                    data-subtask-progress-percent
+                >
+                    0%
+                </span>
+            </div>
+        </div>
+
 
                 <ul
                     class="subtask-list"
@@ -803,10 +1129,23 @@
         `;
 
         const modal = openModal(`
-            <div class="kanban-modal-heading">
-                <h2>
-                    ${isNew ? "Tạo task mới" : "Chi tiết task"}
-                </h2>
+
+        <div class="kanban-modal-heading">
+            <div class="task-detail-brand">
+                <span
+                    class="task-detail-brand-icon"
+                    aria-hidden="true"
+                >☷</span>
+
+                <div>
+                    <h2>
+                        ${isNew ? "Tạo task mới" : "Chi tiết công việc"}
+                    </h2>
+
+                    <p>TASK DETAIL · PULSE TRACK</p>
+                </div>
+            </div>
+
 
                 <button
                     type="button"
@@ -821,10 +1160,18 @@
             ${
                 !isNew
                     ? `
-                        <p class="kanban-version">
-                            Trạng thái: ${esc(task.status)}
-                            · Phiên bản ${esc(task.version)}
-                        </p>
+
+            <div class="task-detail-meta">
+                <span class="task-detail-status status-${esc(task.status).toLowerCase()}">
+                    <span class="task-detail-status-dot"></span>
+                    ${esc(task.status)}
+                </span>
+
+                <span class="task-detail-version">
+                    ◇ &nbsp;Phiên bản ${esc(task.version)}
+                </span>
+            </div>
+
                     `
                     : ""
             }
@@ -849,6 +1196,7 @@
             }
 
             <form
+                id="pulse-task-detail-form"
                 class="form-grid kanban-task-form"
                 data-task-form
             >
@@ -873,36 +1221,55 @@
                     >${esc(task?.description || "")}</textarea>
                 </label>
 
-                <div class="row2">
-                    <label>
-                        Hạn hoàn thành
-                        <input
-                            type="text"
-                            name="due_date"
-                            inputmode="numeric"
-                            maxlength="10"
-                            placeholder="dd/mm/yyyy"
-                            autocomplete="off"
-                            value="${esc(
-                                formatDate(task?.due_date)
-                            )}"
-                            ${canModifyForm ? "" : "disabled"}
-                        >
+
+                <div class="row2 task-detail-metadata">
+
+                    <label class="task-detail-info-card task-detail-date">
+                        <span class="task-detail-info-icon" aria-hidden="true">
+                            ▦
+                        </span>
+
+                        <span class="task-detail-info-body">
+                            <span class="task-detail-info-label">
+                                Hạn hoàn thành
+                            </span>
+
+                            <input
+                                type="text"
+                                name="due_date"
+                                inputmode="numeric"
+                                maxlength="10"
+                                placeholder="dd/mm/yyyy"
+                                autocomplete="off"
+                                value="${esc(formatDate(task?.due_date))}"
+                                ${canModifyForm ? "" : "disabled"}
+                            >
+                        </span>
                     </label>
 
-                    <label>
-                        Người phụ trách
-                        <select
-                            name="assignee_id"
-                            ${
-                                canModifyForm && membersLoaded
-                                    ? ""
-                                    : "disabled"
-                            }
-                        >
-                            ${memberOptions(assignedId)}
-                        </select>
+                    <label class="task-detail-info-card task-detail-assignee">
+                        <span class="task-detail-info-icon" aria-hidden="true">
+                            ♙
+                        </span>
+
+                        <span class="task-detail-info-body">
+                            <span class="task-detail-info-label">
+                                Người phụ trách
+                            </span>
+
+                            <select
+                                name="assignee_id"
+                                ${
+                                    canModifyForm && membersLoaded
+                                        ? ""
+                                        : "disabled"
+                                }
+                            >
+                                ${memberOptions(assignedId)}
+                            </select>
+                        </span>
                     </label>
+
                 </div>
 
                 <div class="modal-actions">
@@ -936,6 +1303,7 @@
             ${subtasksSection}
         `);
 
+
         const modalElement = modal.element;
         const taskForm = modalElement.querySelector("[data-task-form]");
         const subtaskList = modalElement.querySelector(
@@ -949,9 +1317,68 @@
             button.addEventListener("click", modal.close);
         });
 
+        // Hiển thị danh sách Subtask hiện tại
         if (!isNew && subtaskList) {
             renderSubtasks(task, subtaskList);
         }
+
+        // Khởi tạo chức năng AI Breakdown
+        if (!isNew && window.PulseAIBreakdown) {
+            window.PulseAIBreakdown.mount({
+                task,
+                project,
+                container: modalElement,
+                onApproved: async () => {
+                    await refreshTasks();
+
+                    const updatedTask = taskById(task.id);
+
+                    if (updatedTask && subtaskList) {
+                        renderSubtasks(updatedTask, subtaskList);
+                    }
+
+                    toast(
+                        "Đã tạo Subtask từ AI thành công.",
+                        "success"
+                    );
+                }
+            });
+        }
+
+        // Tạo thẻ AI sau khi nút AI đã được khởi tạo
+        if (!isNew) {
+            const aiButton = modalElement.querySelector(
+                ".ai-breakdown-trigger"
+            );
+
+            if (aiButton && !aiButton.closest(".task-detail-ai-card")) {
+                const aiCard = document.createElement("div");
+                aiCard.className = "task-detail-ai-card";
+
+                aiCard.innerHTML = `
+                    <div class="task-detail-ai-info">
+                        <div
+                            class="task-detail-ai-icon"
+                            aria-hidden="true"
+                        >✦</div>
+
+                        <div class="task-detail-ai-text">
+                            <h3>AI Breakdown Studio</h3>
+                            <p>
+                                Phân tích và đề xuất Subtask thông minh
+                            </p>
+                        </div>
+                    </div>
+                `;
+
+                aiButton.before(aiCard);
+                aiCard.appendChild(aiButton);
+                aiButton.textContent = "✦ Phân rã với AI";
+            }
+        }
+
+
+
 
         if (!isNew && window.PulseAIBreakdown) {
             window.PulseAIBreakdown.mount({

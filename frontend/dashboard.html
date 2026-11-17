@@ -5,107 +5,452 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tổng quan | Pulse Track</title>
+
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/workspace.css">
     <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/dashboard.css">
 </head>
+
 <body class="auth-checking workspace-page">
     <div id="auth-guard-message" role="status" aria-live="polite">
         Đang kiểm tra phiên đăng nhập...
     </div>
-    <button id="auth-guard-retry" type="button" hidden>Thử lại</button>
+
+    <button id="auth-guard-retry" type="button" hidden>
+        Thử lại
+    </button>
+
     <div id="app-error-message" role="alert" hidden></div>
 
-
-<header class="app-header">
-    <a href="dashboard.html" class="brand">
-        <span class="pulse">⌁</span>
-        Pulse Track
-    </a>
-
-    <nav aria-label="Điều hướng chính">
-        <a href="dashboard.html" aria-current="page">
-            Tổng quan
+    <header class="app-header">
+        <a href="dashboard.html" class="brand">
+            <span class="pulse">⌁</span>
+            <span>Pulse Track</span>
         </a>
 
-        <a href="projects.html">
-            Dự án
-        </a>
+        <nav aria-label="Điều hướng chính">
+            <a href="dashboard.html"
+               class="pt-main-nav-link"
+               aria-current="page">
+                Tổng quan
+            </a>
 
-        <a href="kanban.html">
-            Quản lý công việc
-        </a>
+            <a href="projects.html"
+               class="pt-main-nav-link">
+                Dự án
+            </a>
 
-        <a href="profile.html" data-user-name>
-            Tài khoản
-        </a>
+            <a href="kanban.html"
+               class="pt-main-nav-link">
+                Quản lý công việc
+            </a>
 
-        <button
-            type="button"
-            class="logout-button"
-            data-logout
-        >
-            Đăng xuất
-        </button>
-    </nav>
-</header>
+            <a href="profile.html" data-user-name>
+                Tài khoản
+            </a>
 
+            <button type="button"
+                    class="logout-button"
+                    data-logout>
+                Đăng xuất
+            </button>
+        </nav>
+    </header>
 
-    <main class="content workspace-content">
-        <div class="workspace-topline">
-            <span class="eyebrow">PULSE TRACK / KHÔNG GIAN LÀM VIỆC</span>
-            <span class="workspace-chip">TỔNG QUAN NHÓM</span>
-        </div>
+    <main class="content workspace-content pulse-dashboard">
+        <section class="dashboard-hero">
+            <div class="dashboard-hero-content">
+                <span class="dashboard-eyebrow">
+                    PULSE TRACK / KHÔNG GIAN LÀM VIỆC
+                </span>
 
-        <div class="workspace-heading">
-            <div>
                 <h1>Tổng quan</h1>
-                <p class="muted">
-                    Theo dõi công việc và tiến độ dự án của nhóm một cách tổng quan.
+
+                <p>
+                    Theo dõi công việc và tiến độ dự án của nhóm
+                    một cách tổng quan.
                 </p>
             </div>
-        </div>
 
-        <div class="overview-cards">
-            <article class="overview-card">
-                <span class="overview-icon icon-total">▦</span>
-                <p>Tổng công việc</p>
-                <strong>—</strong>
-                <small>Chưa kết nối dữ liệu thống kê công việc</small>
+            <div class="dashboard-hero-art" aria-hidden="true">
+                <div class="dashboard-art-glow"></div>
+
+                <div class="dashboard-art-screen">
+                    <div class="dashboard-art-toolbar">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+
+                    <div class="dashboard-art-chart">
+                        <div class="dashboard-art-bars">
+                            <i></i>
+                            <i></i>
+                            <i></i>
+                            <i></i>
+                        </div>
+
+                        <svg viewBox="0 0 190 90"
+                             preserveAspectRatio="none">
+                            <path
+                                d="M8 73 L55 48 L96 59 L139 20 L181 7"
+                                fill="none"
+                                stroke="#2869f4"
+                                stroke-width="5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            />
+                            <circle cx="181" cy="7" r="6"
+                                    fill="#2869f4"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="dashboard-art-check">✓</div>
+                <div class="dashboard-art-dot dot-one"></div>
+                <div class="dashboard-art-dot dot-two"></div>
+            </div>
+        </section>
+
+        <section class="dashboard-stats"
+                 aria-label="Thống kê công việc">
+
+            <article class="dashboard-stat dashboard-stat-blue"
+                     data-dashboard-view="all"
+                     role="button"
+                     tabindex="0"
+                     aria-expanded="false">
+                <div class="dashboard-stat-content">
+                    <span class="dashboard-stat-icon"
+                          aria-hidden="true">▦</span>
+
+                    <div class="dashboard-stat-info">
+                        <h2>Tổng công việc</h2>
+                        <strong id="dashboard-total">—</strong>
+                    </div>
+                </div>
+
+                <svg class="dashboard-stat-wave"
+                     viewBox="0 0 360 100"
+                     preserveAspectRatio="none"
+                     aria-hidden="true">
+                    <defs>
+                        <linearGradient id="wave-blue"
+                                        x1="0" y1="0"
+                                        x2="0" y2="1">
+                            <stop offset="0%"
+                                  stop-color="#7bb5ff"
+                                  stop-opacity=".48"/>
+                            <stop offset="100%"
+                                  stop-color="#7bb5ff"
+                                  stop-opacity=".04"/>
+                        </linearGradient>
+                    </defs>
+                    <path
+                        d="M0 100 C75 100 100 62 150 69 S230 87 270 42 S330 18 360 25 L360 100 Z"
+                        fill="url(#wave-blue)"
+                    />
+                    <path
+                        d="M0 100 C75 100 100 62 150 69 S230 87 270 42 S330 18 360 25"
+                        fill="none"
+                        stroke="#398aff"
+                        stroke-width="2"
+                    />
+                </svg>
             </article>
 
-            <article class="overview-card">
-                <span class="overview-icon icon-progress">◷</span>
-                <p>Đang thực hiện</p>
-                <strong>—</strong>
-                <small>Đang chờ dữ liệu công việc</small>
+            <article class="dashboard-stat dashboard-stat-orange"
+                     data-dashboard-view="progress"
+                     role="button"
+                     tabindex="0"
+                     aria-expanded="false">
+                <div class="dashboard-stat-content">
+                    <span class="dashboard-stat-icon"
+                          aria-hidden="true">◷</span>
+
+                    <div class="dashboard-stat-info">
+                        <h2>Đang thực hiện</h2>
+                        <strong id="dashboard-progress">—</strong>
+                    </div>
+                </div>
+
+                <svg class="dashboard-stat-wave"
+                     viewBox="0 0 360 100"
+                     preserveAspectRatio="none"
+                     aria-hidden="true">
+                    <defs>
+                        <linearGradient id="wave-orange"
+                                        x1="0" y1="0"
+                                        x2="0" y2="1">
+                            <stop offset="0%"
+                                  stop-color="#ffc46f"
+                                  stop-opacity=".48"/>
+                            <stop offset="100%"
+                                  stop-color="#ffc46f"
+                                  stop-opacity=".04"/>
+                        </linearGradient>
+                    </defs>
+                    <path
+                        d="M0 100 C80 100 100 83 150 82 S225 73 268 47 S325 19 360 29 L360 100 Z"
+                        fill="url(#wave-orange)"
+                    />
+                    <path
+                        d="M0 100 C80 100 100 83 150 82 S225 73 268 47 S325 19 360 29"
+                        fill="none"
+                        stroke="#ffae32"
+                        stroke-width="2"
+                    />
+                </svg>
             </article>
 
-            <article class="overview-card">
-                <span class="overview-icon icon-done">✓</span>
-                <p>Công việc hoàn thành</p>
-                <strong>—</strong>
-                <small>Đang chờ dữ liệu công việc</small>
-            </article>
-        </div>
+            <article class="dashboard-stat dashboard-stat-green"
+                     data-dashboard-view="done"
+                     role="button"
+                     tabindex="0"
+                     aria-expanded="false">
+                <div class="dashboard-stat-content">
+                    <span class="dashboard-stat-icon"
+                          aria-hidden="true">✓</span>
 
-        <div class="workspace-panel">
-            <div>
-                <span class="eyebrow">QUY TRÌNH LÀM VIỆC</span>
+                    <div class="dashboard-stat-info">
+                        <h2>Công việc hoàn thành</h2>
+                        <strong id="dashboard-done">—</strong>
+                    </div>
+                </div>
+
+                <svg class="dashboard-stat-wave"
+                     viewBox="0 0 360 100"
+                     preserveAspectRatio="none"
+                     aria-hidden="true">
+                    <defs>
+                        <linearGradient id="wave-green"
+                                        x1="0" y1="0"
+                                        x2="0" y2="1">
+                            <stop offset="0%"
+                                  stop-color="#79e7b0"
+                                  stop-opacity=".48"/>
+                            <stop offset="100%"
+                                  stop-color="#79e7b0"
+                                  stop-opacity=".04"/>
+                        </linearGradient>
+                    </defs>
+                    <path
+                        d="M0 100 C70 100 110 74 150 76 S225 87 270 43 S330 18 360 26 L360 100 Z"
+                        fill="url(#wave-green)"
+                    />
+                    <path
+                        d="M0 100 C70 100 110 74 150 76 S225 87 270 43 S330 18 360 26"
+                        fill="none"
+                        stroke="#41d991"
+                        stroke-width="2"
+                    />
+                </svg>
+            </article>
+        </section>
+
+        <section id="dashboard-task-panel"
+                 class="dt-panel"
+                 aria-label="Danh sách công việc"
+                 hidden>
+
+            <div class="dt-panel-heading">
+                <div class="dt-panel-icon" id="dt-panel-icon">▦</div>
+
+                <div class="dt-panel-title">
+                    <div class="dt-title-line">
+                        <h2 id="dt-panel-title">Tổng công việc</h2>
+                        <span id="dt-panel-count" class="dt-count">
+                            0 công việc
+                        </span>
+                    </div>
+
+                    <p id="dt-panel-description">
+                        Danh sách công việc thuộc các dự án.
+                    </p>
+                </div>
+
+                <button type="button"
+                        id="dt-panel-close"
+                        class="dt-close"
+                        aria-label="Thu gọn danh sách">
+                    ×
+                </button>
+            </div>
+
+            <div class="dt-filters">
+                <label class="dt-search">
+                    <svg class="dt-search-icon"
+                         width="18" height="18"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round"
+                         aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="M20 20L16 16"></path>
+                    </svg>
+
+                    <input id="dt-search"
+                           type="search"
+                           placeholder="Tìm kiếm công việc..."
+                           aria-label="Tìm kiếm công việc">
+                </label>
+
+                <select id="dt-project"
+                        aria-label="Lọc theo dự án">
+                    <option value="">Tất cả dự án</option>
+                </select>
+
+                <select id="dt-status"
+                        aria-label="Lọc theo trạng thái">
+                    <option value="">Tất cả trạng thái</option>
+                </select>
+
+                <select id="dt-assignee"
+                        aria-label="Lọc người phụ trách">
+                    <option value="">Tất cả người phụ trách</option>
+                </select>
+            </div>
+
+            <div class="dt-table-scroll">
+                <table class="dt-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Công việc</th>
+                            <th>Dự án</th>
+                            <th>Trạng thái</th>
+                            <th>Người phụ trách</th>
+                            <th>Hạn hoàn thành</th>
+                            <th aria-label="Xem chi tiết"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="dt-table-body"></tbody>
+                </table>
+            </div>
+
+            <div id="dt-empty" class="dt-empty" hidden>
+                <span>☷</span>
+                <strong>Không tìm thấy công việc</strong>
+                <p>Thử thay đổi từ khóa hoặc bộ lọc.</p>
+            </div>
+
+            <div class="dt-footer">
+                <span id="dt-results">Hiển thị 0 công việc</span>
+
+                <div class="dt-pagination">
+                    <button type="button"
+                            id="dt-prev"
+                            aria-label="Trang trước">‹</button>
+
+                    <span id="dt-page">1 / 1</span>
+
+                    <button type="button"
+                            id="dt-next"
+                            aria-label="Trang sau">›</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="dashboard-workflow">
+            <div class="dashboard-workflow-content">
+                <span class="dashboard-workflow-eyebrow">
+                    <span aria-hidden="true">▱</span>
+                    QUY TRÌNH LÀM VIỆC
+                </span>
+
                 <h2>Quản lý công việc hiệu quả hơn.</h2>
-                <p class="muted">
+
+                <p>
                     Theo dõi công việc qua 5 trạng thái và phối hợp
                     cùng các thành viên trong nhóm.
                 </p>
+
+                <div class="dashboard-workflow-steps"
+                     aria-label="Các giai đoạn công việc">
+                    <span class="workflow-step">
+                        <i class="step-gray"></i>
+                        Cần làm
+                    </span>
+                    <span class="workflow-arrow">›</span>
+
+                    <span class="workflow-step">
+                        <i class="step-blue"></i>
+                        Đang thực hiện
+                    </span>
+                    <span class="workflow-arrow">›</span>
+
+                    <span class="workflow-step">
+                        <i class="step-yellow"></i>
+                        Đánh giá
+                    </span>
+                    <span class="workflow-arrow">›</span>
+
+                    <span class="workflow-step">
+                        <i class="step-purple"></i>
+                        Kiểm thử
+                    </span>
+                    <span class="workflow-arrow">›</span>
+
+                    <span class="workflow-step">
+                        <i class="step-green"></i>
+                        Hoàn thành
+                    </span>
+                </div>
+
+                <a class="dashboard-project-button"
+                   href="projects.html">
+                    Xem dự án
+                    <span aria-hidden="true">→</span>
+                </a>
             </div>
-            <a class="workspace-link" href="projects.html">
-                Xem dự án <span aria-hidden="true">→</span>
-            </a>
-        </div>
+
+            <div class="dashboard-kanban-art" aria-hidden="true">
+                <div class="kanban-orbit"></div>
+
+                <div class="kanban-illustration">
+                    <div class="kanban-illustration-top">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+
+                    <div class="kanban-illustration-grid">
+                        <div class="kanban-mini-column">
+                            <div class="kanban-mini-header blue"></div>
+                            <div class="kanban-mini-task"></div>
+                            <div class="kanban-mini-task"></div>
+                            <div class="kanban-mini-task"></div>
+                        </div>
+
+                        <div class="kanban-mini-column">
+                            <div class="kanban-mini-header yellow"></div>
+                            <div class="kanban-mini-task"></div>
+                            <div class="kanban-mini-task"></div>
+                            <div class="kanban-mini-task"></div>
+                        </div>
+
+                        <div class="kanban-mini-column">
+                            <div class="kanban-mini-header green"></div>
+                            <div class="kanban-mini-task"></div>
+                            <div class="kanban-mini-task"></div>
+                            <div class="kanban-mini-task"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kanban-floating-icon kanban-team">♙</div>
+                <div class="kanban-floating-icon kanban-check">✓</div>
+            </div>
+        </section>
     </main>
 
     <script defer src="js/config.js"></script>
     <script defer src="js/api.js"></script>
     <script defer src="js/router.js"></script>
+    <script defer src="js/dashboard.js"></script>
 </body>
 </html>

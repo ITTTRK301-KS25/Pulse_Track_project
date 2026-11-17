@@ -1,14 +1,17 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hồ sơ cá nhân | Pulse Track</title>
+
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/profile.css">
     <link rel="stylesheet" href="css/theme.css">
 </head>
-<body class="auth-checking">
 
+<body class="auth-checking">
     <div id="auth-guard-message" role="status" aria-live="polite">
         Đang kiểm tra phiên đăng nhập...
     </div>
@@ -19,123 +22,402 @@
 
     <div id="app-error-message" role="alert" hidden></div>
 
-
-<header class="app-header">
-    <a href="dashboard.html" class="brand">
-        <span class="pulse">⌁</span>
-        Pulse Track
-    </a>
-
-    <nav aria-label="Điều hướng chính">
-        <a href="dashboard.html">
-            Tổng quan
+    <!-- NAVBAR ĐỒNG BỘ -->
+    <header class="app-header">
+        <a href="dashboard.html" class="brand">
+            <span class="pulse">⌁</span>
+            Pulse Track
         </a>
 
-        <a href="projects.html">
-            Dự án
-        </a>
+        <nav aria-label="Điều hướng chính">
+            <a href="dashboard.html" class="pt-main-nav-link">
+                <span class="pt-nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.8"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                </span>
+                <span>Tổng quan</span>
+            </a>
 
-        <a href="kanban.html">
-            Quản lý công việc
-        </a>
+            <a href="projects.html" class="pt-main-nav-link">
+                <span class="pt-nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.8"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
+                    </svg>
+                </span>
+                <span>Dự án</span>
+            </a>
 
-        <a
-            href="profile.html"
-            data-user-name
-            aria-current="page"
-        >
-            Tài khoản
-        </a>
+            <a href="kanban.html" class="pt-main-nav-link">
+                <span class="pt-nav-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.8"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="16" rx="2"/>
+                        <path d="M9 4v16M15 4v16M6 8v4M12 8v7M18 8v3"/>
+                    </svg>
+                </span>
+                <span>Quản lý công việc</span>
+            </a>
 
-        <button
-            type="button"
-            class="logout-button"
-            data-logout
-        >
-            Đăng xuất
-        </button>
-    </nav>
-</header>
+            <a href="profile.html"
+               data-user-name
+               aria-current="page">
+                Tài khoản
+            </a>
 
+            <button type="button"
+                    class="logout-button"
+                    data-logout>
+                Đăng xuất
+            </button>
+        </nav>
+    </header>
 
-    <main class="content">
-        <span class="eyebrow">PULSE TRACK</span>
+    <!-- PROFILE CONTENT -->
+    <main class="pt-profile-page">
 
-        <h1>Hồ sơ cá nhân</h1>
+        <div class="pt-profile-heading">
+            <div>
+                <span class="pt-eyebrow">
+                    PULSE TRACK / TÀI KHOẢN
+                </span>
 
-        <p class="muted">
-            Xem và quản lý thông tin tài khoản của bạn.
-        </p>
+                <h1>Hồ sơ cá nhân</h1>
 
-        <section class="profile-card">
-            <div class="profile-header">
-                <div class="profile-avatar" id="profile-avatar">
-                    U
-                </div>
-
-                <div>
-                    <h2 id="profile-name">Đang tải...</h2>
-                    <p class="muted" id="profile-email"></p>
-                </div>
+                <p>
+                    Quản lý thông tin và theo dõi hoạt động của bạn.
+                </p>
             </div>
+        </div>
 
-            <hr class="profile-divider">
+        <div class="pt-profile-layout">
 
-            <h3>Thông tin cá nhân</h3>
-
-            <form id="profile-form" novalidate>
-                <div class="profile-field">
-                    <label for="display-name">
-                        Tên hiển thị
-                    </label>
-
-                    <input
-                        type="text"
-                        id="display-name"
-                        name="display_name"
-                        placeholder="Nhập tên hiển thị"
-                        autocomplete="name"
-                        maxlength="100"
-                        required
-                    >
-
-                    <small
-                        id="display-name-error"
-                        class="field-error"
-                        aria-live="polite"
-                    ></small>
+            <!-- SIDEBAR -->
+            <aside class="pt-profile-sidebar">
+                <div class="pt-side-title">
+                    TÀI KHOẢN
                 </div>
 
-                <div class="profile-field">
-                    <label for="profile-email-input">
-                        Email
-                    </label>
-
-                    <input
-                        type="email"
-                        id="profile-email-input"
-                        readonly
-                    >
-
-                    <small class="muted">
-                        Email không thể thay đổi tại đây.
-                    </small>
-                </div>
-
-                <div
-                    id="profile-message"
-                    class="message"
-                    role="status"
-                    aria-live="polite"
-                ></div>
-
-                <button type="submit" id="save-profile">
-                    Lưu thay đổi
+                <button type="button"
+                        class="pt-side-link is-active"
+                        data-section="overview">
+                    <span>◉</span>
+                    Hồ sơ cá nhân
                 </button>
-            </form>
-        </section>
+
+                <button type="button"
+                        class="pt-side-link"
+                        data-section="settings">
+                    <span>⚙</span>
+                    Cài đặt tài khoản
+                </button>
+
+                <button type="button"
+                        class="pt-side-link"
+                        data-section="password">
+                    <span>♢</span>
+                    Đổi mật khẩu
+                </button>
+
+                <div class="pt-side-divider"></div>
+
+                <button type="button"
+                        class="pt-side-link pt-side-logout"
+                        data-logout>
+                    <span>↪</span>
+                    Đăng xuất
+                </button>
+            </aside>
+
+            <!-- MAIN -->
+            <div class="pt-profile-main">
+
+                <!-- OVERVIEW -->
+                <section class="pt-section"
+                         data-profile-section="overview">
+
+                    <!-- HERO -->
+                    <div class="pt-profile-hero">
+                        <div class="pt-hero-decoration"></div>
+
+                        <div class="pt-hero-content">
+                            <div class="pt-avatar-large"
+                                 id="profile-avatar">
+                                U
+                            </div>
+
+                            <div class="pt-hero-info">
+                                <div class="pt-account-label">
+                                    TÀI KHOẢN PULSE TRACK
+                                </div>
+
+                                <h2 id="profile-name">
+                                    Đang tải...
+                                </h2>
+
+                                <p id="profile-email">—</p>
+                            </div>
+
+                            <button type="button"
+                                    class="pt-edit-profile"
+                                    data-open-section="settings">
+                                ✎ Chỉnh sửa hồ sơ
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PERSONAL INFORMATION -->
+                    <div class="pt-panel">
+                        <div class="pt-panel-heading">
+                            <div>
+                                <h3>Thông tin cá nhân</h3>
+                                <p>Thông tin cơ bản của tài khoản</p>
+                            </div>
+                        </div>
+
+                        <div class="pt-info-grid">
+                            <div class="pt-info-cell">
+                                <span>Họ và tên</span>
+                                <strong id="profile-info-name">—</strong>
+                            </div>
+
+                            <div class="pt-info-cell">
+                                <span>Email</span>
+                                <strong id="profile-info-email">—</strong>
+                            </div>
+
+                            <div class="pt-info-cell">
+                                <span>Ngày đăng ký</span>
+                                <strong id="profile-created-at">—</strong>
+                            </div>
+
+                            <div class="pt-info-cell">
+                                <span>Trạng thái tài khoản</span>
+                                <strong class="pt-account-active">
+                                    <i></i>
+                                    Đang hoạt động
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TASK STATISTICS -->
+                    <div class="pt-panel">
+                        <div class="pt-panel-heading">
+                            <div>
+                                <h3>Tổng quan công việc</h3>
+                                <p>
+                                    Thống kê các Task được phân công cho bạn
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="pt-stats">
+                            <div class="pt-stat-card">
+                                <span class="pt-stat-icon pt-blue">▤</span>
+                                <strong id="stat-assigned">—</strong>
+                                <span>Được giao</span>
+                            </div>
+
+                            <div class="pt-stat-card">
+                                <span class="pt-stat-icon pt-orange">◷</span>
+                                <strong id="stat-progress">—</strong>
+                                <span>Đang thực hiện</span>
+                            </div>
+
+                            <div class="pt-stat-card">
+                                <span class="pt-stat-icon pt-green">✓</span>
+                                <strong id="stat-done">—</strong>
+                                <span>Hoàn thành</span>
+                            </div>
+                        </div>
+
+                        <p class="pt-data-message"
+                           id="stats-message"
+                           role="status"></p>
+                    </div>
+
+                    <!-- PROJECTS -->
+                    <div class="pt-panel">
+                        <div class="pt-panel-heading pt-projects-heading">
+                            <div>
+                                <h3>Dự án tham gia</h3>
+                                <p>Các dự án và vai trò của bạn</p>
+                            </div>
+
+                            <a href="projects.html"
+                               class="pt-all-projects">
+                                Xem tất cả →
+                            </a>
+                        </div>
+
+                        <div id="profile-projects"
+                             class="pt-project-list">
+                            <p class="pt-data-message">
+                                Đang tải dự án...
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SETTINGS -->
+                <section class="pt-section"
+                         data-profile-section="settings"
+                         hidden>
+
+                    <div class="pt-panel">
+                        <div class="pt-panel-heading">
+                            <div>
+                                <h3>Cài đặt tài khoản</h3>
+                                <p>
+                                    Cập nhật thông tin hiển thị của bạn
+                                </p>
+                            </div>
+                        </div>
+
+                        <form id="profile-form" novalidate>
+
+                            <div class="pt-form-field">
+                                <label for="display-name">
+                                    Họ và tên *
+                                </label>
+
+                                <input id="display-name"
+                                       name="display_name"
+                                       type="text"
+                                       maxlength="100"
+                                       autocomplete="name"
+                                       required>
+
+                                <small id="display-name-error"
+                                       class="pt-field-error"
+                                       aria-live="polite"></small>
+                            </div>
+
+                            <div class="pt-form-field">
+                                <label for="profile-email-input">
+                                    Email
+                                </label>
+
+                                <input id="profile-email-input"
+                                       type="email"
+                                       readonly>
+
+                                <small>
+                                    Email đăng nhập hiện không thể thay đổi.
+                                </small>
+                            </div>
+
+                            <p id="profile-message"
+                               class="pt-form-message"
+                               role="status"
+                               aria-live="polite"></p>
+
+                            <div class="pt-form-actions">
+                                <button type="button"
+                                        class="pt-secondary-button"
+                                        data-open-section="overview">
+                                    Hủy
+                                </button>
+
+                                <button type="submit"
+                                        id="save-profile"
+                                        class="pt-primary-button">
+                                    Lưu thay đổi
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- CHANGE PASSWORD -->
+                <section class="pt-section"
+                         data-profile-section="password"
+                         hidden>
+
+                    <div class="pt-panel">
+                        <div class="pt-panel-heading">
+                            <div>
+                                <h3>Đổi mật khẩu</h3>
+                                <p>
+                                    Tăng cường bảo mật cho tài khoản
+                                </p>
+                            </div>
+                        </div>
+
+                        <form id="password-preview-form">
+
+                            <div class="pt-form-field">
+                                <label for="current-password">
+                                    Mật khẩu hiện tại
+                                </label>
+
+                                <input id="current-password"
+                                       type="password"
+                                       autocomplete="current-password">
+                            </div>
+
+                            <div class="pt-form-field">
+                                <label for="new-password">
+                                    Mật khẩu mới
+                                </label>
+
+                                <input id="new-password"
+                                       type="password"
+                                       autocomplete="new-password">
+                            </div>
+
+                            <div class="pt-form-field">
+                                <label for="confirm-password">
+                                    Xác nhận mật khẩu mới
+                                </label>
+
+                                <input id="confirm-password"
+                                       type="password"
+                                       autocomplete="new-password">
+                            </div>
+
+                            <label class="pt-show-password">
+                                <input id="toggle-password-visibility"
+                                       type="checkbox">
+                                Hiển thị mật khẩu
+                            </label>
+
+                            <p class="pt-password-notice">
+                                Giao diện đã sẵn sàng. Chức năng đổi mật khẩu
+                                đang chờ API Backend.
+                            </p>
+
+                            <div class="pt-form-actions">
+                                <button type="button"
+                                        class="pt-secondary-button"
+                                        data-open-section="overview">
+                                    Quay lại
+                                </button>
+
+                                <button type="button"
+                                        class="pt-primary-button"
+                                        disabled>
+                                    Cập nhật mật khẩu
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+            </div>
+        </div>
     </main>
 
+    <!-- JAVASCRIPT -->
     <script defer src="js/config.js"></script>
     <script defer src="js/api.js"></script>
     <script defer src="js/router.js"></script>
