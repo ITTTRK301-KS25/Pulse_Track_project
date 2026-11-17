@@ -78,6 +78,56 @@
             + Tạo task
         </button>
 
+        <section
+            class="kanban-filters"
+            aria-label="Bộ lọc và tìm kiếm công việc"
+        >
+            <label class="kanban-filter" for="filter-task-title">
+                Tìm theo tiêu đề
+                <input
+                    type="search"
+                    id="filter-task-title"
+                    placeholder="Nhập từ khóa tiêu đề"
+                    autocomplete="off"
+                >
+            </label>
+
+            <label class="kanban-filter" for="filter-task-assignee">
+                Người thực hiện
+                <select id="filter-task-assignee">
+                    <option value="">Tất cả người thực hiện</option>
+                </select>
+            </label>
+
+            <label class="kanban-filter" for="filter-task-due-date">
+                Hạn hoàn thành
+                <input
+                    type="text"
+                    id="filter-task-due-date"
+                    inputmode="numeric"
+                    maxlength="10"
+                    placeholder="dd/mm/yyyy"
+                    autocomplete="off"
+                >
+            </label>
+
+            <button
+                type="button"
+                class="btn btn-small"
+                id="clear-task-filters"
+                hidden
+            >
+                Xóa bộ lọc
+            </button>
+
+            <p
+                id="kanban-filter-summary"
+                class="kanban-filter-summary"
+                role="status"
+                aria-live="polite"
+            ></p>
+        </section>
+
         <p
             id="kanban-message"
             class="status"

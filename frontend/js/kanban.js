@@ -10,6 +10,11 @@
     const projectName = document.getElementById("current-project-name");
     const message = document.getElementById("kanban-message");
     const newTaskButton = document.getElementById("btn-new-task");
+    const titleFilter = document.getElementById("filter-task-title");
+    const assigneeFilter = document.getElementById("filter-task-assignee");
+    const dueDateFilter = document.getElementById("filter-task-due-date");
+    const clearFiltersButton = document.getElementById("clear-task-filters");
+    const filterSummary = document.getElementById("kanban-filter-summary");
 
     const STATUSES = ["TODO", "IN_PROGRESS", "DONE"];
 
@@ -106,6 +111,42 @@
             : "";
     }
 
+    function parseDisplayDate(value) {
+        const text = String(value ?? "").trim();
+        if (!text) return { valid: true, value: null };
+
+        const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(text);
+        if (!match) return { valid: false, value: null };
+
+        const day = Number(match[1]);
+        const month = Number(match[2]);
+        const year = Number(match[3]);
+        const leapYear = year % 4 === 0 &&
+            (year % 100 !== 0 || year % 400 === 0);
+        const daysInMonth = [
+            31, leapYear ? 29 : 28, 31, 30, 31, 30,
+            31, 31, 30, 31, 30, 31
+        ];
+
+        if (
+            year < 1 ||
+            month < 1 ||
+            month > 12 ||
+            day < 1 ||
+            day > daysInMonth[month - 1]
+        ) {
+            return { valid: false, value: null };
+        }
+
+        return {
+            valid: true,
+            value:
+                `${String(year).padStart(4, "0")}-` +
+                `${String(month).padStart(2, "0")}-` +
+                `${String(day).padStart(2, "0")}`
+        };
+    }
+
     function memberName(id) {
         if (id == null) return "";
 
@@ -114,6 +155,70 @@
         );
 
         return member?.display_name || "";
+    }
+
+    function renderAssigneeFilter() {
+        if (!assigneeFilter) return;
+
+        const selectedId = assigneeFilter.value;
+        const assignedMembers = new Map();
+
+        tasks
+            .filter(task =>
+                task.parent_id == null &&
+                !task.archived_at &&
+                STATUSES.includes(task.status) &&
+                task.assignee_id != null
+            )
+            .forEach(task => {
+                const id = String(task.assignee_id);
+                const name = memberName(task.assignee_id);
+                assignedMembers.set(
+                    id,
+                    name || `Người thực hiện #${id}`
+                );
+            });
+
+        const options = Array.from(assignedMembers.entries())
+            .sort((left, right) => left[1].localeCompare(right[1], "vi"))
+            .map(([id, name]) => `
+                <option value="${esc(id)}">${esc(name)}</option>
+            `);
+
+        assigneeFilter.innerHTML = [
+            '<option value="">Tất cả người thực hiện</option>',
+            ...options
+        ].join("");
+
+        assigneeFilter.value = assignedMembers.has(selectedId)
+            ? selectedId
+            : "";
+    }
+
+    function hasActiveFilters() {
+        return Boolean(
+            titleFilter?.value.trim() ||
+            assigneeFilter?.value ||
+            dueDateFilter?.value
+        );
+    }
+
+    function filterTasks(parentTasks) {
+        const keyword = titleFilter?.value.trim().toLocaleLowerCase() || "";
+        const assigneeId = assigneeFilter?.value || "";
+        const parsedDueDate = parseDisplayDate(dueDateFilter?.value);
+
+        return parentTasks.filter(task =>
+            (!keyword ||
+                String(task.title ?? "")
+                    .toLocaleLowerCase()
+                    .includes(keyword)) &&
+            (!assigneeId ||
+                String(task.assignee_id ?? "") === assigneeId) &&
+            (!parsedDueDate.value ||
+                String(task.due_date ?? "").slice(0, 10) ===
+                    parsedDueDate.value)
+        );
     }
 
     function renderCard(task) {
@@ -181,11 +286,35 @@
     }
 
     function renderBoard() {
-        const parentTasks = tasks.filter(task =>
+        const allParentTasks = tasks.filter(task =>
             task.parent_id == null &&
             !task.archived_at &&
             STATUSES.includes(task.status)
         );
+        const parentTasks = filterTasks(allParentTasks);
+        const filtersActive = hasActiveFilters();
+        const parsedDueDate = parseDisplayDate(dueDateFilter?.value);
+
+        if (dueDateFilter) {
+            dueDateFilter.setAttribute(
+                "aria-invalid",
+                String(!parsedDueDate.valid)
+            );
+        }
+
+        if (filterSummary) {
+            filterSummary.textContent = parsedDueDate.valid
+                ? `Đang hiển thị ${parentTasks.length}/${allParentTasks.length} task`
+                : "Ngày không hợp lệ. Hãy nhập theo dd/mm/yyyy.";
+            filterSummary.classList.toggle(
+                "is-error",
+                !parsedDueDate.valid
+            );
+        }
+
+        if (clearFiltersButton) {
+            clearFiltersButton.hidden = !filtersActive;
+        }
 
         board.querySelectorAll(".lane").forEach(lane => {
             const status = lane.dataset.status;
@@ -212,7 +341,13 @@
 
             cards.innerHTML = laneTasks.length
                 ? laneTasks.map(renderCard).join("")
-                : '<p class="kanban-empty">Chưa có công việc</p>';
+                : `<p class="kanban-empty">${
+                    !filtersActive
+                        ? "Chưa có công việc"
+                        : parentTasks.length
+                            ? "Không có task phù hợp trong trạng thái này"
+                            : "Không tìm thấy task phù hợp"
+                }</p>`;
         });
 
         board.querySelectorAll("[data-open-task]").forEach(button => {
@@ -239,6 +374,7 @@
         }
 
         tasks = response.data;
+        renderAssigneeFilter();
         renderBoard();
     }
 
@@ -320,6 +456,7 @@
                     "Không thể tải danh sách thành viên.";
             }
 
+            renderAssigneeFilter();
             renderBoard();
 
             if (project.archived_at) {
@@ -726,10 +863,14 @@
                         Hạn hoàn thành
 
                         <input
-                            type="date"
+                            type="text"
                             name="due_date"
+                            inputmode="numeric"
+                            maxlength="10"
+                            placeholder="dd/mm/yyyy"
+                            autocomplete="off"
                             value="${esc(
-                                String(task?.due_date || "").slice(0, 10)
+                                formatDate(task?.due_date)
                             )}"
                             ${canModifyForm ? "" : "disabled"}
                         >
@@ -968,6 +1109,16 @@
             const assigneeInput =
                 taskForm.elements.namedItem("assignee_id");
 
+            const parsedDueDate = parseDisplayDate(dueDateInput.value);
+            if (!parsedDueDate.valid) {
+                showTaskMessage(
+                    "Ngày hạn không hợp lệ. Hãy nhập theo dd/mm/yyyy.",
+                    "error"
+                );
+                dueDateInput.focus();
+                return;
+            }
+
             const title = titleInput.value.trim();
 
             if (!title) {
@@ -982,7 +1133,7 @@
             const payload = {
                 title,
                 description: descriptionInput.value.trim() || null,
-                due_date: dueDateInput.value || null
+                due_date: parsedDueDate.value
             };
 
             if (membersLoaded) {
@@ -1290,6 +1441,17 @@
             openTaskModal();
         });
     }
+
+    titleFilter?.addEventListener("input", renderBoard);
+    assigneeFilter?.addEventListener("change", renderBoard);
+    dueDateFilter?.addEventListener("input", renderBoard);
+    clearFiltersButton?.addEventListener("click", () => {
+        if (titleFilter) titleFilter.value = "";
+        if (assigneeFilter) assigneeFilter.value = "";
+        if (dueDateFilter) dueDateFilter.value = "";
+        renderBoard();
+        titleFilter?.focus();
+    });
 
     function start() {
         loadWorkspace();
