@@ -1,6 +1,5 @@
 
 "use strict";
-
 (function () {
     const board = document.getElementById("kanban-board");
     if (!board) return;
@@ -10,12 +9,27 @@
     const projectName = document.getElementById("current-project-name");
     const message = document.getElementById("kanban-message");
     const newTaskButton = document.getElementById("btn-new-task");
+    const plannerButton = document.getElementById("btn-ai-planner");
+    const selectProjectSection = document.getElementById("kanban-select-project");
+    const kanbanFilters = document.getElementById("kanban-filters");
+    const mainActions = document.getElementById("kanban-main-actions");
+
+    function updateProjectView(hasProject) {
+        if (selectProjectSection) selectProjectSection.hidden = hasProject;
+        if (kanbanFilters) kanbanFilters.hidden = !hasProject;
+        if (mainActions) mainActions.hidden = !hasProject;
+        board.hidden = !hasProject;
+        if (!hasProject) {
+            if (newTaskButton) newTaskButton.hidden = true;
+            if (plannerButton) plannerButton.hidden = true;
+        }
+    }
+
     const titleFilter = document.getElementById("filter-task-title");
     const assigneeFilter = document.getElementById("filter-task-assignee");
     const dueDateFilter = document.getElementById("filter-task-due-date");
     const clearFiltersButton = document.getElementById("clear-task-filters");
     const filterSummary = document.getElementById("kanban-filter-summary");
-
     const STATUSES = ["TODO", "IN_PROGRESS", "DONE"];
 
     let project = null;
@@ -54,7 +68,6 @@
 
     function showMessage(text, type = "") {
         if (!message) return;
-
         message.textContent = text || "";
         message.hidden = !text;
         message.classList.toggle("kanban-error", type === "error");
@@ -63,7 +76,6 @@
 
     function toast(text, type = "") {
         let wrap = document.querySelector(".toast-wrap");
-
         if (!wrap) {
             wrap = document.createElement("div");
             wrap.className = "toast-wrap";
@@ -75,7 +87,6 @@
         item.className = `toast ${type}`;
         item.textContent = text;
         wrap.appendChild(item);
-
         setTimeout(() => item.remove(), 4500);
     }
 
@@ -208,6 +219,10 @@
         const assigneeId = assigneeFilter?.value || "";
         const parsedDueDate = parseDisplayDate(dueDateFilter?.value);
 
+        if (!parsedDueDate.valid) {
+            return [];
+        }
+
         return parentTasks.filter(task =>
             (!keyword ||
                 String(task.title ?? "")
@@ -246,7 +261,6 @@
                     <span class="kanban-task-title">
                         ${esc(task.title)}
                     </span>
-
                     <span class="kanban-task-action">
                         Mở chi tiết &amp; subtask →
                     </span>
@@ -266,7 +280,6 @@
                             ? `<span>Hạn: ${esc(formatDate(task.due_date))}</span>`
                             : ""
                     }
-
                     ${
                         assignedTo
                             ? `<span>Phụ trách: ${esc(assignedTo)}</span>`
@@ -274,7 +287,6 @@
                                 ? "<span>Đã phân công</span>"
                                 : ""
                     }
-
                     ${
                         subtaskCount
                             ? `<span>${subtaskCount} subtask</span>`
@@ -291,6 +303,7 @@
             !task.archived_at &&
             STATUSES.includes(task.status)
         );
+
         const parentTasks = filterTasks(allParentTasks);
         const filtersActive = hasActiveFilters();
         const parsedDueDate = parseDisplayDate(dueDateFilter?.value);
@@ -306,6 +319,7 @@
             filterSummary.textContent = parsedDueDate.valid
                 ? `Đang hiển thị ${parentTasks.length}/${allParentTasks.length} task`
                 : "Ngày không hợp lệ. Hãy nhập theo dd/mm/yyyy.";
+
             filterSummary.classList.toggle(
                 "is-error",
                 !parsedDueDate.valid
@@ -382,19 +396,13 @@
         if (loading) return;
 
         if (!projectId) {
-            if (projectName) {
-                projectName.textContent =
-                    "Hãy chọn một dự án từ danh sách dự án.";
-            }
-
-            showMessage(
-                "Thiếu mã dự án. Mở bảng Quản lý công việc từ trang Dự án.",
-                "error"
-            );
-
-            if (newTaskButton) newTaskButton.hidden = true;
+            updateProjectView(false);
+            if (projectName) projectName.textContent = "";
+            showMessage("");
             return;
         }
+
+        updateProjectView(true);
 
         if (!API) {
             showMessage(
@@ -426,9 +434,21 @@
             }
 
             tasks = tasksResponse.data;
+            updateProjectView(true);
 
             if (projectName) {
                 projectName.textContent = `Dự án: ${project.name}`;
+            }
+
+            if (plannerButton) {
+                const canUsePlanner =
+                    (project.my_role || project.role) === "OWNER" &&
+                    !project.archived_at;
+
+                plannerButton.hidden = !canUsePlanner;
+                plannerButton.href = canUsePlanner
+                    ? `ai-planner.html?project=${encodeURIComponent(projectId)}`
+                    : "projects.html";
             }
 
             members = [];
@@ -439,18 +459,15 @@
                 const membersResponse = await API.get(
                     `/projects/${encodeURIComponent(projectId)}/members`
                 );
-
                 if (!Array.isArray(membersResponse?.data)) {
                     throw new Error(
                         "Danh sách thành viên không hợp lệ."
                     );
                 }
-
                 members = membersResponse.data;
                 membersLoaded = true;
             } catch (error) {
                 if (error.status === 401) return;
-
                 membersError =
                     error.message ||
                     "Không thể tải danh sách thành viên.";
@@ -479,12 +496,14 @@
             if (error.status === 401) return;
 
             project = null;
+            updateProjectView(false);
 
             if (projectName) {
                 projectName.textContent = "Không tải được dự án.";
             }
 
             if (newTaskButton) newTaskButton.hidden = true;
+            if (plannerButton) plannerButton.hidden = true;
 
             showMessage(
                 error.message || "Không tải được bảng công việc.",
@@ -635,7 +654,6 @@
                                 : "disabled"
                         }
                     >
-
                     <span class="${
                         task.status === "DONE" ? "is-done" : ""
                     }">
@@ -700,7 +718,6 @@
                         if (reloaded) {
                             renderSubtasks(parentTask, list);
                         }
-
                         return;
                     }
 
@@ -837,7 +854,6 @@
             >
                 <label>
                     Tiêu đề *
-
                     <input
                         name="title"
                         value="${esc(task?.title || "")}"
@@ -849,7 +865,6 @@
 
                 <label>
                     Mô tả
-
                     <textarea
                         name="description"
                         maxlength="5000"
@@ -861,7 +876,6 @@
                 <div class="row2">
                     <label>
                         Hạn hoàn thành
-
                         <input
                             type="text"
                             name="due_date"
@@ -878,7 +892,6 @@
 
                     <label>
                         Người phụ trách
-
                         <select
                             name="assignee_id"
                             ${
@@ -923,455 +936,289 @@
             ${subtasksSection}
         `);
 
+        const modalElement = modal.element;
+        const taskForm = modalElement.querySelector("[data-task-form]");
+        const subtaskList = modalElement.querySelector(
+            "[data-subtask-list]"
+        );
+        const subtaskForm = modalElement.querySelector(
+            "[data-subtask-form]"
+        );
 
-        if (!isNew && window.PulseComments) {
-            window.PulseComments.mount(modal.element, {
-                projectId: projectId,
-                taskId: task.id,
-                canPost: canCreate() && !task.archived_at
-            });
-        }
-
-        if (!isNew && window.PulseHistory) {
-            const modalContent = modal.element;
-
-            const taskForm = modalContent.querySelector(
-                "[data-task-form]"
-            );
-
-            const subtasks = modalContent.querySelector(
-                ".task-subtasks"
-            );
-
-            const comments = modalContent.querySelector(
-                ".comments-section"
-            );
-
-            const tabs = document.createElement("div");
-            tabs.className = "task-detail-tabs";
-            tabs.setAttribute("role", "tablist");
-            tabs.setAttribute(
-                "aria-label",
-                "Thông tin và lịch sử công việc"
-            );
-
-            const detailTab = document.createElement("button");
-            detailTab.type = "button";
-            detailTab.className =
-                "task-detail-tab is-active";
-            detailTab.textContent = "Chi tiết";
-            detailTab.id = `task-detail-tab-${task.id}`;
-            detailTab.setAttribute("role", "tab");
-            detailTab.setAttribute("aria-selected", "true");
-
-            const historyTab = document.createElement("button");
-            historyTab.type = "button";
-            historyTab.className = "task-detail-tab";
-            historyTab.textContent = "Lịch sử";
-            historyTab.id = `task-history-tab-${task.id}`;
-            historyTab.setAttribute("role", "tab");
-            historyTab.setAttribute("aria-selected", "false");
-
-            tabs.append(detailTab, historyTab);
-
-            const detailPanel = document.createElement("div");
-            detailPanel.className = "task-detail-panel";
-            detailPanel.id = `task-detail-panel-${task.id}`;
-            detailPanel.setAttribute("role", "tabpanel");
-            detailPanel.setAttribute(
-                "aria-labelledby",
-                detailTab.id
-            );
-
-            const historyPanel = document.createElement("div");
-            historyPanel.className = "task-detail-panel";
-            historyPanel.id = `task-history-panel-${task.id}`;
-            historyPanel.setAttribute("role", "tabpanel");
-            historyPanel.setAttribute(
-                "aria-labelledby",
-                historyTab.id
-            );
-            historyPanel.hidden = true;
-
-            detailTab.setAttribute(
-                "aria-controls",
-                detailPanel.id
-            );
-
-            historyTab.setAttribute(
-                "aria-controls",
-                historyPanel.id
-            );
-
-            if (taskForm) {
-                detailPanel.appendChild(taskForm);
-            }
-
-            if (subtasks) {
-                detailPanel.appendChild(subtasks);
-            }
-
-            if (comments) {
-                detailPanel.appendChild(comments);
-            }
-
-            const history = window.PulseHistory.mount(
-                modalContent,
-                {
-                    projectId: projectId,
-                    taskId: task.id
-                }
-            );
-
-            if (history) {
-                historyPanel.appendChild(history.element);
-            }
-
-            modalContent.append(
-                tabs,
-                detailPanel,
-                historyPanel
-            );
-
-            function switchTab(selected) {
-                const showHistory = selected === "history";
-
-                detailPanel.hidden = showHistory;
-                historyPanel.hidden = !showHistory;
-
-                detailTab.classList.toggle(
-                    "is-active",
-                    !showHistory
-                );
-
-                historyTab.classList.toggle(
-                    "is-active",
-                    showHistory
-                );
-
-                detailTab.setAttribute(
-                    "aria-selected",
-                    String(!showHistory)
-                );
-
-                historyTab.setAttribute(
-                    "aria-selected",
-                    String(showHistory)
-                );
-
-                if (showHistory && history) {
-                    history.load();
-                }
-            }
-
-            detailTab.addEventListener("click", () => {
-                switchTab("detail");
-            });
-
-            historyTab.addEventListener("click", () => {
-                switchTab("history");
-            });
-
-            switchTab("detail");
-        }
-
-        modal.element.querySelectorAll("[data-close]").forEach(button => {
+        modalElement.querySelectorAll("[data-close]").forEach(button => {
             button.addEventListener("click", modal.close);
         });
 
+        if (!isNew && subtaskList) {
+            renderSubtasks(task, subtaskList);
+        }
 
-        const taskForm = modal.element.querySelector(
-            "[data-task-form]"
-        );
+        if (taskForm && canModifyForm) {
+            taskForm.addEventListener("submit", async event => {
+                event.preventDefault();
 
-        taskForm.addEventListener("submit", async event => {
-            event.preventDefault();
+                const formData = new FormData(taskForm);
+                const title = String(
+                    formData.get("title") || ""
+                ).trim();
 
-            const hasPermission = isNew
-                ? canCreate()
-                : canEdit();
+                const description = String(
+                    formData.get("description") || ""
+                ).trim();
 
-            if (!hasPermission) {
-                showTaskMessage(
-                    project?.archived_at
-                        ? "Dự án đã lưu trữ, không thể chỉnh sửa."
-                        : "Bạn không có quyền thực hiện thao tác này.",
-                    "error"
+                const parsedDate = parseDisplayDate(
+                    formData.get("due_date")
                 );
-                return;
-            }
 
-            const titleInput = taskForm.elements.namedItem("title");
-            const descriptionInput =
-                taskForm.elements.namedItem("description");
-            const dueDateInput =
-                taskForm.elements.namedItem("due_date");
-            const assigneeInput =
-                taskForm.elements.namedItem("assignee_id");
+                const assigneeValue = String(
+                    formData.get("assignee_id") || ""
+                ).trim();
 
-            const parsedDueDate = parseDisplayDate(dueDateInput.value);
-            if (!parsedDueDate.valid) {
-                showTaskMessage(
-                    "Ngày hạn không hợp lệ. Hãy nhập theo dd/mm/yyyy.",
-                    "error"
-                );
-                dueDateInput.focus();
-                return;
-            }
-
-            const title = titleInput.value.trim();
-
-            if (!title) {
-                showTaskMessage(
-                    "Tiêu đề task không được để trống.",
-                    "error"
-                );
-                titleInput.focus();
-                return;
-            }
-
-            const payload = {
-                title,
-                description: descriptionInput.value.trim() || null,
-                due_date: parsedDueDate.value
-            };
-
-            if (membersLoaded) {
-                payload.assignee_id = assigneeInput.value
-                    ? Number(assigneeInput.value)
-                    : null;
-            }
-
-            if (!isNew) {
-                payload.version = task.version;
-            }
-
-            const submit = taskForm.querySelector(
-                '[type="submit"]'
-            );
-
-            if (!submit) return;
-
-            submit.disabled = true;
-            showTaskMessage("");
-
-            try {
-                const response = isNew
-                    ? await API.post(
-                        `/projects/${encodeURIComponent(projectId)}/tasks`,
-                        payload
-                    )
-                    : await API.patch(
-                        `/tasks/${encodeURIComponent(task.id)}`,
-                        payload
-                    );
-
-                if (!response?.data || response.data.id == null) {
-                    throw new Error(
-                        "Máy chủ trả về task không hợp lệ."
-                    );
-                }
-
-                saveTask(response.data);
-                renderBoard();
-                modal.close();
-
-                toast(
-                    isNew
-                        ? "Đã tạo task."
-                        : "Đã cập nhật task.",
-                    "success"
-                );
-            } catch (error) {
-                if (error.status === 401) return;
-
-                submit.disabled = false;
-
-                if (error.status === 409 && !isNew) {
+                if (!title) {
                     showTaskMessage(
-                        `Xung đột phiên bản (409): ${
-                            error.message ||
-                            "Task đã được người khác cập nhật."
-                        } Thay đổi chưa được lưu. ` +
-                        "Đóng cửa sổ, tải lại bảng và thử lại.",
+                        "Vui lòng nhập tiêu đề task.",
                         "error"
                     );
                     return;
                 }
 
-                showTaskMessage(
-                    error.message || "Không thể lưu task.",
-                    "error"
-                );
-            }
-        });
-
-        if (!isNew) {
-            const subtaskList = modal.element.querySelector(
-                "[data-subtask-list]"
-            );
-
-            renderSubtasks(task, subtaskList);
-
-            const subtaskForm = modal.element.querySelector(
-                "[data-subtask-form]"
-            );
-
-            if (subtaskForm) {
-                subtaskForm.addEventListener(
-                    "submit",
-                    async event => {
-                        event.preventDefault();
-
-                        if (!canCreate()) {
-                            showTaskMessage(
-                                "Bạn không có quyền thêm subtask.",
-                                "error"
-                            );
-                            return;
-                        }
-
-                        const titleInput =
-                            subtaskForm.elements.namedItem("title");
-
-                        const title = titleInput.value.trim();
-
-                        if (!title) {
-                            showTaskMessage(
-                                "Tên subtask không được để trống.",
-                                "error"
-                            );
-                            return;
-                        }
-
-                        const submit = subtaskForm.querySelector(
-                            '[type="submit"]'
-                        );
-
-                        submit.disabled = true;
-                        showTaskMessage("");
-
-                        try {
-                            const response = await API.post(
-                                `/tasks/${encodeURIComponent(task.id)}/subtasks`,
-                                { title }
-                            );
-
-                            if (
-                                !response?.data ||
-                                response.data.id == null
-                            ) {
-                                throw new Error(
-                                    "Máy chủ trả về dữ liệu không hợp lệ."
-                                );
-                            }
-
-                            await refreshTasks();
-                            renderSubtasks(task, subtaskList);
-                            subtaskForm.reset();
-
-                            toast(
-                                "Đã thêm subtask.",
-                                "success"
-                            );
-                        } catch (error) {
-                            if (error.status === 401) return;
-
-                            showTaskMessage(
-                                error.message ||
-                                "Không thể thêm hoặc tải lại subtask.",
-                                "error"
-                            );
-                        } finally {
-                            submit.disabled = false;
-                        }
-                    }
-                );
-            }
-        }
-
-        if (canModifyForm) {
-            taskForm.elements.namedItem("title").focus();
-        }
-    }
-
-    async function moveTask(task, status) {
-        if (
-            !canEdit() ||
-            !task ||
-            !STATUSES.includes(status) ||
-            task.status === status
-        ) {
-            return;
-        }
-
-        try {
-            const response = await API.patch(
-                `/tasks/${encodeURIComponent(task.id)}`,
-                {
-                    status,
-                    version: task.version
-                }
-            );
-
-            if (!response?.data || response.data.id == null) {
-                throw new Error(
-                    "Máy chủ trả về task không hợp lệ."
-                );
-            }
-
-            saveTask(response.data);
-            renderBoard();
-
-            showMessage(
-                `Đã chuyển task sang ${status}.`,
-                "success"
-            );
-        } catch (error) {
-            if (error.status === 401) return;
-
-            if (error.status === 409) {
-                showMessage(
-                    "Xung đột phiên bản (409): " +
-                    (error.message || "Task đã được cập nhật.") +
-                    " Đang tải lại bảng.",
-                    "error"
-                );
-
-                try {
-                    await refreshTasks();
-                } catch (reloadError) {
-                    showMessage(
-                        reloadError.message ||
-                        "Không tải lại được bảng.",
+                if (!parsedDate.valid) {
+                    showTaskMessage(
+                        "Ngày không hợp lệ. Hãy nhập theo dd/mm/yyyy.",
                         "error"
                     );
+                    return;
                 }
-                return;
+
+                const payload = {
+                    title,
+                    description: description || null,
+                    due_date: parsedDate.value
+                };
+
+                if (membersLoaded) {
+                    payload.assignee_id = assigneeValue
+                        ? Number(assigneeValue)
+                        : null;
+                }
+
+                const submitButton = taskForm.querySelector(
+                    'button[type="submit"]'
+                );
+
+                if (submitButton) {
+                    submitButton.disabled = true;
+                }
+
+                showTaskMessage("");
+
+                try {
+                    let response;
+
+                    if (isNew) {
+                        response = await API.post(
+                            `/projects/${encodeURIComponent(projectId)}/tasks`,
+                            payload
+                        );
+                    } else {
+                        response = await API.patch(
+                            `/tasks/${encodeURIComponent(task.id)}`,
+                            {
+                                ...payload,
+                                version: task.version
+                            }
+                        );
+                    }
+
+                    if (!response?.data || response.data.id == null) {
+                        throw new Error(
+                            "Máy chủ trả về dữ liệu task không hợp lệ."
+                        );
+                    }
+
+                    await refreshTasks();
+
+                    modal.close();
+
+                    toast(
+                        isNew
+                            ? "Đã tạo task thành công."
+                            : "Đã cập nhật task thành công.",
+                        "success"
+                    );
+                } catch (error) {
+                    if (error.status === 401) return;
+
+                    if (error.status === 409) {
+                        showTaskMessage(
+                            "Task đã được người khác cập nhật. " +
+                            "Vui lòng tải lại dữ liệu trước khi sửa.",
+                            "error"
+                        );
+
+                        await reloadTasksAfterConflict();
+                    } else {
+                        showTaskMessage(
+                            error.message ||
+                            "Không thể lưu thông tin task.",
+                            "error"
+                        );
+                    }
+                } finally {
+                    if (submitButton && submitButton.isConnected) {
+                        submitButton.disabled = false;
+                    }
+                }
+            });
+        }
+
+        if (subtaskForm && !isNew) {
+            subtaskForm.addEventListener("submit", async event => {
+                event.preventDefault();
+
+                if (!canCreate()) {
+                    showTaskMessage(
+                        "Bạn không có quyền tạo subtask.",
+                        "error"
+                    );
+                    return;
+                }
+
+                const titleInput = subtaskForm.querySelector(
+                    'input[name="title"]'
+                );
+
+                const title = titleInput?.value.trim() || "";
+
+                if (!title) {
+                    showTaskMessage(
+                        "Vui lòng nhập tên subtask.",
+                        "error"
+                    );
+                    return;
+                }
+
+                const submitButton = subtaskForm.querySelector(
+                    'button[type="submit"]'
+                );
+
+                if (submitButton) {
+                    submitButton.disabled = true;
+                }
+
+                showTaskMessage("");
+
+                try {
+                    const response = await API.post(
+                        `/tasks/${encodeURIComponent(task.id)}/subtasks`,
+                        { title }
+                    );
+
+                    if (!response?.data || response.data.id == null) {
+                        throw new Error(
+                            "Máy chủ trả về subtask không hợp lệ."
+                        );
+                    }
+
+                    await refreshTasks();
+
+                    if (subtaskList) {
+                        renderSubtasks(task, subtaskList);
+                    }
+
+                    if (titleInput) {
+                        titleInput.value = "";
+                        titleInput.focus();
+                    }
+
+                    toast(
+                        "Đã thêm subtask thành công.",
+                        "success"
+                    );
+                } catch (error) {
+                    if (error.status === 401) return;
+
+                    showTaskMessage(
+                        error.message ||
+                        "Không thể thêm subtask.",
+                        "error"
+                    );
+                } finally {
+                    if (submitButton && submitButton.isConnected) {
+                        submitButton.disabled = false;
+                    }
+                }
+            });
+        }
+
+        // Tích hợp module bình luận và lịch sử nếu đã được tải.
+        if (!isNew) {
+            const commentsModule = window.PulseComments;
+            const historyModule = window.PulseHistory;
+
+            const taskContext = {
+                taskId: task.id,
+                projectId,
+                task,
+                project,
+                container: modalElement,
+                canCreate: canCreate(),
+                canEdit: canEdit()
+            };
+
+            if (
+                commentsModule &&
+                typeof commentsModule.mount === "function"
+            ) {
+                try {
+                    commentsModule.mount(taskContext);
+                } catch (error) {
+                    console.error(
+                        "Không thể khởi tạo bình luận:",
+                        error
+                    );
+                }
             }
 
-            showMessage(
-                error.message || "Không thể đổi trạng thái task.",
-                "error"
-            );
+            if (
+                historyModule &&
+                typeof historyModule.mount === "function"
+            ) {
+                try {
+                    historyModule.mount(taskContext);
+                } catch (error) {
+                    console.error(
+                        "Không thể khởi tạo lịch sử:",
+                        error
+                    );
+                }
+            }
         }
     }
 
-    board.addEventListener("dragstart", event => {
-        const card = event.target.closest(".kanban-task");
+    // =====================================================
+    // KÉO THẢ TASK TRÊN KANBAN
+    // =====================================================
 
-        if (!canEdit() || !card) {
+    board.addEventListener("dragstart", event => {
+        const card = event.target.closest(
+            ".kanban-task[data-task-id]"
+        );
+
+        if (!card || !canEdit()) {
             event.preventDefault();
             return;
         }
 
         draggedTaskId = card.dataset.taskId;
 
-        event.dataTransfer.effectAllowed = "move";
-        event.dataTransfer.setData(
-            "text/plain",
-            draggedTaskId
-        );
+        if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData(
+                "text/plain",
+                draggedTaskId
+            );
+        }
 
         card.classList.add("is-dragging");
     });
@@ -1383,90 +1230,217 @@
             card.classList.remove("is-dragging");
         }
 
+        board.querySelectorAll(".lane").forEach(lane => {
+            lane.classList.remove("is-drag-over");
+        });
+
+        draggedTaskId = "";
+    });
+
+    board.addEventListener("dragover", event => {
+        const lane = event.target.closest(
+            ".lane[data-status]"
+        );
+
+        if (!lane || !canEdit() || !draggedTaskId) {
+            return;
+        }
+
+        if (!STATUSES.includes(lane.dataset.status)) {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (event.dataTransfer) {
+            event.dataTransfer.dropEffect = "move";
+        }
+
+        board.querySelectorAll(".lane").forEach(item => {
+            item.classList.toggle(
+                "is-drag-over",
+                item === lane
+            );
+        });
+    });
+
+    board.addEventListener("dragleave", event => {
+        const lane = event.target.closest(
+            ".lane[data-status]"
+        );
+
+        if (!lane) return;
+
+        if (!lane.contains(event.relatedTarget)) {
+            lane.classList.remove("is-drag-over");
+        }
+    });
+
+    board.addEventListener("drop", async event => {
+        const lane = event.target.closest(
+            ".lane[data-status]"
+        );
+
+        if (!lane || !canEdit()) return;
+
+        const newStatus = lane.dataset.status;
+
+        if (!STATUSES.includes(newStatus)) {
+            return;
+        }
+
+        event.preventDefault();
+
+        lane.classList.remove("is-drag-over");
+
+        const taskId = draggedTaskId ||
+            event.dataTransfer?.getData("text/plain");
+
         draggedTaskId = "";
 
-        board.querySelectorAll(
-            ".lane.kanban-drop-target"
-        ).forEach(lane => {
-            lane.classList.remove("kanban-drop-target");
-        });
-    });
+        const task = taskById(taskId);
 
-    board.querySelectorAll(".lane").forEach(lane => {
-        lane.addEventListener("dragover", event => {
-            if (
-                !canEdit() ||
-                !draggedTaskId ||
-                !STATUSES.includes(lane.dataset.status)
-            ) {
+        if (!task || task.status === newStatus) {
+            return;
+        }
+
+        const previousStatus = task.status;
+
+        task.status = newStatus;
+        renderBoard();
+
+        try {
+        const response = await API.patch(
+            `/tasks/${encodeURIComponent(task.id)}`,   
+            {
+                status: newStatus,
+                version: task.version
+            }
+        );
+
+            if (!response?.data || response.data.id == null) {
+                throw new Error(
+                    "Máy chủ trả về dữ liệu task không hợp lệ."
+                );
+            }
+
+            await refreshTasks();
+
+            toast(
+                "Đã cập nhật trạng thái task.",
+                "success"
+            );
+        } catch (error) {
+            if (error.status === 401) return;
+
+            task.status = previousStatus;
+            renderBoard();
+
+            if (error.status === 409) {
+                toast(
+                    "Task đã được cập nhật ở nơi khác. " +
+                    "Đang tải lại dữ liệu.",
+                    "error"
+                );
+
+                try {
+                    await refreshTasks();
+                } catch (reloadError) {
+                    showMessage(
+                        reloadError.message ||
+                        "Không thể tải lại công việc.",
+                        "error"
+                    );
+                }
+
                 return;
             }
 
-            event.preventDefault();
-            event.dataTransfer.dropEffect = "move";
-
-            lane.classList.add("kanban-drop-target");
-        });
-
-        lane.addEventListener("dragleave", event => {
-            if (!lane.contains(event.relatedTarget)) {
-                lane.classList.remove("kanban-drop-target");
-            }
-        });
-
-        lane.addEventListener("drop", async event => {
-            if (
-                !canEdit() ||
-                !STATUSES.includes(lane.dataset.status)
-            ) {
-                return;
-            }
-
-            event.preventDefault();
-
-            lane.classList.remove("kanban-drop-target");
-
-            const taskId =
-                event.dataTransfer.getData("text/plain") ||
-                draggedTaskId;
-
-            const task = taskById(taskId);
-
-            await moveTask(task, lane.dataset.status);
-        });
+            toast(
+                error.message ||
+                "Không thể cập nhật trạng thái task.",
+                "error"
+            );
+        }
     });
+
+    // =====================================================
+    // BỘ LỌC F11
+    // =====================================================
+
+    if (titleFilter) {
+        titleFilter.addEventListener("input", () => {
+            renderBoard();
+        });
+    }
+
+    if (assigneeFilter) {
+        assigneeFilter.addEventListener("change", () => {
+            renderBoard();
+        });
+    }
+
+    if (dueDateFilter) {
+        dueDateFilter.addEventListener("input", () => {
+            renderBoard();
+        });
+    }
+
+    if (clearFiltersButton) {
+        clearFiltersButton.addEventListener("click", () => {
+            if (titleFilter) {
+                titleFilter.value = "";
+            }
+
+            if (assigneeFilter) {
+                assigneeFilter.value = "";
+            }
+
+            if (dueDateFilter) {
+                dueDateFilter.value = "";
+            }
+
+            renderBoard();
+        });
+    }
+
+    // =====================================================
+    // TẠO TASK MỚI
+    // =====================================================
 
     if (newTaskButton) {
         newTaskButton.addEventListener("click", () => {
+            if (!canCreate()) {
+                toast(
+                    "Bạn không có quyền tạo task.",
+                    "error"
+                );
+                return;
+            }
+
             openTaskModal();
         });
     }
 
-    titleFilter?.addEventListener("input", renderBoard);
-    assigneeFilter?.addEventListener("change", renderBoard);
-    dueDateFilter?.addEventListener("input", renderBoard);
-    clearFiltersButton?.addEventListener("click", () => {
-        if (titleFilter) titleFilter.value = "";
-        if (assigneeFilter) assigneeFilter.value = "";
-        if (dueDateFilter) dueDateFilter.value = "";
-        renderBoard();
-        titleFilter?.focus();
-    });
+    // =====================================================
+    // KHỞI TẠO TRANG QUẢN LÝ CÔNG VIỆC
+    // =====================================================
 
-    function start() {
+    if (!projectId) {
+        // Truy cập từ menu Quản lý công việc:
+        // Không hiển thị bảng Kanban trống.
+        // Chỉ hiển thị màn hình Chọn dự án.
+        updateProjectView(false);
+
+        if (projectName) {
+            projectName.textContent = "";
+        }
+
+        showMessage("");
+    } else {
+        // Đã chọn dự án:
+        // Tải thông tin dự án, thành viên và task.
+        updateProjectView(true);
         loadWorkspace();
     }
-
-    if (
-        !window.PulseAuth ||
-        window.PulseAuth.status === "authenticated"
-    ) {
-        start();
-    }
-
-    window.addEventListener("pulse:auth-changed", event => {
-        if (event.detail?.status === "authenticated") {
-            start();
-        }
-    });
 })();

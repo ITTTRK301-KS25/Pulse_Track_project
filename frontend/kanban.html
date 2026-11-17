@@ -31,22 +31,14 @@
         </a>
 
         <nav aria-label="Điều hướng chính">
-            <a href="dashboard.html">
-                Tổng quan
-            </a>
-
-            <a href="projects.html">
-                Dự án
-            </a>
-
+            <a href="dashboard.html">Tổng quan</a>
+            <a href="projects.html">Dự án</a>
             <a href="kanban.html" aria-current="page">
                 Quản lý công việc
             </a>
-
             <a href="profile.html" data-user-name>
                 Tài khoản
             </a>
-
             <button
                 type="button"
                 class="logout-button"
@@ -69,20 +61,66 @@
 
         <p id="current-project-name" class="muted"></p>
 
-        <button
-            type="button"
-            id="btn-new-task"
-            class="btn btn-primary"
+        <!-- Hiển thị khi chưa chọn dự án -->
+        <section
+            id="kanban-select-project"
+            class="kanban-select-project"
+            aria-labelledby="kanban-select-title"
             hidden
         >
-            + Tạo task
-        </button>
+            <div class="kanban-select-icon" aria-hidden="true">
+                📁
+            </div>
 
+            <h2 id="kanban-select-title">
+                Chọn dự án để bắt đầu
+            </h2>
+
+            <p>
+                Chọn một dự án để xem bảng Kanban,
+                tạo công việc hoặc lập kế hoạch với AI.
+            </p>
+
+            <a href="projects.html" class="btn btn-primary">
+                Chọn dự án →
+            </a>
+        </section>
+
+        <!-- Các nút khi đã chọn dự án -->
+        <div
+            class="kanban-main-actions"
+            id="kanban-main-actions"
+            hidden
+        >
+            <button
+                type="button"
+                id="btn-new-task"
+                class="btn btn-primary"
+                hidden
+            >
+                + Tạo task
+            </button>
+
+            <a
+                id="btn-ai-planner"
+                class="btn btn-primary"
+                href="projects.html"
+                hidden
+            >
+                ✦ Lập kế hoạch với AI
+            </a>
+        </div>
+
+        <!-- Bộ lọc công việc -->
         <section
+            id="kanban-filters"
             class="kanban-filters"
             aria-label="Bộ lọc và tìm kiếm công việc"
         >
-            <label class="kanban-filter" for="filter-task-title">
+            <label
+                class="kanban-filter"
+                for="filter-task-title"
+            >
                 Tìm theo tiêu đề
                 <input
                     type="search"
@@ -92,14 +130,22 @@
                 >
             </label>
 
-            <label class="kanban-filter" for="filter-task-assignee">
+            <label
+                class="kanban-filter"
+                for="filter-task-assignee"
+            >
                 Người thực hiện
                 <select id="filter-task-assignee">
-                    <option value="">Tất cả người thực hiện</option>
+                    <option value="">
+                        Tất cả người thực hiện
+                    </option>
                 </select>
             </label>
 
-            <label class="kanban-filter" for="filter-task-due-date">
+            <label
+                class="kanban-filter"
+                for="filter-task-due-date"
+            >
                 Hạn hoàn thành
                 <input
                     type="text"
@@ -128,6 +174,7 @@
             ></p>
         </section>
 
+        <!-- Thông báo -->
         <p
             id="kanban-message"
             class="status"
@@ -137,6 +184,7 @@
             Đang tải công việc...
         </p>
 
+        <!-- Bảng Kanban -->
         <div id="kanban-board" class="board">
 
             <section class="lane" data-status="TODO">
@@ -144,6 +192,7 @@
                     SPRINT BACKLOG
                     <span class="pill" data-count>0</span>
                 </h3>
+
                 <div class="kanban-cards" data-cards>
                     <p>Chưa có công việc</p>
                 </div>
@@ -154,6 +203,7 @@
                     IN PROGRESS
                     <span class="pill" data-count>0</span>
                 </h3>
+
                 <div class="kanban-cards" data-cards>
                     <p>Chưa có công việc</p>
                 </div>
@@ -164,6 +214,7 @@
                     REVIEW
                     <span class="pill" data-count>0</span>
                 </h3>
+
                 <div class="kanban-cards" data-cards>
                     <p>Chưa có công việc</p>
                 </div>
@@ -174,6 +225,7 @@
                     TESTING/QA
                     <span class="pill" data-count>0</span>
                 </h3>
+
                 <div class="kanban-cards" data-cards>
                     <p>Chưa có công việc</p>
                 </div>
@@ -184,6 +236,7 @@
                     DONE
                     <span class="pill" data-count>0</span>
                 </h3>
+
                 <div class="kanban-cards" data-cards>
                     <p>Chưa có công việc</p>
                 </div>
