@@ -3,6 +3,7 @@ import hashlib
 import json
 
 OP_PLANNER_APPROVE = "PLANNER_APPROVE"
+OP_BREAKDOWN_APPROVE = "BREAKDOWN_APPROVE"
 MSG_KEY_REUSED = "Khóa idempotency đã được dùng cho một yêu cầu khác"
 
 REPLAY, CONFLICT, NEW = "REPLAY", "CONFLICT", "NEW"
