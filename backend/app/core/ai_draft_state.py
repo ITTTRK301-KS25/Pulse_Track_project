@@ -18,3 +18,8 @@ def edit_block_reason(status: str) -> str | None:
 
 def is_stale(current_version: int, expected_version: int | None) -> bool:
     return expected_version is not None and expected_version != current_version
+
+
+def same_items(current: list | None, new: list) -> bool:
+    """Nội dung gợi ý không đổi -> không cần ghi và không tăng version (A03)."""
+    return list(current or []) == list(new)

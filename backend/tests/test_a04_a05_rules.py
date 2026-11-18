@@ -47,19 +47,33 @@ def test_approve_request_valid():
     assert r.idempotency_key == "approve-key-0001"
 
 
+def test_approve_request_all_optional():
+    """Frontend F12 gửi body rỗng hoặc {"draft_id": N}, khóa nằm ở header."""
+    assert ApprovePlannerDraftRequest().expected_version is None
+    assert ApprovePlannerDraftRequest(draft_id=5).draft_id == 5
+
+
 @pytest.mark.parametrize("payload", [
-    {"idempotency_key": "approve-key-0001"},                       # thiếu expected_version
-    {"expected_version": 1},                                       # thiếu idempotency_key
-    {"expected_version": 0, "idempotency_key": "approve-key-0001"},
-    {"expected_version": "1", "idempotency_key": "approve-key-0001"},
-    {"expected_version": 1, "idempotency_key": "short"},           # < 8 ký tự
-    {"expected_version": 1, "idempotency_key": "x" * 161},
-    {"expected_version": 1, "idempotency_key": "co dau cach 12345"},
-    {"expected_version": 1, "idempotency_key": "approve-key-0001", "status": "APPROVED"},
+    {"expected_version": 0},
+    {"expected_version": "1"},
+    {"draft_id": 0},
+    {"idempotency_key": "short"},                                  # < 8 ký tự
+    {"idempotency_key": "x" * 161},
+    {"idempotency_key": "co dau cach 12345"},
+    {"idempotency_key": "approve-key-0001", "status": "APPROVED"},  # trường lạ
 ])
 def test_approve_request_invalid(payload):
     with pytest.raises(ValidationError):
         ApprovePlannerDraftRequest(**payload)
+
+
+def test_resolve_key():
+    assert I.resolve_key("approve-key-0001", None) == ("approve-key-0001", None)
+    assert I.resolve_key(None, "approve-key-0001") == ("approve-key-0001", None)
+    assert I.resolve_key(" approve-key-0001 ", "approve-key-0001") == ("approve-key-0001", None)
+    assert I.resolve_key(None, None)[0] is None and I.resolve_key(None, None)[1]
+    assert I.resolve_key("", "  ")[1]
+    assert I.resolve_key("approve-key-0001", "approve-key-0002")[1]   # header ≠ body -> lỗi
 
 
 # ---------- schema breakdown ----------

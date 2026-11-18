@@ -26,7 +26,7 @@ from app.services.task_service import task_to_dict
 MSG_BAD_ITEMS = "Nội dung bản nháp không hợp lệ, không thể duyệt"
 
 
-def approve_draft(db: Session, user: User, draft_id: int, expected_version: int, idempotency_key: str) -> dict:
+def approve_draft(db: Session, user: User, draft_id: int, expected_version: int | None, idempotency_key: str) -> dict:
     draft = db.get(AIDraft, draft_id)
     if draft is None or draft.draft_type != "PROJECT_PLAN":
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Không tìm thấy bản nháp")
