@@ -26,6 +26,7 @@
 
     let project = null;
     let draftId = null;
+    let draftVersion = null;
     let suggestions = [];
     let busy = false;
     let started = false;
@@ -268,6 +269,7 @@
 
     function clearDraft() {
         draftId = null;
+        draftVersion = null;
         suggestions = [];
         approvalKey = null;
         approvalPending = false;
@@ -324,9 +326,9 @@
         const goal = goalInput.value.trim();
         const scope = scopeInput.value.trim();
 
-        if (!goal || !scope) {
+        if (goal.length < 10 || goal.length > 2000 || scope.length > 1000 || goal.length + scope.length > 3000) {
             showMessage(
-                "Vui lòng nhập đầy đủ mục tiêu và phạm vi dự án.",
+                "Mục tiêu cần 10–2000 ký tự, phạm vi tối đa 1000 ký tự và tổng tối đa 3000 ký tự.",
                 "error"
             );
             return;
@@ -345,6 +347,7 @@
             const data = readDraft(response);
 
             draftId = data.draft_id;
+            draftVersion = data.version;
             suggestions = data.suggestions.map(
                 item => ({ ...item })
             );
@@ -421,9 +424,9 @@
             const plannerAPI = getAPI();
 
             if (!approvalPending) {
-                // Lưu nội dung người dùng đã chỉnh sửa.
-                await plannerAPI.update({
+                const updatedResponse = await plannerAPI.update({
                     draftId,
+                    version: draftVersion,
                     suggestions: suggestions.map(item => ({
                         ...item,
                         title: String(item.title).trim(),
@@ -433,13 +436,22 @@
                     }))
                 });
 
+                const updatedDraft = unwrap(updatedResponse);
+
+                if (!Number.isSafeInteger(updatedDraft?.version)) {
+                    throw new Error(
+                        "Backend chưa trả về phiên bản bản nháp mới."
+                    );
+                }
+
+                draftVersion = updatedDraft.version;
                 approvalKey = crypto.randomUUID();
                 approvalPending = true;
             }
 
-            // Chỉ Backend mới tạo Task thật.
             await plannerAPI.approve({
                 draftId,
+                expectedVersion: draftVersion,
                 idempotencyKey: approvalKey
             });
 
