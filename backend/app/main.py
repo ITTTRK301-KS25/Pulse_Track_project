@@ -21,6 +21,7 @@ from app.api import planner as planner_api
 from app.api import planner_approve as planner_approve_api
 from app.api import planner_drafts as planner_drafts_api
 from app.api import breakdown as breakdown_api
+from app.api import breakdown_drafts as breakdown_drafts_api
 
 
 from app.core.exception import register_exception_handler
@@ -42,6 +43,7 @@ app.include_router(planner_api.router)
 app.include_router(planner_approve_api.router)
 app.include_router(planner_drafts_api.router)
 app.include_router(breakdown_api.router)
+app.include_router(breakdown_drafts_api.router)
 
 
 app.add_middleware(
