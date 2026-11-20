@@ -1,0 +1,1566 @@
+
+/* =========================================
+   PULSE TRACK - DASHBOARD REDESIGN
+   ========================================= */
+
+.pulse-dashboard {
+    --dash-navy: #10265b;
+    --dash-blue: #2563eb;
+    --dash-border: #dce6ff;
+
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: 1580px;
+    margin: 0 auto;
+    padding: 34px 30px 65px;
+    box-sizing: border-box;
+    color: #10244c;
+}
+
+/* ===== HERO ===== */
+
+.pulse-dashboard .dashboard-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    min-height: 174px;
+    margin-bottom: 22px;
+    padding: 12px 10px;
+    overflow: hidden;
+}
+
+.dashboard-hero-content {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+}
+
+.dashboard-eyebrow {
+    display: inline-block;
+    margin-bottom: 17px;
+    color: #1455df;
+    font-size: 12px;
+    font-weight: 850;
+    letter-spacing: 1.8px;
+}
+
+.dashboard-hero-content h1 {
+    margin: 0 0 10px;
+    color: #10244c;
+    font-size: clamp(34px, 3.5vw, 46px);
+    line-height: 1.2;
+    font-weight: 850;
+    letter-spacing: -1.2px;
+}
+
+.dashboard-hero-content p {
+    margin: 0;
+    color: #647797;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+/* Hero illustration */
+
+.dashboard-hero-art {
+    position: relative;
+    flex: 0 0 320px;
+    height: 165px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dashboard-art-glow {
+    position: absolute;
+    width: 290px;
+    height: 145px;
+    border-radius: 50%;
+    background: #a6c8ff;
+    filter: blur(52px);
+    opacity: .43;
+}
+
+.dashboard-art-screen {
+    position: relative;
+    width: 225px;
+    height: 137px;
+    padding: 13px;
+    border: 5px solid #e1ebff;
+    border-radius: 17px;
+    background: linear-gradient(145deg, #fff, #e6f0ff);
+    box-shadow:
+        10px 15px 28px rgba(31, 93, 212, .18),
+        inset 0 0 0 1px #fff;
+    transform: rotate(7deg);
+}
+
+.dashboard-art-toolbar {
+    display: flex;
+    gap: 5px;
+}
+
+.dashboard-art-toolbar span {
+    width: 18px;
+    height: 5px;
+    border-radius: 5px;
+    background: #c9dafa;
+}
+
+.dashboard-art-chart {
+    position: relative;
+    height: 93px;
+    margin-top: 10px;
+}
+
+.dashboard-art-chart svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+.dashboard-art-bars {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    gap: 10px;
+    padding: 10px 14px 0;
+}
+
+.dashboard-art-bars i {
+    width: 22px;
+    border-radius: 5px 5px 2px 2px;
+    background: linear-gradient(#4c91ff, #b5d1ff);
+}
+
+.dashboard-art-bars i:nth-child(1) { height: 30%; }
+.dashboard-art-bars i:nth-child(2) { height: 44%; }
+.dashboard-art-bars i:nth-child(3) { height: 55%; }
+.dashboard-art-bars i:nth-child(4) { height: 78%; }
+
+.dashboard-art-check {
+    position: absolute;
+    top: 2px;
+    right: 20px;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #43b7ff, #2858ec);
+    color: white;
+    font-size: 24px;
+    font-weight: 800;
+    box-shadow: 0 7px 16px #2764d344;
+}
+
+.dashboard-art-dot {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 5px;
+    background: #8cc7ff;
+    transform: rotate(30deg);
+}
+
+.dot-one { left: 10px; top: 30px; }
+.dot-two { right: 0; bottom: 20px; }
+
+/* ===== STATS ===== */
+
+.pulse-dashboard .dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+    margin-bottom: 30px;
+}
+
+.dashboard-stat {
+    position: relative;
+    min-width: 0;
+    height: 185px;
+    padding: 25px;
+    overflow: hidden;
+    border: 1px solid var(--dash-border);
+    border-radius: 23px;
+    background: linear-gradient(145deg, #fff 30%, #f8fbff);
+    box-shadow: 0 12px 28px rgba(43, 78, 148, .08);
+    box-sizing: border-box;
+    transition: transform .2s, box-shadow .2s;
+}
+
+.dashboard-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 17px 32px rgba(43, 78, 148, .13);
+}
+
+.dashboard-stat-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.dashboard-stat-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 65px;
+    width: 65px;
+    height: 65px;
+    border-radius: 18px;
+    font-size: 34px;
+    font-weight: 750;
+}
+
+.dashboard-stat-blue .dashboard-stat-icon {
+    color: #2466f1;
+    background: #e0ecff;
+}
+
+.dashboard-stat-orange .dashboard-stat-icon {
+    color: #d88b0c;
+    background: #fff0d6;
+}
+
+.dashboard-stat-green .dashboard-stat-icon {
+    color: #11a871;
+    background: #dcf8eb;
+}
+
+.dashboard-stat-info {
+    min-width: 0;
+}
+
+.dashboard-stat-info h2 {
+    margin: 5px 0 13px;
+    color: #172a50;
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.4;
+}
+
+.dashboard-stat-info strong {
+    display: block;
+    color: #0c2050;
+    font-size: 39px;
+    font-weight: 850;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.dashboard-stat-wave {
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: 73%;
+    height: 90px;
+    pointer-events: none;
+}
+
+/* ===== WORKFLOW BANNER ===== */
+
+.pulse-dashboard .dashboard-workflow {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 285px;
+    padding: 34px 38px;
+    overflow: hidden;
+    border: 1px solid #8aa8ff;
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 92% 70%, #8c65f9 0, transparent 35%),
+        linear-gradient(112deg, #102b65 0%, #2447b2 49%, #6143e4 100%);
+    box-shadow: 0 17px 35px rgba(45, 71, 157, .14);
+    box-sizing: border-box;
+}
+
+.dashboard-workflow-content {
+    position: relative;
+    z-index: 3;
+    flex: 1;
+    min-width: 0;
+}
+
+.dashboard-workflow-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #c7dcff;
+    font-size: 12px;
+    font-weight: 850;
+    letter-spacing: 1.5px;
+}
+
+.dashboard-workflow-eyebrow span {
+    color: #fff;
+    font-size: 25px;
+}
+
+.dashboard-workflow-content h2 {
+    margin: 15px 0 12px;
+    color: white;
+    font-size: clamp(23px, 2.2vw, 31px);
+    font-weight: 850;
+    line-height: 1.25;
+}
+
+.dashboard-workflow-content > p {
+    margin: 0;
+    color: #e1eaff;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.dashboard-workflow-steps {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 25px 0 20px;
+}
+
+.workflow-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 7px 12px;
+    border: 1px solid #ffffff14;
+    border-radius: 30px;
+    background: #ffffff20;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 650;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.workflow-step i {
+    width: 11px;
+    height: 11px;
+    border: 2px solid #ffffffa6;
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+.step-gray { background: #c5d0e4; }
+.step-blue { background: #1eaeff; }
+.step-yellow { background: #ffcb35; }
+.step-purple { background: #995dff; }
+.step-green { background: #31d995; }
+
+.workflow-arrow {
+    color: #d6e3ff;
+    font-size: 19px;
+}
+
+.dashboard-project-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 13px;
+    min-height: 45px;
+    padding: 11px 22px;
+    border: 1px solid #e6eeff;
+    border-radius: 12px;
+    background: #fff;
+    color: #1854d9;
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 6px 16px #071b4d24;
+    transition: transform .2s, background .2s;
+}
+
+.dashboard-project-button:hover {
+    transform: translateY(-2px);
+    background: #f0f5ff;
+}
+
+/* ===== KANBAN ILLUSTRATION ===== */
+
+.dashboard-kanban-art {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: 0 0 310px;
+    height: 220px;
+    margin-left: 15px;
+}
+
+.kanban-orbit {
+    position: absolute;
+    width: 350px;
+    height: 150px;
+    border: 2px solid #ffffff82;
+    border-radius: 50%;
+    transform: rotate(-16deg);
+}
+
+.kanban-illustration {
+    position: relative;
+    z-index: 2;
+    width: 255px;
+    height: 180px;
+    padding: 15px;
+    border: 6px solid #b7cfff;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #f4f8ff, #c3d8ff);
+    box-shadow:
+        12px 18px 28px #12255e55,
+        inset 0 0 0 2px #ffffffb0;
+    transform: perspective(600px) rotateY(-13deg) rotateZ(5deg);
+}
+
+.kanban-illustration-top {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 15px;
+}
+
+.kanban-illustration-top span {
+    width: 26px;
+    height: 5px;
+    border-radius: 5px;
+    background: #c0d2f1;
+}
+
+.kanban-illustration-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.kanban-mini-column {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+}
+
+.kanban-mini-header {
+    height: 14px;
+    border-radius: 5px;
+    box-shadow: 0 3px 5px #14366e1a;
+}
+
+.kanban-mini-header.blue { background: #428bff; }
+.kanban-mini-header.yellow { background: #ffbf37; }
+.kanban-mini-header.green { background: #32cf9b; }
+
+.kanban-mini-task {
+    height: 29px;
+    border: 1px solid #d7e3f9;
+    border-radius: 6px;
+    background:
+        linear-gradient(#b7c9e9, #b7c9e9) 8px 9px / 65% 4px no-repeat,
+        linear-gradient(#d8e3f6, #d8e3f6) 8px 18px / 43% 3px no-repeat,
+        #fff;
+    box-shadow: 0 3px 7px #254c9718;
+}
+
+.kanban-floating-icon {
+    position: absolute;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border: 1px solid #ffffff7a;
+    border-radius: 13px;
+    background: linear-gradient(145deg, #b9a5ff, #7856ef);
+    color: white;
+    font-size: 27px;
+    box-shadow: 0 8px 17px #172b7e44;
+}
+
+.kanban-team {
+    left: -7px;
+    top: 43px;
+}
+
+.kanban-check {
+    right: -8px;
+    bottom: 25px;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 1150px) {
+    .dashboard-kanban-art {
+        flex-basis: 240px;
+        transform: scale(.82);
+        transform-origin: center right;
+        margin-left: -20px;
+    }
+
+    .dashboard-workflow-steps {
+        max-width: 650px;
+    }
+
+    .dashboard-stat {
+        padding: 20px;
+    }
+
+    .dashboard-stat-content {
+        gap: 13px;
+    }
+
+    .dashboard-stat-info h2 {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 850px) {
+    .pulse-dashboard {
+        padding: 26px 20px 45px;
+    }
+
+    .dashboard-hero-art {
+        flex-basis: 230px;
+        transform: scale(.8);
+        transform-origin: right center;
+    }
+
+    .pulse-dashboard .dashboard-stats {
+        gap: 12px;
+    }
+
+    .dashboard-stat {
+        height: 155px;
+        padding: 16px;
+    }
+
+    .dashboard-stat-icon {
+        width: 45px;
+        height: 45px;
+        flex-basis: 45px;
+        font-size: 25px;
+    }
+
+    .dashboard-stat-info strong {
+        font-size: 30px;
+    }
+
+    .dashboard-kanban-art {
+        display: none;
+    }
+
+    .pulse-dashboard .dashboard-workflow {
+        min-height: 260px;
+    }
+}
+
+@media (max-width: 620px) {
+    .pulse-dashboard {
+        padding: 22px 14px 40px;
+    }
+
+    .pulse-dashboard .dashboard-hero {
+        min-height: auto;
+        padding: 8px 0 25px;
+    }
+
+    .dashboard-hero-art {
+        display: none;
+    }
+
+    .dashboard-eyebrow {
+        font-size: 10px;
+        letter-spacing: 1px;
+    }
+
+    .dashboard-hero-content h1 {
+        font-size: 32px;
+    }
+
+    .dashboard-hero-content p {
+        font-size: 13px;
+    }
+
+    .pulse-dashboard .dashboard-stats {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .dashboard-stat {
+        height: 135px;
+        padding: 19px;
+    }
+
+    .dashboard-stat-info h2 {
+        font-size: 15px;
+    }
+
+    .dashboard-stat-info strong {
+        font-size: 34px;
+    }
+
+    .pulse-dashboard .dashboard-workflow {
+        padding: 25px 20px;
+        border-radius: 18px;
+    }
+
+    .dashboard-workflow-content h2 {
+        font-size: 23px;
+    }
+
+    .dashboard-workflow-content > p {
+        font-size: 13px;
+    }
+
+    .dashboard-workflow-steps {
+        gap: 6px;
+    }
+
+    .workflow-step {
+        font-size: 10px;
+        padding: 7px 9px;
+    }
+
+    .workflow-arrow {
+        display: none;
+    }
+}
+
+/* ==========================================
+   PULSE TRACK - DASHBOARD COMPACT DESKTOP
+   ========================================== */
+
+@media (min-width: 851px) {
+
+    /* Tổng thể */
+    .pulse-dashboard {
+        max-width: 1480px;
+        padding: 24px 28px 40px;
+    }
+
+    /* Khu vực tiêu đề */
+    .pulse-dashboard .dashboard-hero {
+        min-height: 145px;
+        gap: 20px;
+        padding: 6px 8px;
+        margin-bottom: 18px;
+    }
+
+    .dashboard-eyebrow {
+        margin-bottom: 11px;
+        font-size: 10px;
+        letter-spacing: 1.5px;
+    }
+
+    .dashboard-hero-content h1 {
+        margin-bottom: 7px;
+        font-size: 36px;
+        line-height: 1.2;
+        letter-spacing: -0.8px;
+    }
+
+    .dashboard-hero-content p {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    /* Minh họa biểu đồ */
+    .dashboard-hero-art {
+        flex: 0 0 245px;
+        width: 245px;
+        height: 135px;
+    }
+
+    .dashboard-art-screen {
+        transform: scale(.78) rotate(7deg);
+    }
+
+    .dashboard-art-glow {
+        transform: scale(.75);
+    }
+
+    .dashboard-art-check {
+        top: 0;
+        right: 10px;
+        width: 34px;
+        height: 34px;
+        font-size: 20px;
+    }
+
+    /* Ba thẻ thống kê */
+    .pulse-dashboard .dashboard-stats {
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .pulse-dashboard .dashboard-stat {
+        height: 145px;
+        padding: 20px;
+        border-radius: 18px;
+    }
+
+    .dashboard-stat-content {
+        gap: 14px;
+        align-items: flex-start;
+    }
+
+    .dashboard-stat-icon {
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
+        border-radius: 13px;
+        font-size: 26px;
+    }
+
+    .dashboard-stat-info h2 {
+        margin: 3px 0 10px;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .dashboard-stat-info strong {
+        font-size: 32px;
+        line-height: 1;
+    }
+
+    .dashboard-stat-wave {
+        width: 67%;
+        height: 65px;
+    }
+
+    /* Banner quy trình */
+    .pulse-dashboard .dashboard-workflow {
+        min-height: 220px;
+        padding: 23px 30px;
+        border-radius: 19px;
+    }
+
+    .dashboard-workflow-eyebrow {
+        gap: 8px;
+        font-size: 10px;
+        letter-spacing: 1.3px;
+    }
+
+    .dashboard-workflow-eyebrow span {
+        font-size: 19px;
+    }
+
+    .dashboard-workflow-content h2 {
+        margin: 10px 0 8px;
+        font-size: 25px;
+        line-height: 1.25;
+    }
+
+    .dashboard-workflow-content > p {
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    /* Năm trạng thái */
+    .dashboard-workflow-steps {
+        gap: 6px;
+        margin: 15px 0 13px;
+    }
+
+    .workflow-step {
+        min-height: 28px;
+        padding: 5px 9px;
+        gap: 6px;
+        font-size: 10px;
+    }
+
+    .workflow-step i {
+        width: 9px;
+        height: 9px;
+    }
+
+    .workflow-arrow {
+        font-size: 15px;
+    }
+
+    /* Nút xem dự án */
+    .dashboard-project-button {
+        min-height: 37px;
+        padding: 8px 17px;
+        border-radius: 9px;
+        font-size: 12px;
+    }
+
+    /* Minh họa Kanban */
+    .dashboard-kanban-art {
+        display: grid;
+        flex: 0 0 235px;
+        width: 235px;
+        height: 175px;
+        margin-left: 8px;
+        transform: none;
+    }
+
+    .kanban-illustration {
+        transform:
+            scale(.78)
+            perspective(600px)
+            rotateY(-13deg)
+            rotateZ(5deg);
+    }
+
+    .kanban-orbit {
+        transform: scale(.72) rotate(-16deg);
+    }
+
+    .kanban-floating-icon {
+        width: 37px;
+        height: 37px;
+        border-radius: 10px;
+        font-size: 21px;
+    }
+
+    .kanban-team {
+        left: 0;
+        top: 32px;
+    }
+
+    .kanban-check {
+        right: 0;
+        bottom: 20px;
+    }
+}
+
+/* Màn hình laptop nhỏ */
+@media (min-width: 851px) and (max-width: 1100px) {
+
+    .pulse-dashboard {
+        padding: 22px 22px 35px;
+    }
+
+    .pulse-dashboard .dashboard-stats {
+        gap: 12px;
+    }
+
+    .pulse-dashboard .dashboard-stat {
+        padding: 15px;
+    }
+
+    .dashboard-stat-content {
+        gap: 10px;
+    }
+
+    .dashboard-stat-info h2 {
+        font-size: 12px;
+    }
+
+    .dashboard-stat-info strong {
+        font-size: 28px;
+    }
+
+    .pulse-dashboard .dashboard-workflow {
+        padding: 22px;
+    }
+
+    .dashboard-kanban-art {
+        display: none;
+    }
+}
+
+/* DASHBOARD INTERACTIVE TASK PANEL */
+
+.pulse-dashboard .dashboard-stat[data-dashboard-view] {
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s, border-color .2s;
+}
+
+.pulse-dashboard .dashboard-stat[data-dashboard-view]:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 32px rgba(27, 68, 139, .13);
+}
+
+.pulse-dashboard .dashboard-stat[data-dashboard-view]:focus-visible {
+    outline: 3px solid #72a8ff;
+    outline-offset: 3px;
+}
+
+.pulse-dashboard .dashboard-stat.dt-active {
+    border-color: #2876ff;
+    box-shadow: 0 0 0 2px rgba(40, 118, 255, .15),
+                0 12px 28px rgba(40, 118, 255, .13);
+}
+
+.pulse-dashboard .dashboard-stat-orange.dt-active {
+    border-color: #f3a52b;
+    box-shadow: 0 0 0 2px rgba(243, 165, 43, .15);
+}
+
+.pulse-dashboard .dashboard-stat-green.dt-active {
+    border-color: #20c786;
+    box-shadow: 0 0 0 2px rgba(32, 199, 134, .15);
+}
+
+.dt-panel[hidden],
+.dt-empty[hidden] {
+    display: none !important;
+}
+
+.dt-panel {
+    --dt-accent: #2563eb;
+    --dt-tint: #e8f0ff;
+
+    margin: 22px 0 24px;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #dbe6fa;
+    border-radius: 22px;
+    box-shadow: 0 16px 40px rgba(26, 62, 124, .08);
+    min-width: 0;
+}
+
+.dt-panel[data-view="progress"] {
+    --dt-accent: #e89416;
+    --dt-tint: #fff1d8;
+}
+
+.dt-panel[data-view="done"] {
+    --dt-accent: #0ca66b;
+    --dt-tint: #dcf9eb;
+}
+
+.dt-panel-heading {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 22px;
+    padding: 14px 16px;
+    border-radius: 15px;
+    background: linear-gradient(100deg, var(--dt-tint), #fff);
+    border-left: 4px solid var(--dt-accent);
+}
+
+.dt-panel-icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 13px;
+    color: var(--dt-accent);
+    background: #fff;
+    font-size: 25px;
+    font-weight: 800;
+}
+
+.dt-panel-title {
+    flex: 1;
+    min-width: 0;
+}
+
+.dt-title-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.dt-title-line h2 {
+    margin: 0;
+    font-size: 21px;
+    line-height: 1.35;
+    color: #10254c;
+}
+
+.dt-count {
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: #fff;
+    color: var(--dt-accent);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.dt-panel-title p {
+    margin: 5px 0 0;
+    color: #667b9d;
+    font-size: 13px;
+}
+
+.dt-close {
+    align-self: flex-start;
+    border: 0;
+    background: transparent;
+    color: #7183a3;
+    font-size: 26px;
+    cursor: pointer;
+}
+
+.dt-filters {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.dt-filters input,
+.dt-filters select {
+    width: 100%;
+    height: 43px;
+    min-width: 0;
+    padding: 0 12px;
+    border: 1px solid #d5e1f4;
+    border-radius: 10px;
+    background: #fff;
+    color: #1c3158;
+    font: inherit;
+    font-size: 13px;
+    outline: none;
+}
+
+.dt-filters input:focus,
+.dt-filters select:focus {
+    border-color: #4787ff;
+    box-shadow: 0 0 0 3px rgba(71, 135, 255, .1);
+}
+
+.dt-search {
+    position: relative;
+}
+
+.dt-search span {
+    position: absolute;
+    left: 13px;
+    top: 8px;
+    font-size: 23px;
+    color: #7186a8;
+}
+
+.dt-search input {
+    padding-left: 38px;
+}
+
+.dt-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.dt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+.dt-table th {
+    padding: 13px 12px;
+    background: #edf3fc;
+    color: #223a65;
+    font-size: 12px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+.dt-table th:first-child {
+    border-radius: 9px 0 0 0;
+}
+
+.dt-table th:last-child {
+    border-radius: 0 9px 0 0;
+}
+
+.dt-table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid #e7eef9;
+    color: #34476c;
+    vertical-align: middle;
+}
+
+.dt-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.dt-task-name {
+    color: #112750;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.dt-project-tag,
+.dt-status-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.dt-project-tag {
+    color: #245bc6;
+    background: #e8f0ff;
+}
+
+.dt-status-tag {
+    color: #52627e;
+    background: #eef1f7;
+}
+
+.dt-status-tag.progress {
+    color: #b66d04;
+    background: #fff0d5;
+}
+
+.dt-status-tag.done {
+    color: #078653;
+    background: #ddf8e9;
+}
+
+.dt-person {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.dt-avatar {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: #fff;
+    background: linear-gradient(135deg, #2877f7, #6253ed);
+    font-size: 10px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.dt-open {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid #d9e5f9;
+    border-radius: 9px;
+    color: #2465dd;
+    background: #f6f9ff;
+    text-decoration: none;
+    font-size: 17px;
+}
+
+.dt-open:hover {
+    background: #e5efff;
+}
+
+.dt-empty {
+    padding: 35px 15px;
+    text-align: center;
+    color: #7283a0;
+}
+
+.dt-empty span {
+    display: block;
+    font-size: 32px;
+    color: #3977ec;
+    margin-bottom: 8px;
+}
+
+.dt-empty strong {
+    display: block;
+    color: #17315c;
+}
+
+.dt-empty p {
+    margin: 7px 0 0;
+    font-size: 13px;
+}
+
+.dt-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 17px;
+    font-size: 12px;
+    color: #667b9d;
+}
+
+.dt-pagination {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.dt-pagination button {
+    width: 34px;
+    height: 34px;
+    border: 1px solid #d9e5f9;
+    border-radius: 9px;
+    background: #fff;
+    color: #2563eb;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.dt-pagination button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.dt-pagination span {
+    font-weight: 700;
+    color: #17315c;
+}
+
+@media (max-width: 1000px) {
+    .dt-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .dt-panel {
+        padding: 15px;
+        border-radius: 16px;
+    }
+
+    .dt-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .dt-title-line h2 {
+        font-size: 17px;
+    }
+
+    .dt-table {
+        min-width: 780px;
+    }
+
+    .dt-panel-heading {
+        padding: 12px;
+    }
+}
+.dt-search {
+    position: relative;
+}
+
+.dt-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7186a8;
+    pointer-events: none;
+}
+
+.dt-search input {
+    padding-left: 42px;
+}
+
+
+/* ==========================================
+   F16 - DASHBOARD MOBILE RESPONSIVE
+   Giữ nguyên giao diện Desktop
+   ========================================== */
+
+@media (max-width: 620px) {
+
+    /* Header điện thoại */
+    body.workspace-page:has(.pulse-dashboard) .app-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        gap: 12px;
+        min-height: 66px;
+        padding: 10px 16px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard) .app-header .brand {
+        display: inline-flex;
+        align-items: center;
+        flex-shrink: 0;
+        gap: 7px;
+        margin: 0;
+        font-size: 19px;
+        white-space: nowrap;
+    }
+
+    body.workspace-page:has(.pulse-dashboard) .app-header .brand .pulse {
+        font-size: 24px;
+    }
+
+    /* Giữ avatar tài khoản gốc */
+    body.workspace-page:has(.pulse-dashboard) .app-header nav {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+        gap: 0;
+        width: auto;
+        min-width: 0;
+        margin-left: auto;
+        overflow: visible;
+    }
+
+    /* Ẩn các mục điều hướng Desktop trên điện thoại */
+    body.workspace-page:has(.pulse-dashboard)
+    .app-header nav .pt-main-nav-link {
+        display: none !important;
+    }
+
+    /* Không hiển thị nút đăng xuất riêng trên Header */
+    body.workspace-page:has(.pulse-dashboard)
+    .app-header nav > .logout-button {
+        display: none !important;
+    }
+
+    /* Avatar gốc vẫn nằm ở bên phải */
+    body.workspace-page:has(.pulse-dashboard)
+    .app-header nav > a[data-user-name] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin: 0;
+    }
+
+    /* Nội dung Dashboard */
+    body.workspace-page:has(.pulse-dashboard) .pulse-dashboard {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin: 0 auto;
+        padding: 22px 16px 100px;
+    }
+
+    /* Phần giới thiệu */
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-hero {
+        display: block;
+        min-height: auto;
+        margin-bottom: 22px;
+        padding: 4px 0 8px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-hero-art {
+        display: none;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-eyebrow {
+        margin-bottom: 12px;
+        font-size: 10px;
+        letter-spacing: 1px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-hero-content h1 {
+        margin: 0 0 8px;
+        font-size: 30px;
+        line-height: 1.2;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-hero-content p {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.55;
+    }
+
+    /* Ba thẻ thống kê */
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stats {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stat {
+        height: 132px;
+        padding: 18px;
+        border-radius: 17px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stat-content {
+        gap: 14px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stat-icon {
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
+        border-radius: 13px;
+        font-size: 25px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stat-info h2 {
+        margin: 3px 0 8px;
+        font-size: 14px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stat-info strong {
+        font-size: 32px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stat-wave {
+        width: 65%;
+        height: 65px;
+    }
+
+    /* Bảng công việc */
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-panel {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        margin: 18px 0;
+        padding: 15px;
+        border-radius: 17px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-panel-heading {
+        gap: 10px;
+        padding: 12px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-panel-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 21px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-title-line h2 {
+        font-size: 17px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-filters {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-filters input,
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-filters select {
+        min-height: 44px;
+        font-size: 13px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-table-scroll {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-table {
+        min-width: 780px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-footer {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    /* Banner quy trình */
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-workflow {
+        min-height: auto;
+        padding: 24px 18px;
+        border-radius: 18px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-workflow-content h2 {
+        font-size: 23px;
+        line-height: 1.3;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-workflow-content > p {
+        font-size: 12px;
+        line-height: 1.65;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-workflow-steps {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin: 18px 0;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .workflow-step {
+        min-height: 30px;
+        padding: 7px 10px;
+        font-size: 10px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .workflow-arrow {
+        display: none;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-kanban-art {
+        display: none;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-project-button {
+        min-height: 42px;
+        padding: 10px 17px;
+    }
+}
+
+/* Màn hình điện thoại nhỏ */
+@media (max-width: 380px) {
+
+    body.workspace-page:has(.pulse-dashboard)
+    .app-header {
+        padding: 10px 12px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .app-header .brand {
+        font-size: 17px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .pulse-dashboard {
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-hero-content h1 {
+        font-size: 28px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stat {
+        padding: 15px;
+    }
+}

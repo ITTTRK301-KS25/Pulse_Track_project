@@ -10,6 +10,20 @@
 
     const API = window.PulseAPI;
     const DEFAULT_TZ = "Asia/Ho_Chi_Minh";
+
+    const searchEl = document.getElementById("project-search");
+    const roleEl = document.getElementById("filter-role");
+    const countEl = document.getElementById("project-result-count");
+    const paginationEl = document.getElementById("projects-pagination");
+    const gridBtn = document.getElementById("project-view-grid");
+    const listBtn = document.getElementById("project-view-list");
+
+    let allProjects = [];
+    let currentPage = 1;
+    let currentView = "grid";
+
+    const PAGE_SIZE = 6;
+
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     function esc(value) {
@@ -135,6 +149,139 @@
         ]));
     }
 
+
+function updateProjectStats() {
+    const total = allProjects.length;
+
+    const active = allProjects.filter(
+        project => !project.archived_at
+    ).length;
+
+    const archived = total - active;
+
+    document.getElementById(
+        "project-stat-total"
+    ).textContent = total;
+
+    document.getElementById(
+        "project-stat-active"
+    ).textContent = active;
+
+    document.getElementById(
+        "project-stat-archived"
+    ).textContent = archived;
+}
+
+
+    function applyProjectFilters() {
+        const keyword = (searchEl?.value || "")
+            .trim()
+            .toLocaleLowerCase("vi");
+
+        const status = filterEl.value;
+        const role = roleEl?.value || "all";
+
+        const isSearching = keyword.length > 0;
+
+        const filtered = allProjects.filter(project => {
+            const searchableText = [
+                project.name || "",
+                project.description || ""
+            ].join(" ").toLocaleLowerCase("vi");
+
+            const matchesSearch =
+                !isSearching || searchableText.includes(keyword);
+
+            // Có từ khóa: tìm trên cả dự án hoạt động và đã lưu trữ.
+            // Không có từ khóa: lọc theo trạng thái đang chọn.
+            const matchesStatus =
+                isSearching ||
+                status === "all" ||
+                (status === "active" && !project.archived_at) ||
+                (status === "archived" && !!project.archived_at);
+
+            const matchesRole =
+                role === "all" ||
+                project.my_role === role;
+
+            return matchesSearch && matchesStatus && matchesRole;
+        });
+
+        const totalPages = Math.max(
+            1,
+            Math.ceil(filtered.length / PAGE_SIZE)
+        );
+
+        currentPage = Math.max(
+            1,
+            Math.min(currentPage, totalPages)
+        );
+
+        const start = (currentPage - 1) * PAGE_SIZE;
+
+        const visibleProjects = filtered.slice(
+            start,
+            start + PAGE_SIZE
+        );
+
+        if (countEl) {
+            countEl.textContent = isSearching
+                ? `Tìm thấy ${filtered.length} dự án trên tất cả trạng thái`
+                : `Hiển thị ${filtered.length} / ${allProjects.length} dự án`;
+        }
+
+        render(visibleProjects);
+
+        listEl.classList.toggle(
+            "is-list-view",
+            currentView === "list"
+        );
+
+        if (!paginationEl) return;
+
+        paginationEl.hidden = totalPages <= 1;
+
+        if (totalPages <= 1) {
+            paginationEl.innerHTML = "";
+            return;
+        }
+
+        paginationEl.innerHTML = `
+            <span>Trang ${currentPage} / ${totalPages}</span>
+
+            <div>
+                <button
+                    type="button"
+                    data-page="prev"
+                    ${currentPage === 1 ? "disabled" : ""}
+                >
+                    ← Trước
+                </button>
+
+                <button
+                    type="button"
+                    data-page="next"
+                    ${currentPage === totalPages ? "disabled" : ""}
+                >
+                    Tiếp →
+                </button>
+            </div>
+        `;
+
+        paginationEl.querySelectorAll("[data-page]").forEach(button => {
+            button.addEventListener("click", () => {
+                if (button.dataset.page === "prev") {
+                    currentPage--;
+                } else {
+                    currentPage++;
+                }
+
+                applyProjectFilters();
+            });
+        });
+    }
+
+
     async function load() {
         listEl.innerHTML = `
             <div class="skeleton"></div>
@@ -143,17 +290,56 @@
         `;
 
         try {
-            const res = await API.get("/projects", {
-                query: { status: filterEl.value }
-            });
+            const [activeResponse, archivedResponse] = await Promise.all([
+                API.get("/projects?status=active"),
+                API.get("/projects?status=archived")
+            ]);
 
-            render(Array.isArray(res?.data) ? res.data : []);
+            const activeData = activeResponse?.data ?? activeResponse;
+            const archivedData = archivedResponse?.data ?? archivedResponse;
+
+            const activeProjects = Array.isArray(activeData)
+                ? activeData
+                : activeData?.items ?? activeData?.projects ?? [];
+
+            const archivedProjects = Array.isArray(archivedData)
+                ? archivedData
+                : archivedData?.items ?? archivedData?.projects ?? [];
+
+            const response = {
+                data: [
+                    ...new Map(
+                        [...activeProjects, ...archivedProjects].map(
+                            project => [String(project.id), project]
+                        )
+                    ).values()
+                ]
+            };
+
+            if (!Array.isArray(response?.data)) {
+                throw new Error("Dữ liệu dự án không hợp lệ");
+            }
+
+            allProjects = response.data;
+
+            updateProjectStats();
+            applyProjectFilters();
+
         } catch (err) {
             if (err.status === 401) return;
+
+            if (countEl) {
+                countEl.textContent = "Không tải được dự án";
+            }
+
+            if (paginationEl) {
+                paginationEl.hidden = true;
+            }
 
             listEl.innerHTML = `
                 <div class="empty-box">
                     ${esc(err.message || "Không tải được dự án")}
+
                     <p>
                         <button
                             type="button"
@@ -169,6 +355,7 @@
             document.getElementById("retry-load").onclick = load;
         }
     }
+
 
     function openProjectBoard(project) {
         if (!project || project.id == null) return;
@@ -430,197 +617,267 @@
         emailInput.focus();
     }
 
-    function render(items) {
-        if (!items.length) {
-            listEl.innerHTML = `
-                <div class="empty-box">
-                    ${
-                        filterEl.value === "archived"
-                            ? "Chưa có dự án nào được lưu trữ."
-                            : "Chưa có dự án nào. Bấm “+ Tạo dự án” để bắt đầu."
-                    }
-                </div>
-            `;
-            return;
-        }
 
-        listEl.innerHTML = items.map(p => `
-            <article
-                class="card project-card"
-                data-id="${esc(p.id)}"
-            >
-                <div class="project-meta">
-                    <span class="badge role-${esc(p.my_role)}">
-                        ${esc(p.my_role)}
-                    </span>
+        function render(items) {
+            if (!items.length) {
+                listEl.innerHTML = `
+                    <div class="empty-box upgraded-empty">
+                        <strong>Không tìm thấy dự án phù hợp</strong>
+                        <p>
+                            Thử thay đổi từ khóa hoặc bộ lọc
+                            để xem thêm dự án.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
 
-                    ${
-                        p.archived_at
-                            ? '<span class="badge is-archived">ĐÃ LƯU TRỮ</span>'
-                            : ""
-                    }
-                </div>
+            listEl.innerHTML = items.map(project => {
+                const archived = Boolean(project.archived_at);
+                const owner = project.my_role === "OWNER";
 
-                <h3>${esc(p.name)}</h3>
+                const firstLetter = (project.name || "D")
+                    .trim()
+                    .slice(0, 1)
+                    .toLocaleUpperCase("vi");
 
-                <p>${esc(p.description || "Chưa có mô tả")}</p>
+                const startDate = fmtDate(project.start_date) || "—";
+                const endDate = fmtDate(project.end_date) || "—";
 
-                <div class="project-meta">
-                    <span>🕒 ${esc(p.timezone)}</span>
-                    <span>👥 ${esc(p.member_count ?? 0)}</span>
-                </div>
+                return `
+                    <article
+                        class="card project-card upgraded-project-card"
+                        data-id="${esc(project.id)}"
+                    >
+                        <div class="project-card-top">
+                            <div class="project-avatar" aria-hidden="true">
+                                ${esc(firstLetter)}
+                            </div>
 
-                ${
-                    p.start_date || p.end_date
-                        ? `
-                            <div class="project-meta">
-                                <span>
-                                    📅 ${esc(fmtDate(p.start_date) || "—")}
-                                    →
-                                    ${esc(fmtDate(p.end_date) || "—")}
+                            <div class="project-badges">
+                                <span class="badge role-${esc(project.my_role)}">
+                                    ${esc(project.my_role || "MEMBER")}
+                                </span>
+
+                                <span class="project-state ${
+                                    archived ? "is-archived" : ""
+                                }">
+                                    ${
+                                        archived
+                                            ? "Đã lưu trữ"
+                                            : "Đang hoạt động"
+                                    }
                                 </span>
                             </div>
-                        `
-                        : ""
-                }
+                        </div>
 
-                <div class="project-meta">
-                    ${
-                        p.my_role === "OWNER" && !p.archived_at
-                            ? `
-                                <button
-                                    type="button"
-                                    class="btn btn-small"
-                                    data-act="add-member"
-                                >
-                                    Thêm thành viên
-                                </button>
-                            `
-                            : ""
-                    }
+                        <h3>${esc(project.name)}</h3>
 
-                    ${
-                        p.my_role === "OWNER"
-                            ? `
-                                <button
-                                    type="button"
-                                    class="btn btn-small"
-                                    data-act="edit"
-                                >
-                                    Sửa
-                                </button>
+                        <p class="project-description">
+                            ${esc(project.description || "Chưa có mô tả dự án")}
+                        </p>
 
-                                <button
-                                    type="button"
-                                    class="btn btn-small ${
-                                        p.archived_at ? "" : "btn-danger"
-                                    }"
-                                    data-act="${
-                                        p.archived_at ? "restore" : "archive"
-                                    }"
-                                >
-                                    ${
-                                        p.archived_at
-                                            ? "Khôi phục"
-                                            : "Lưu trữ"
-                                    }
-                                </button>
-                            `
-                            : ""
-                    }
-                </div>
-            </article>
-        `).join("");
+                        <div class="project-facts">
+                            <span>
+                                👥 ${esc(project.member_count ?? 0)}
+                                thành viên
+                            </span>
 
-        listEl.querySelectorAll(".project-card").forEach(card => {
-            const project = items.find(
-                item => String(item.id) === card.dataset.id
-            );
+                            <span>
+                                ◷ ${esc(project.timezone || DEFAULT_TZ)}
+                            </span>
+                        </div>
 
-            if (!project) return;
+                        <div class="project-dates">
+                            ${
+                                project.start_date || project.end_date
+                                    ? `📅 ${esc(startDate)} – ${esc(endDate)}`
+                                    : "📅 Chưa thiết lập thời gian"
+                            }
+                        </div>
 
-            card.style.cursor = "pointer";
-            card.tabIndex = 0;
-            card.setAttribute("role", "link");
+                        <div class="project-card-actions">
+                            <button
+                                type="button"
+                                class="btn btn-small project-open"
+                                data-act="open"
+                            >
+                                Mở dự án ↗
+                            </button>
 
-            card.setAttribute(
-                "aria-label",
-                "Mở bảng công việc dự án " + project.name
-            );
+                            ${
+                                owner && !archived
+                                    ? `
+                                        <button
+                                            type="button"
+                                            class="btn btn-small"
+                                            data-act="add-member"
+                                        >
+                                            Thêm thành viên
+                                        </button>
+                                    `
+                                    : ""
+                            }
 
-            card.addEventListener("click", event => {
-                if (
-                    event.target.closest(
-                        "button, a, input, select, textarea"
-                    )
-                ) {
-                    return;
-                }
+                            ${
+                                owner
+                                    ? `
+                                        <button
+                                            type="button"
+                                            class="btn btn-small"
+                                            data-act="edit"
+                                        >
+                                            Sửa
+                                        </button>
 
-                openProjectBoard(project);
-            });
+                                        <button
+                                            type="button"
+                                            class="btn btn-small ${
+                                                archived ? "" : "btn-danger"
+                                            }"
+                                            data-act="${
+                                                archived ? "restore" : "archive"
+                                            }"
+                                        >
+                                            ${
+                                                archived
+                                                    ? "Khôi phục"
+                                                    : "Lưu trữ"
+                                            }
+                                        </button>
+                                    `
+                                    : ""
+                            }
+                        </div>
+                    </article>
+                `;
+            }).join("");
 
-            card.addEventListener("keydown", event => {
-                if (event.target !== card) return;
-
-                if (
-                    event.key === "Enter" ||
-                    event.key === " "
-                ) {
-                    event.preventDefault();
-                    openProjectBoard(project);
-                }
-            });
-        });
-
-        listEl.querySelectorAll("[data-act]").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const card = btn.closest("[data-id]");
-
+            listEl.querySelectorAll(".project-card").forEach(card => {
                 const project = items.find(
                     item => String(item.id) === card.dataset.id
                 );
 
                 if (!project) return;
 
-                if (btn.dataset.act === "add-member") {
-                    openAddMemberModal(project);
-                } else if (btn.dataset.act === "edit") {
-                    openForm(project);
-                } else {
-                    toggleArchive(project, btn.dataset.act);
-                }
+                card.style.cursor = "pointer";
+                card.tabIndex = 0;
+                card.setAttribute("role", "link");
+
+                card.setAttribute(
+                    "aria-label",
+                    "Mở bảng công việc dự án " + project.name
+                );
+
+                card.addEventListener("click", event => {
+                    if (
+                        event.target.closest(
+                            "button, a, input, select, textarea"
+                        )
+                    ) {
+                        return;
+                    }
+
+                    openProjectBoard(project);
+                });
+
+                card.addEventListener("keydown", event => {
+                    if (event.target !== card) return;
+
+                    if (
+                        event.key === "Enter" ||
+                        event.key === " "
+                    ) {
+                        event.preventDefault();
+                        openProjectBoard(project);
+                    }
+                });
             });
-        });
-    }
 
-    async function toggleArchive(project, action) {
-        if (
-            action === "archive" &&
-            !confirm(
-                `Lưu trữ dự án “${project.name}”? Dự án sẽ chỉ còn đọc được.`
-            )
-        ) {
-            return;
+            listEl.querySelectorAll("[data-act]").forEach(button => {
+                button.addEventListener("click", () => {
+                    const card = button.closest("[data-id]");
+
+                    const project = items.find(
+                        item => String(item.id) === card.dataset.id
+                    );
+
+                    if (!project) return;
+
+                    switch (button.dataset.act) {
+                        case "open":
+                            openProjectBoard(project);
+                            break;
+
+                        case "add-member":
+                            openAddMemberModal(project);
+                            break;
+
+                        case "edit":
+                            openForm(project);
+                            break;
+
+                        case "archive":
+                        case "restore":
+                            toggleArchive(project, button.dataset.act);
+                            break;
+                    }
+                });
+            });
         }
 
-        try {
-            await API.post(
-                `/projects/${encodeURIComponent(project.id)}/${action}`
-            );
 
-            toast(
-                action === "archive"
-                    ? "Đã lưu trữ dự án"
-                    : "Đã khôi phục dự án",
-                "success"
-            );
 
-            await load();
-        } catch (err) {
-            toast(err.message || "Thao tác thất bại", "error");
+
+        async function toggleArchive(project, action) {
+            const isArchiving = action === "archive";
+
+            if (
+                isArchiving &&
+                !confirm(
+                    `Bạn có chắc muốn lưu trữ dự án "${project.name}"?`
+                )
+            ) {
+                return;
+            }
+
+            try {
+                await API.post(
+                    `/projects/${encodeURIComponent(project.id)}/${action}`
+                );
+
+                // Hiển thị danh sách tương ứng sau thao tác
+                filterEl.value = isArchiving ? "archived" : "active";
+
+                // Bỏ bộ lọc có thể khiến dự án bị ẩn
+                if (searchEl) {
+                    searchEl.value = "";
+                }
+
+                if (roleEl) {
+                    roleEl.value = "all";
+                }
+
+                currentPage = 1;
+
+                // Tải lại danh sách từ Backend
+                await load();
+
+                toast(
+                    isArchiving
+                        ? "Đã lưu trữ dự án. Đang hiển thị danh sách lưu trữ."
+                        : "Đã khôi phục dự án về danh sách hoạt động.",
+                    "success"
+                );
+
+            } catch (err) {
+                toast(
+                    err.message || "Không thể cập nhật dự án",
+                    "error"
+                );
+            }
         }
-    }
+
 
     function openForm(project) {
         const editing = Boolean(project);
@@ -884,7 +1141,55 @@
         openForm(null);
     });
 
-    filterEl.addEventListener("change", load);
+    filterEl.addEventListener("change", () => {
+        currentPage = 1;
+        applyProjectFilters();
+    });
+
+    searchEl?.addEventListener("input", () => {
+        currentPage = 1;
+        applyProjectFilters();
+    });
+
+    roleEl?.addEventListener("change", () => {
+        currentPage = 1;
+        applyProjectFilters();
+    });
+
+    function setProjectView(nextView) {
+        currentView = nextView;
+
+        gridBtn?.classList.toggle(
+            "is-active",
+            currentView === "grid"
+        );
+
+        listBtn?.classList.toggle(
+            "is-active",
+            currentView === "list"
+        );
+
+        gridBtn?.setAttribute(
+            "aria-pressed",
+            String(currentView === "grid")
+        );
+
+        listBtn?.setAttribute(
+            "aria-pressed",
+            String(currentView === "list")
+        );
+
+        applyProjectFilters();
+    }
+
+    gridBtn?.addEventListener("click", () => {
+        setProjectView("grid");
+    });
+
+    listBtn?.addEventListener("click", () => {
+        setProjectView("list");
+    });
+
 
     let started = false;
 

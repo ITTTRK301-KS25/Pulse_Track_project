@@ -26,11 +26,93 @@
 
     let project = null;
     let draftId = null;
+    let draftVersion = null;
     let suggestions = [];
     let busy = false;
     let started = false;
     let approvalKey = null;
     let approvalPending = false;
+
+    function confirmAction({ title, message, confirmLabel, danger = false }) {
+        return new Promise(resolve => {
+            const overlay = document.createElement("div");
+            overlay.className = "ai-confirm-overlay";
+            overlay.setAttribute("role", "presentation");
+
+            const dialog = document.createElement("div");
+            dialog.className = "ai-confirm-dialog";
+            dialog.setAttribute("role", "dialog");
+            dialog.setAttribute("aria-modal", "true");
+            dialog.setAttribute("aria-labelledby", "ai-confirm-title");
+            dialog.setAttribute("aria-describedby", "ai-confirm-description");
+
+            const heading = document.createElement("h2");
+            heading.id = "ai-confirm-title";
+            heading.textContent = title;
+
+            const description = document.createElement("p");
+            description.id = "ai-confirm-description";
+            description.textContent = message;
+
+            const actions = document.createElement("div");
+            actions.className = "ai-confirm-actions";
+
+            const back = document.createElement("button");
+            back.type = "button";
+            back.className = "btn ai-secondary";
+            back.textContent = "Quay lại";
+
+            const accept = document.createElement("button");
+            accept.type = "button";
+            accept.className = danger ? "btn ai-confirm-danger" : "btn btn-primary";
+            accept.textContent = confirmLabel;
+
+            let settled = false;
+            const previousFocus = document.activeElement;
+            const previousOverflow = document.body.style.overflow;
+
+            function close(confirmed) {
+                if (settled) return;
+                settled = true;
+                document.removeEventListener("keydown", onKeyDown);
+                overlay.remove();
+                document.body.style.overflow = previousOverflow;
+                if (previousFocus && previousFocus.isConnected) {
+                    previousFocus.focus();
+                }
+                resolve(confirmed);
+            }
+
+            function onKeyDown(event) {
+                if (event.key === "Escape") {
+                    event.preventDefault();
+                    close(false);
+                } else if (event.key === "Tab") {
+                    if (event.shiftKey && document.activeElement === back) {
+                        event.preventDefault();
+                        accept.focus();
+                    } else if (!event.shiftKey && document.activeElement === accept) {
+                        event.preventDefault();
+                        back.focus();
+                    }
+                }
+            }
+
+            back.addEventListener("click", () => close(false));
+            accept.addEventListener("click", () => close(true));
+            overlay.addEventListener("click", event => {
+                if (event.target === overlay) close(false);
+            });
+
+            actions.append(back, accept);
+            dialog.append(heading, description, actions);
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            document.body.style.overflow = "hidden";
+            document.addEventListener("keydown", onKeyDown);
+            back.focus();
+        });
+    }
 
     const validProjectId =
         Number.isSafeInteger(Number(projectId)) &&
@@ -268,6 +350,7 @@
 
     function clearDraft() {
         draftId = null;
+        draftVersion = null;
         suggestions = [];
         approvalKey = null;
         approvalPending = false;
@@ -324,9 +407,14 @@
         const goal = goalInput.value.trim();
         const scope = scopeInput.value.trim();
 
-        if (!goal || !scope) {
+        if (
+            goal.length < 10 ||
+            goal.length > 2000 ||
+            scope.length > 1000 ||
+            goal.length + scope.length > 3000
+        ) {
             showMessage(
-                "Vui lòng nhập đầy đủ mục tiêu và phạm vi dự án.",
+                "Mục tiêu cần 10–2000 ký tự, phạm vi tối đa 1000 ký tự và tổng tối đa 3000 ký tự.",
                 "error"
             );
             return;
@@ -345,6 +433,7 @@
             const data = readDraft(response);
 
             draftId = data.draft_id;
+            draftVersion = data.version;
             suggestions = data.suggestions.map(
                 item => ({ ...item })
             );
@@ -379,7 +468,12 @@
             return;
         }
 
-        if (!confirm("Bạn chắc chắn muốn hủy bản nháp AI?")) {
+        if (!await confirmAction({
+            title: "Hủy bản nháp AI",
+            message: "Bạn có chắc chắn muốn hủy bản nháp này? Các công việc đề xuất chưa được phê duyệt sẽ không được tạo.",
+            confirmLabel: "Xác nhận hủy",
+            danger: true
+        })) {
             return;
         }
 
@@ -408,9 +502,11 @@
             return;
         }
 
-        if (!confirm(
-            `Phê duyệt ${suggestions.length} công việc và tạo Task thật?`
-        )) {
+        if (!await confirmAction({
+            title: "Xác nhận phê duyệt kế hoạch",
+            message: `Bạn có chắc chắn muốn phê duyệt ${suggestions.length} công việc được AI đề xuất và tạo thành Task trong dự án?`,
+            confirmLabel: "Xác nhận tạo Task"
+        })) {
             return;
         }
 
@@ -421,9 +517,9 @@
             const plannerAPI = getAPI();
 
             if (!approvalPending) {
-                // Lưu nội dung người dùng đã chỉnh sửa.
-                await plannerAPI.update({
+                const updatedResponse = await plannerAPI.update({
                     draftId,
+                    version: draftVersion,
                     suggestions: suggestions.map(item => ({
                         ...item,
                         title: String(item.title).trim(),
@@ -433,13 +529,22 @@
                     }))
                 });
 
+                const updatedDraft = unwrap(updatedResponse);
+
+                if (!Number.isSafeInteger(updatedDraft?.version)) {
+                    throw new Error(
+                        "Backend chưa trả về phiên bản bản nháp mới."
+                    );
+                }
+
+                draftVersion = updatedDraft.version;
                 approvalKey = crypto.randomUUID();
                 approvalPending = true;
             }
 
-            // Chỉ Backend mới tạo Task thật.
             await plannerAPI.approve({
                 draftId,
+                expectedVersion: draftVersion,
                 idempotencyKey: approvalKey
             });
 

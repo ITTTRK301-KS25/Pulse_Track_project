@@ -5,52 +5,74 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý công việc | Pulse Track</title>
+
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/projects.css">
     <link rel="stylesheet" href="css/workspace.css">
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="css/comments.css">
     <link rel="stylesheet" href="css/history.css">
+    <link rel="stylesheet" href="css/mobile-nav.css">
 </head>
-<body class="auth-checking">
 
-    <div id="auth-guard-message" role="status" aria-live="polite">
+<body class="auth-checking workspace-page">
+    <div id="auth-guard-message"
+         role="status"
+         aria-live="polite">
         Đang kiểm tra phiên đăng nhập...
     </div>
 
-    <button id="auth-guard-retry" type="button" hidden>
+    <button id="auth-guard-retry"
+            type="button"
+            hidden>
         Thử lại
     </button>
 
-    <div id="app-error-message" role="alert" hidden></div>
+    <div id="app-error-message"
+         role="alert"
+         hidden></div>
 
     <header class="app-header">
         <a href="dashboard.html" class="brand">
             <span class="pulse">⌁</span>
-            Pulse Track
+            <span>Pulse Track</span>
         </a>
 
         <nav aria-label="Điều hướng chính">
-            <a href="dashboard.html">Tổng quan</a>
-            <a href="projects.html">Dự án</a>
-            <a href="kanban.html" aria-current="page">
+            <a href="dashboard.html"
+               class="pt-main-nav-link">
+                Tổng quan
+            </a>
+
+            <a href="projects.html"
+               class="pt-main-nav-link">
+                Dự án
+            </a>
+
+            <a href="kanban.html"
+               class="pt-main-nav-link"
+               aria-current="page">
                 Quản lý công việc
             </a>
+
+            <a href="weekly-report.html"
+               class="pt-main-nav-link">
+                Báo cáo tuần
+            </a>
+
             <a href="profile.html" data-user-name>
                 Tài khoản
             </a>
-            <button
-                type="button"
-                class="logout-button"
-                data-logout
-            >
+
+            <button type="button"
+                    class="logout-button"
+                    data-logout>
                 Đăng xuất
             </button>
         </nav>
     </header>
 
     <main class="content">
-
         <span class="eyebrow">QUẢN LÝ CÔNG VIỆC</span>
 
         <h1>Quản lý công việc</h1>
@@ -61,14 +83,13 @@
 
         <p id="current-project-name" class="muted"></p>
 
-        <!-- Hiển thị khi chưa chọn dự án -->
-        <section
-            id="kanban-select-project"
-            class="kanban-select-project"
-            aria-labelledby="kanban-select-title"
-            hidden
-        >
-            <div class="kanban-select-icon" aria-hidden="true">
+        <section id="kanban-select-project"
+                 class="kanban-select-project"
+                 aria-labelledby="kanban-select-title"
+                 hidden>
+
+            <div class="kanban-select-icon"
+                 aria-hidden="true">
                 📁
             </div>
 
@@ -86,55 +107,43 @@
             </a>
         </section>
 
-        <!-- Các nút khi đã chọn dự án -->
-        <div
-            class="kanban-main-actions"
-            id="kanban-main-actions"
-            hidden
-        >
-            <button
-                type="button"
-                id="btn-new-task"
-                class="btn btn-primary"
-                hidden
-            >
+        <div class="kanban-main-actions"
+             id="kanban-main-actions"
+             hidden>
+
+            <button type="button"
+                    id="btn-new-task"
+                    class="btn btn-primary"
+                    hidden>
                 + Tạo task
             </button>
 
-            <a
-                id="btn-ai-planner"
-                class="btn btn-primary"
-                href="projects.html"
-                hidden
-            >
+            <a id="btn-ai-planner"
+               class="btn btn-primary"
+               href="projects.html"
+               hidden>
                 ✦ Lập kế hoạch với AI
             </a>
         </div>
 
-        <!-- Bộ lọc công việc -->
-        <section
-            id="kanban-filters"
-            class="kanban-filters"
-            aria-label="Bộ lọc và tìm kiếm công việc"
-        >
-            <label
-                class="kanban-filter"
-                for="filter-task-title"
-            >
+        <section id="kanban-filters"
+                 class="kanban-filters"
+                 aria-label="Bộ lọc và tìm kiếm công việc">
+
+            <label class="kanban-filter"
+                   for="filter-task-title">
                 Tìm theo tiêu đề
-                <input
-                    type="search"
-                    id="filter-task-title"
-                    placeholder="Nhập từ khóa tiêu đề"
-                    autocomplete="off"
-                >
+
+                <input type="search"
+                       id="filter-task-title"
+                       placeholder="Nhập từ khóa tiêu đề"
+                       autocomplete="off">
             </label>
 
-            <label
-                class="kanban-filter"
-                for="filter-task-assignee"
-            >
+            <label class="kanban-filter"
+                   for="filter-task-assignee">
                 Người thực hiện
+
                 <select id="filter-task-assignee">
                     <option value="">
                         Tất cả người thực hiện
@@ -142,49 +151,38 @@
                 </select>
             </label>
 
-            <label
-                class="kanban-filter"
-                for="filter-task-due-date"
-            >
+            <label class="kanban-filter"
+                   for="filter-task-due-date">
                 Hạn hoàn thành
-                <input
-                    type="text"
-                    id="filter-task-due-date"
-                    inputmode="numeric"
-                    maxlength="10"
-                    placeholder="dd/mm/yyyy"
-                    autocomplete="off"
-                >
+
+                <input type="text"
+                       id="filter-task-due-date"
+                       inputmode="numeric"
+                       maxlength="10"
+                       placeholder="dd/mm/yyyy"
+                       autocomplete="off">
             </label>
 
-            <button
-                type="button"
-                class="btn btn-small"
-                id="clear-task-filters"
-                hidden
-            >
+            <button type="button"
+                    class="btn btn-small"
+                    id="clear-task-filters"
+                    hidden>
                 Xóa bộ lọc
             </button>
 
-            <p
-                id="kanban-filter-summary"
-                class="kanban-filter-summary"
-                role="status"
-                aria-live="polite"
-            ></p>
+            <p id="kanban-filter-summary"
+               class="kanban-filter-summary"
+               role="status"
+               aria-live="polite"></p>
         </section>
 
-        <!-- Thông báo -->
-        <p
-            id="kanban-message"
-            class="status"
-            role="status"
-            aria-live="polite"
-        >
+        <p id="kanban-message"
+           class="status"
+           role="status"
+           aria-live="polite">
             Đang tải công việc...
         </p>
 
-        <!-- Bảng Kanban -->
         <div id="kanban-board" class="board">
 
             <section class="lane" data-status="TODO">
@@ -241,9 +239,7 @@
                     <p>Chưa có công việc</p>
                 </div>
             </section>
-
         </div>
-
     </main>
 
     <script defer src="js/config.js"></script>
@@ -253,5 +249,6 @@
     <script defer src="js/history.js"></script>
     <script defer src="js/kanban.js"></script>
     <script defer src="js/ai-breakdown.js"></script>
+    <script defer src="js/mobile-nav.js"></script>
 </body>
 </html>

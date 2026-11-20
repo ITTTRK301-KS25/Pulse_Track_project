@@ -1,0 +1,324 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Báo cáo tuần AI | Pulse Track</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/workspace.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/weekly-report.css">
+    <link rel="stylesheet" href="css/weekly-report-history.css">
+    <link rel="stylesheet" href="css/mobile-nav.css">
+</head>
+
+<body class="auth-checking workspace-page report-page">
+
+    <div id="auth-guard-message"
+         role="status"
+         aria-live="polite">
+        Đang kiểm tra phiên đăng nhập...
+    </div>
+
+    <button id="auth-guard-retry" type="button" hidden>
+        Thử lại
+    </button>
+
+    <div id="app-error-message"
+         role="alert"
+         hidden></div>
+
+    <header class="app-header">
+        <a href="dashboard.html" class="brand">
+            <span class="pulse">⌁</span>
+            <span>Pulse Track</span>
+        </a>
+
+        <nav aria-label="Điều hướng chính">
+            <a href="dashboard.html"
+               class="pt-main-nav-link">
+                Tổng quan
+            </a>
+
+            <a href="projects.html"
+               class="pt-main-nav-link">
+                Dự án
+            </a>
+
+            <a href="kanban.html"
+               class="pt-main-nav-link">
+                Quản lý công việc
+            </a>
+
+            <a href="weekly-report.html"
+               class="pt-main-nav-link"
+               aria-current="page">
+                Báo cáo tuần
+            </a>
+
+            <a href="profile.html" data-user-name>
+                Tài khoản
+            </a>
+
+            <button type="button"
+                    class="logout-button"
+                    data-logout>
+                Đăng xuất
+            </button>
+        </nav>
+    </header>
+
+    <main class="content workspace-content report-container">
+
+        <section class="report-hero">
+            <div>
+                <span class="report-eyebrow">
+                    PULSE TRACK / BÁO CÁO THÔNG MINH
+                </span>
+
+                <h1>Báo cáo tiến độ tuần</h1>
+
+                <p>
+                    Tổng hợp hiệu suất công việc, theo dõi tiến độ
+                    dự án và nhận phân tích từ AI.
+                </p>
+            </div>
+
+            <div class="report-hero-icon"
+                 aria-hidden="true">
+                ✦
+            </div>
+        </section>
+
+        <div id="report-message"
+             class="report-message"
+             role="status"
+             aria-live="polite"
+             hidden></div>
+
+        <!-- F14: THIET LAP BAO CAO -->
+        <section class="report-panel">
+            <div class="report-section-heading">
+                <div>
+                    <span class="report-step">
+                        BƯỚC 01
+                    </span>
+
+                    <h2>Thiết lập báo cáo</h2>
+
+                    <p>
+                        Lựa chọn dự án và khoảng thời gian
+                        cần tổng hợp.
+                    </p>
+                </div>
+            </div>
+
+            <form id="report-form">
+                <div class="report-form-grid">
+
+                    <div class="report-field">
+                        <label for="report-project">
+                            Dự án
+                        </label>
+
+                        <select id="report-project"
+                                required
+                                disabled>
+                            <option value="">
+                                Đang tải danh sách dự án...
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="report-field">
+                        <label for="report-week">
+                            Tuần báo cáo
+                        </label>
+
+                        <select id="report-week" required>
+                            <option value="">
+                                Chọn tuần báo cáo
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <p class="report-hint">
+                    Hệ thống chỉ hỗ trợ lập báo cáo cho những
+                    tuần đã kết thúc, tính từ thứ Hai đến Chủ nhật.
+                </p>
+
+                <div class="report-actions">
+                    <button id="report-preview-button"
+                            class="report-button report-button-primary"
+                            type="submit"
+                            disabled>
+                        ✦ Xem trước báo cáo AI
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- F14: XEM TRUOC BAO CAO -->
+        <section id="report-preview"
+                 class="report-panel"
+                 hidden>
+
+            <div class="report-section-heading">
+                <div>
+                    <span class="report-step">
+                        BƯỚC 02
+                    </span>
+
+                    <h2>Kết quả báo cáo tuần</h2>
+                    <p id="report-period"></p>
+                </div>
+
+                <span class="report-preview-badge">
+                    BẢN XEM TRƯỚC
+                </span>
+            </div>
+
+            <h3 class="report-subtitle">
+                Tổng quan các chỉ số
+            </h3>
+
+            <div id="report-metrics"
+                 class="report-metrics"></div>
+
+            <div class="report-ai-card">
+                <div class="report-ai-heading">
+                    <span class="report-ai-icon">
+                        ✦
+                    </span>
+
+                    <div>
+                        <h3>Phân tích từ AI</h3>
+                        <p>
+                            Đánh giá hiệu suất và tiến độ dự án
+                        </p>
+                    </div>
+                </div>
+
+                <div id="report-ai-content"
+                     class="report-ai-content"></div>
+            </div>
+
+            <div class="report-save-footer">
+                <p>
+                    Vui lòng kiểm tra thông tin trước khi
+                    lưu báo cáo chính thức.
+                </p>
+
+                <button id="report-save-button"
+                        class="report-button report-button-primary"
+                        type="button">
+                    Lưu báo cáo
+                </button>
+            </div>
+        </section>
+
+        <!-- F15: DANH SACH BAO CAO DA LUU -->
+        <section id="saved-reports"
+                 class="report-panel">
+
+            <div class="saved-report-toolbar">
+                <div>
+                    <span class="report-step">
+                        BƯỚC 03
+                    </span>
+
+                    <h2>Báo cáo đã lưu</h2>
+
+                    <p>
+                        Xem lại các báo cáo tuần đã lưu,
+                        kiểm tra chi tiết và tải về
+                        dưới định dạng Markdown.
+                    </p>
+                </div>
+
+                <button id="saved-report-refresh"
+                        class="report-button report-button-secondary"
+                        type="button">
+                    Làm mới
+                </button>
+            </div>
+
+            <div id="saved-report-status"
+                 class="saved-report-status"
+                 role="status"
+                 aria-live="polite">
+                Đang tải danh sách báo cáo...
+            </div>
+
+            <div id="saved-report-list"
+                 class="saved-report-list">
+            </div>
+
+            <div id="saved-report-pagination"
+                 class="saved-report-pagination"
+                 aria-label="Phân trang báo cáo">
+            </div>
+        </section>
+
+        <!-- F15: CHI TIET BAO CAO DA LUU -->
+        <section id="saved-report-detail"
+                 class="report-panel"
+                 aria-label="Chi tiết báo cáo đã lưu"
+                 hidden>
+        </section>
+
+    </main>
+
+    <!-- F14: HOP THOAI XAC NHAN LUU -->
+    <div id="report-confirm-overlay"
+         class="report-confirm-overlay"
+         hidden>
+
+        <div class="report-confirm-dialog"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="report-confirm-title">
+
+            <h2 id="report-confirm-title">
+                Xác nhận lưu báo cáo
+            </h2>
+
+            <p>
+                Báo cáo sau khi lưu sẽ được lưu trữ
+                dưới dạng không chỉnh sửa.
+                Bạn có chắc chắn muốn tiếp tục?
+            </p>
+
+            <div class="report-confirm-actions">
+                <button id="report-cancel-save"
+                        class="report-button report-button-secondary"
+                        type="button">
+                    Hủy
+                </button>
+
+                <button id="report-confirm-save"
+                        class="report-button report-button-primary"
+                        type="button">
+                    Xác nhận lưu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script defer src="js/config.js"></script>
+    <script defer src="js/api.js"></script>
+    <script defer src="js/router.js"></script>
+
+    <!-- F14 -->
+    <script defer src="js/weekly-report.js"></script>
+
+    <!-- F15 -->
+    <script defer src="js/weekly-report-history.js"></script>
+    <script defer src="js/mobile-nav.js"></script>
+</body>
+</html>
