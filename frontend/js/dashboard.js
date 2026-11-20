@@ -3,8 +3,7 @@
     "use strict";
 
     const API = window.PulseAPI;
-
-    const $ = (id) => document.getElementById(id);
+    const $ = id => document.getElementById(id);
 
     const totalEl = $("dashboard-total");
     const progressEl = $("dashboard-progress");
@@ -28,7 +27,7 @@
     const views = {
         all: {
             title: "Tổng công việc",
-            description: "Danh sách toàn bộ công việc thuộc các dự án.",
+            description: "Danh sách công việc thuộc các dự án.",
             icon: "▦"
         },
         progress: {
@@ -52,14 +51,16 @@
         DONE: "Hoàn thành"
     };
 
-    function setStats(total, progress, done) {
-        totalEl.textContent = total;
-        progressEl.textContent = progress;
-        doneEl.textContent = done;
-    }
+    const statusOptions = [
+        "TODO",
+        "IN_PROGRESS",
+        "REVIEW",
+        "TESTING",
+        "DONE"
+    ];
 
     function escapeHTML(value) {
-        return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        return String(value ?? "").replace(/[&<>"']/g, char => ({
             "&": "&amp;",
             "<": "&lt;",
             ">": "&gt;",
@@ -68,11 +69,52 @@
         }[char]));
     }
 
+    function setStats(total, progress, done) {
+        totalEl.textContent = total;
+        progressEl.textContent = progress;
+        doneEl.textContent = done;
+    }
+
+    function isArchived(item) {
+        return Boolean(
+            item.archived_at ||
+            item.deleted_at ||
+            item.is_archived === true ||
+            item.archived === true
+        );
+    }
+
+    function isParentTask(task) {
+        if (task.parent_task_id != null) return false;
+        if (task.parent_id != null) return false;
+        if (task.is_subtask === true) return false;
+        return true;
+    }
+
+    function isValidTask(task) {
+        if (!task || typeof task !== "object") return false;
+        if (isArchived(task)) return false;
+        if (!isParentTask(task)) return false;
+        return true;
+    }
+
+    function normalizeTasks(tasks, project) {
+        return tasks
+            .filter(isValidTask)
+            .map(task => ({
+                ...task,
+                _projectId: project.id,
+                _projectName: project.name || "Dự án"
+            }));
+    }
+
     function formatDate(value) {
         if (!value) return "—";
 
         const datePart = String(value).slice(0, 10);
-        const match = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        const match = datePart.match(
+            /^(\d{4})-(\d{2})-(\d{2})$/
+        );
 
         if (match) {
             return `${match[3]}/${match[2]}/${match[1]}`;
@@ -93,25 +135,28 @@
         const projectId = String(task._projectId);
         const members = membersByProject.get(projectId) || [];
 
-        const member = members.find(
-            (item) => String(item.user_id) === String(task.assignee_id)
+        const member = members.find(item =>
+            String(item.user_id) === String(task.assignee_id)
         );
 
         if (member) {
-            return member.display_name || member.email || "Thành viên";
+            return member.display_name ||
+                member.email ||
+                "Thành viên";
         }
 
         return `Thành viên #${task.assignee_id}`;
     }
 
     function getInitials(name) {
-        if (!name || name === "Chưa phân công") return "?";
+        if (!name || name === "Chưa phân công") {
+            return "?";
+        }
 
-        const words = name.trim().split(/\s+/);
-
-        return words
+        return name.trim()
+            .split(/\s+/)
             .slice(-2)
-            .map((word) => word[0])
+            .map(word => word[0])
             .join("")
             .toUpperCase();
     }
@@ -140,20 +185,22 @@
     }
 
     function updateStats() {
-        setStats(
-            allTasks.length,
-            allTasks.filter(
-                (task) => task.status === "IN_PROGRESS"
-            ).length,
-            allTasks.filter(
-                (task) => task.status === "DONE"
-            ).length
-        );
+        const total = allTasks.length;
+
+        const progress = allTasks.filter(task =>
+            task.status === "IN_PROGRESS"
+        ).length;
+
+        const done = allTasks.filter(task =>
+            task.status === "DONE"
+        ).length;
+
+        setStats(total, progress, done);
     }
 
-    async function loadProjectMembers() {
+    async function loadProjectMembers(projectList) {
         const results = await Promise.allSettled(
-            projects.map((project) =>
+            projectList.map(project =>
                 API.get(
                     `/projects/${encodeURIComponent(project.id)}/members`
                 )
@@ -164,7 +211,7 @@
         let failed = 0;
 
         results.forEach((result, index) => {
-            const projectId = String(projects[index].id);
+            const projectId = String(projectList[index].id);
 
             if (
                 result.status === "fulfilled" &&
@@ -177,20 +224,66 @@
             }
         });
 
-        membersByProject = nextMembers;
-
         if (failed > 0) {
             console.warn(
-                `Không tải được thành viên của ${failed}/${projects.length} dự án.`
+                `Không tải được thành viên của ${failed}/${projectList.length} dự án.`
             );
         }
+
+        return nextMembers;
+    }
+
+    function resetDashboardData() {
+        projects = [];
+        allTasks = [];
+        membersByProject = new Map();
+        loaded = false;
+    }
+
+    function showTableError(message) {
+        const body = $("dt-table-body");
+        const empty = $("dt-empty");
+
+        if (body) body.innerHTML = "";
+
+        if (empty) {
+            empty.hidden = false;
+
+            const title = empty.querySelector("strong");
+            const description = empty.querySelector("p");
+
+            if (title) {
+                title.textContent = "Không thể tải công việc";
+            }
+
+            if (description) {
+                description.textContent = message;
+            }
+        }
+
+        if ($("dt-panel-count")) {
+            $("dt-panel-count").textContent = "Chưa có dữ liệu";
+        }
+
+        if ($("dt-results")) {
+            $("dt-results").textContent = "Không thể tải dữ liệu";
+        }
+
+        if ($("dt-page")) {
+            $("dt-page").textContent = "1 / 1";
+        }
+
+        if ($("dt-prev")) $("dt-prev").disabled = true;
+        if ($("dt-next")) $("dt-next").disabled = true;
     }
 
     async function loadDashboard() {
         if (loading) return;
 
         if (!API || typeof API.get !== "function") {
+            resetDashboardData();
             showError("Không tìm thấy kết nối PulseAPI.");
+            showTableError("Vui lòng kiểm tra cấu hình ứng dụng.");
             return;
         }
 
@@ -207,35 +300,22 @@
                 throw new Error("Danh sách dự án không hợp lệ.");
             }
 
-            projects = response.data.filter(
-                (project) =>
-                    project.id != null && !project.archived_at
+            const nextProjects = response.data.filter(project =>
+                project &&
+                project.id != null &&
+                !isArchived(project)
             );
 
-            if (projects.length === 0) {
-                allTasks = [];
-                membersByProject = new Map();
-                loaded = true;
-
-                updateStats();
-                fillProjectOptions();
-                fillAssigneeOptions();
-                fillStatusOptions();
-
-                if (activeView) render();
-                return;
-            }
-
             const results = await Promise.allSettled(
-                projects.map((project) =>
+                nextProjects.map(project =>
                     API.get(
                         `/projects/${encodeURIComponent(project.id)}/tasks`
                     )
                 )
             );
 
+            const nextTasks = [];
             let failed = 0;
-            const tasks = [];
 
             results.forEach((result, index) => {
                 if (
@@ -246,27 +326,25 @@
                     return;
                 }
 
-                const project = projects[index];
-
-                result.value.data.forEach((task) => {
-                    tasks.push({
-                        ...task,
-                        _projectId: project.id,
-                        _projectName: project.name || "Dự án"
-                    });
-                });
+                nextTasks.push(
+                    ...normalizeTasks(
+                        result.value.data,
+                        nextProjects[index]
+                    )
+                );
             });
 
             if (failed > 0) {
                 throw new Error(
-                    `Không tải được công việc của ${failed}/${projects.length} dự án.`
+                    `Không tải được công việc của ${failed}/${nextProjects.length} dự án.`
                 );
             }
 
-            allTasks = tasks;
+            const nextMembers = await loadProjectMembers(nextProjects);
 
-            await loadProjectMembers();
-
+            projects = nextProjects;
+            allTasks = nextTasks;
+            membersByProject = nextMembers;
             loaded = true;
 
             updateStats();
@@ -277,37 +355,16 @@
             if (activeView) render();
 
         } catch (error) {
+            resetDashboardData();
+
             if (error?.status === 401) return;
 
-            loaded = false;
+            const message = error?.message ||
+                "Không thể tải thống kê công việc.";
 
-            showError(
-                error?.message || "Không thể tải thống kê công việc."
-            );
+            showError(message);
+            showTableError(message);
 
-            if (activeView) {
-                const body = $("dt-table-body");
-                const empty = $("dt-empty");
-
-                if (body) body.innerHTML = "";
-
-                if (empty) {
-                    empty.hidden = false;
-
-                    const title = empty.querySelector("strong");
-                    const description = empty.querySelector("p");
-
-                    if (title) {
-                        title.textContent =
-                            "Không thể tải danh sách công việc";
-                    }
-
-                    if (description) {
-                        description.textContent =
-                            "Vui lòng tải lại trang để thử lại.";
-                    }
-                }
-            }
         } finally {
             loading = false;
         }
@@ -322,17 +379,15 @@
         select.innerHTML = "";
         select.add(new Option("Tất cả dự án", ""));
 
-        projects.forEach((project) => {
-            select.add(
-                new Option(
-                    project.name || "Dự án",
-                    String(project.id)
-                )
-            );
+        projects.forEach(project => {
+            select.add(new Option(
+                project.name || "Dự án",
+                String(project.id)
+            ));
         });
 
         select.value = [...select.options].some(
-            (option) => option.value === previous
+            option => option.value === previous
         ) ? previous : "";
     }
 
@@ -342,13 +397,12 @@
 
         const previous = select.value;
         const projectId = $("dt-project")?.value || "";
-
         const uniqueMembers = new Map();
 
         membersByProject.forEach((members, id) => {
             if (projectId && id !== projectId) return;
 
-            members.forEach((member) => {
+            members.forEach(member => {
                 if (member.user_id == null) return;
 
                 uniqueMembers.set(
@@ -359,14 +413,8 @@
         });
 
         select.innerHTML = "";
-
-        select.add(
-            new Option("Tất cả người phụ trách", "")
-        );
-
-        select.add(
-            new Option("Chưa phân công", "unassigned")
-        );
+        select.add(new Option("Tất cả người phụ trách", ""));
+        select.add(new Option("Chưa phân công", "unassigned"));
 
         [...uniqueMembers.values()]
             .sort((a, b) =>
@@ -375,22 +423,18 @@
                     "vi"
                 )
             )
-            .forEach((member) => {
-                select.add(
-                    new Option(
-                        member.display_name ||
-                        member.email ||
-                        `Thành viên #${member.user_id}`,
-                        String(member.user_id)
-                    )
-                );
+            .forEach(member => {
+                select.add(new Option(
+                    member.display_name ||
+                    member.email ||
+                    `Thành viên #${member.user_id}`,
+                    String(member.user_id)
+                ));
             });
 
         select.value = [...select.options].some(
-            (option) => option.value === previous
+            option => option.value === previous
         ) ? previous : "";
-
-        select.disabled = false;
     }
 
     function fillStatusOptions() {
@@ -402,35 +446,16 @@
         select.innerHTML = "";
         select.add(new Option("Tất cả trạng thái", ""));
 
-        const tasks = allTasks.filter((task) => {
-            if (activeView === "progress") {
-                return task.status === "IN_PROGRESS";
-            }
-
-            if (activeView === "done") {
-                return task.status === "DONE";
-            }
-
-            return true;
+        statusOptions.forEach(status => {
+            select.add(new Option(
+                statusNames[status],
+                status
+            ));
         });
 
-        const statuses = [
-            ...new Set(
-                tasks.map((task) => task.status).filter(Boolean)
-            )
-        ];
-
-        statuses.forEach((status) => {
-            select.add(
-                new Option(
-                    statusNames[status] || status,
-                    status
-                )
-            );
-        });
-
-        select.value = statuses.includes(previous) ? previous : "";
-        select.disabled = false;
+        select.value = statusOptions.includes(previous)
+            ? previous
+            : "";
     }
 
     function openView(view) {
@@ -454,22 +479,28 @@
 
         $("dt-search").value = "";
         $("dt-project").value = "";
+        $("dt-status").value = "";
         $("dt-assignee").value = "";
 
-        cards.forEach((card) => {
-            const selected =
-                card.dataset.dashboardView === view;
+        cards.forEach(card => {
+            const selected = card.dataset.dashboardView === view;
 
             card.classList.toggle("dt-active", selected);
-            card.setAttribute(
-                "aria-expanded",
-                String(selected)
-            );
+            card.setAttribute("aria-expanded", String(selected));
         });
 
         fillStatusOptions();
         fillAssigneeOptions();
-        render();
+
+        if (loaded) {
+            render();
+        } else {
+            showTableError(
+                loading
+                    ? "Đang tải dữ liệu, vui lòng chờ."
+                    : "Chưa có dữ liệu. Vui lòng tải lại trang."
+            );
+        }
 
         panel.scrollIntoView({
             behavior: "smooth",
@@ -482,9 +513,23 @@
 
         if (panel) panel.hidden = true;
 
-        cards.forEach((card) => {
+        cards.forEach(card => {
             card.classList.remove("dt-active");
             card.setAttribute("aria-expanded", "false");
+        });
+    }
+
+    function getViewTasks() {
+        return allTasks.filter(task => {
+            if (activeView === "progress") {
+                return task.status === "IN_PROGRESS";
+            }
+
+            if (activeView === "done") {
+                return task.status === "DONE";
+            }
+
+            return true;
         });
     }
 
@@ -497,27 +542,11 @@
         const status = $("dt-status")?.value || "";
         const assignee = $("dt-assignee")?.value || "";
 
-        return allTasks.filter((task) => {
-            if (
-                activeView === "progress" &&
-                task.status !== "IN_PROGRESS"
-            ) {
-                return false;
-            }
-
-            if (
-                activeView === "done" &&
-                task.status !== "DONE"
-            ) {
-                return false;
-            }
-
+        return getViewTasks().filter(task => {
             if (
                 projectId &&
                 String(task._projectId) !== projectId
-            ) {
-                return false;
-            }
+            ) return false;
 
             if (status && task.status !== status) {
                 return false;
@@ -526,9 +555,7 @@
             if (assignee === "unassigned") {
                 if (task.assignee_id != null) return false;
             } else if (assignee) {
-                if (
-                    String(task.assignee_id) !== assignee
-                ) {
+                if (String(task.assignee_id) !== assignee) {
                     return false;
                 }
             }
@@ -564,25 +591,21 @@
         return `
             <tr>
                 <td>${index}</td>
-
                 <td>
                     <span class="dt-task-name">
                         ${escapeHTML(name)}
                     </span>
                 </td>
-
                 <td>
                     <span class="dt-project-tag">
                         ${escapeHTML(task._projectName)}
                     </span>
                 </td>
-
                 <td>
                     <span class="dt-status-tag ${statusClass}">
                         ${escapeHTML(statusNames[status] || status)}
                     </span>
                 </td>
-
                 <td>
                     <span class="dt-person">
                         <span class="dt-avatar">
@@ -591,11 +614,9 @@
                         ${escapeHTML(assignee)}
                     </span>
                 </td>
-
                 <td>
                     ${escapeHTML(formatDate(getTaskDate(task)))}
                 </td>
-
                 <td>
                     <a
                         class="dt-open"
@@ -611,17 +632,7 @@
     function render() {
         if (!activeView || !panel || !loaded) return;
 
-        const viewTasks = allTasks.filter((task) => {
-            if (activeView === "progress") {
-                return task.status === "IN_PROGRESS";
-            }
-
-            if (activeView === "done") {
-                return task.status === "DONE";
-            }
-
-            return true;
-        });
+        const viewTasks = getViewTasks();
 
         $("dt-panel-count").textContent =
             `${viewTasks.length} công việc`;
@@ -673,16 +684,13 @@
     }
 
     function setupEvents() {
-        cards.forEach((card) => {
+        cards.forEach(card => {
             card.addEventListener("click", () => {
                 openView(card.dataset.dashboardView);
             });
 
-            card.addEventListener("keydown", (event) => {
-                if (
-                    event.key === "Enter" ||
-                    event.key === " "
-                ) {
+            card.addEventListener("keydown", event => {
+                if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
                     openView(card.dataset.dashboardView);
                 }
@@ -701,7 +709,6 @@
 
         $("dt-project")?.addEventListener("change", () => {
             page = 1;
-
             fillAssigneeOptions();
             fillStatusOptions();
             render();

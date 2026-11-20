@@ -1047,3 +1047,173 @@
         font-size: 11.5px;
     }
 }
+
+/* ==========================================
+   PROJECTS MOBILE REFINEMENTS
+   ========================================== */
+
+@media (max-width: 620px) {
+
+    body.workspace-page .projects-page {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 26px 14px 100px;
+    }
+
+    body.workspace-page .projects-hero {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    body.workspace-page .projects-hero h1 {
+        margin: 8px 0;
+        font-size: 26px;
+        line-height: 1.2;
+    }
+
+    body.workspace-page .projects-hero .muted {
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    body.workspace-page .projects-hero #btn-new-project {
+        min-height: 42px;
+        padding: 10px 16px;
+        font-size: 12px;
+    }
+
+    /* Ba thẻ thống kê nằm cùng một hàng */
+
+    body.workspace-page .projects-overview {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 18px;
+    }
+
+    body.workspace-page .overview-tile {
+        min-width: 0;
+        min-height: 110px;
+        padding: 12px 9px;
+        gap: 7px;
+        border-radius: 12px;
+    }
+
+    body.workspace-page .overview-tile > span {
+        font-size: 10px;
+        line-height: 1.4;
+    }
+
+    body.workspace-page .overview-tile strong {
+        font-size: 25px;
+        line-height: 1.1;
+    }
+
+    body.workspace-page .overview-tile small {
+        font-size: 9px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+
+    /* Danh sách dự án */
+
+    body.workspace-page .projects-workspace {
+        min-width: 0;
+        padding: 15px 12px;
+        border-radius: 15px;
+    }
+
+    body.workspace-page .projects-section-title h2 {
+        font-size: 19px;
+    }
+
+    body.workspace-page .projects-section-title p {
+        margin-bottom: 15px;
+        font-size: 12px;
+    }
+
+    /* Tìm kiếm toàn hàng, bộ lọc chia đôi */
+
+    body.workspace-page .projects-controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+        margin-bottom: 16px;
+    }
+
+    body.workspace-page .projects-search {
+        grid-column: 1 / -1;
+        width: 100%;
+        height: 44px;
+        min-width: 0;
+    }
+
+    body.workspace-page .projects-controls select {
+        grid-column: auto;
+        width: 100%;
+        min-width: 0;
+        height: 44px;
+        padding: 0 8px;
+        font-size: 11px;
+    }
+
+    body.workspace-page .projects-view-switch {
+        grid-column: 1 / -1;
+        justify-self: start;
+    }
+
+    /* Thẻ dự án */
+
+    body.workspace-page .project-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    body.workspace-page .project-card {
+        min-width: 0;
+        padding: 15px;
+        border-radius: 12px;
+    }
+
+    body.workspace-page .project-card-top {
+        flex-wrap: wrap;
+    }
+
+    body.workspace-page .project-card h3 {
+        font-size: 16px;
+        line-height: 1.4;
+    }
+
+    body.workspace-page .project-card-actions {
+        gap: 7px;
+    }
+
+    body.workspace-page .project-card-actions .btn {
+        min-height: 36px;
+    }
+
+    /* Hộp thoại tạo và sửa dự án */
+
+    body.workspace-page .modal-backdrop {
+        padding: 12px;
+    }
+
+    body.workspace-page .modal {
+        width: 100%;
+        max-height: calc(100dvh - 24px);
+        padding: 18px;
+        border-radius: 14px;
+    }
+
+    body.workspace-page .toast-wrap {
+        right: 12px;
+        bottom: calc(88px + env(safe-area-inset-bottom));
+        left: 12px;
+        max-width: none;
+    }
+}

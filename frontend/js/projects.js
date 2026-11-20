@@ -290,7 +290,31 @@ function updateProjectStats() {
         `;
 
         try {
-            const response = await API.get("/projects");
+            const [activeResponse, archivedResponse] = await Promise.all([
+                API.get("/projects?status=active"),
+                API.get("/projects?status=archived")
+            ]);
+
+            const activeData = activeResponse?.data ?? activeResponse;
+            const archivedData = archivedResponse?.data ?? archivedResponse;
+
+            const activeProjects = Array.isArray(activeData)
+                ? activeData
+                : activeData?.items ?? activeData?.projects ?? [];
+
+            const archivedProjects = Array.isArray(archivedData)
+                ? archivedData
+                : archivedData?.items ?? archivedData?.projects ?? [];
+
+            const response = {
+                data: [
+                    ...new Map(
+                        [...activeProjects, ...archivedProjects].map(
+                            project => [String(project.id), project]
+                        )
+                    ).values()
+                ]
+            };
 
             if (!Array.isArray(response?.data)) {
                 throw new Error("Dữ liệu dự án không hợp lệ");

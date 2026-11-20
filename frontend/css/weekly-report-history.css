@@ -1,0 +1,171 @@
+
+/* F15 - Danh sach va chi tiet bao cao da luu */
+
+.saved-report-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.saved-report-toolbar h2 {
+    margin: 12px 0 8px;
+    color: #10264c;
+}
+
+.saved-report-toolbar p {
+    color: #64748b;
+    margin: 0;
+}
+
+.saved-report-status {
+    padding: 15px 18px;
+    margin-top: 20px;
+    border-radius: 12px;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.saved-report-status[data-type="error"] {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.saved-report-status[data-type="success"] {
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.saved-report-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 24px;
+}
+
+.saved-report-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px;
+    background: #f8fbff;
+    border: 1px solid #dce7fb;
+    border-radius: 15px;
+}
+
+.saved-report-info {
+    min-width: 0;
+}
+
+.saved-report-info h3 {
+    margin: 0 0 9px;
+    font-size: 16px;
+    color: #10264c;
+}
+
+.saved-report-info p {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.saved-report-mock {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: #fff7ed;
+    color: #c2410c;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.saved-report-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.saved-report-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 24px;
+}
+
+.saved-report-page-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.saved-report-detail-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.saved-report-detail-header h2 {
+    margin: 12px 0 8px;
+    color: #10264c;
+}
+
+.saved-report-detail-header p {
+    color: #64748b;
+    margin: 0;
+}
+
+.saved-report-detail-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+.saved-report-mock-note {
+    margin-top: 15px;
+    color: #c2410c;
+    font-size: 13px;
+}
+
+.saved-report-error {
+    color: #dc2626;
+}
+
+#saved-report-detail {
+    scroll-margin-top: 90px;
+}
+
+#saved-report-detail .report-ai-content {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+    .saved-report-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .saved-report-item-actions {
+        width: 100%;
+    }
+
+    .saved-report-item-actions .report-button {
+        flex: 1;
+    }
+
+    .saved-report-detail-header {
+        flex-direction: column;
+    }
+
+    .saved-report-toolbar {
+        align-items: flex-start;
+    }
+}

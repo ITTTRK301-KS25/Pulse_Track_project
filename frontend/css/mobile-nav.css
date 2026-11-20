@@ -1,0 +1,749 @@
+
+/* ========================================
+   PULSE TRACK - SHARED MOBILE LAYOUT
+   ======================================== */
+
+.pt-mobile-nav {
+    display: none;
+}
+
+@media (max-width: 620px) {
+
+    html {
+        scroll-padding-bottom: 100px;
+    }
+
+    body.workspace-page {
+        width: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+        padding-bottom: calc(84px + env(safe-area-inset-bottom));
+    }
+
+    /* Header chung cho tất cả các trang */
+
+    body.workspace-page .app-header,
+    body.workspace-page:has(.pulse-dashboard) .app-header {
+        box-sizing: border-box;
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        width: 100%;
+        min-height: 66px;
+        padding: 12px 16px;
+        margin: 0;
+    }
+
+    body.workspace-page .app-header .brand,
+    body.workspace-page:has(.pulse-dashboard) .app-header .brand {
+        display: inline-flex;
+        align-items: center;
+        flex: 0 1 auto;
+        align-self: center;
+        min-width: 0;
+        margin: 0;
+        font-size: 18px;
+        white-space: nowrap;
+    }
+
+    /* Khu vực tài khoản luôn ở bên phải */
+
+    body.workspace-page .app-header nav,
+    body.workspace-page:has(.pulse-dashboard) .app-header nav {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: flex-end;
+        flex: 0 0 auto;
+        width: auto;
+        min-width: 0;
+        gap: 0;
+        margin: 0 0 0 auto;
+        overflow: visible;
+    }
+
+    /* Ẩn điều hướng Desktop */
+
+    body.workspace-page .app-header nav > .pt-main-nav-link,
+    body.workspace-page:has(.pulse-dashboard)
+    .app-header nav > .pt-main-nav-link {
+        display: none !important;
+    }
+
+    /* Avatar được router.js tạo */
+
+    body.workspace-page .app-header nav > .pt-nav-profile {
+        position: relative;
+        display: flex;
+        align-items: center;
+        flex: 0 0 auto;
+        margin-left: auto;
+    }
+
+    body.workspace-page .app-header nav
+    .pt-nav-profile-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        margin: 0;
+        padding: 0;
+        cursor: pointer;
+    }
+
+    /* Giữ dropdown hoạt động trên điện thoại */
+
+    body.workspace-page .app-header nav
+    .pt-nav-dropdown {
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        left: auto;
+        z-index: 1200;
+        width: min(310px, calc(100vw - 32px));
+        max-width: calc(100vw - 32px);
+    }
+
+    body.workspace-page .app-header nav
+    .pt-nav-dropdown[hidden] {
+        display: none !important;
+    }
+
+    body.workspace-page .app-header nav
+    .pt-nav-dropdown a {
+        white-space: normal;
+    }
+
+    /* Nội dung chung */
+
+    body.workspace-page .workspace-content {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    body.workspace-page .workspace-content h1 {
+        line-height: 1.2;
+        overflow-wrap: break-word;
+    }
+
+    body.workspace-page .workspace-content p {
+        line-height: 1.6;
+    }
+
+    body.workspace-page .workspace-content input,
+    body.workspace-page .workspace-content select,
+    body.workspace-page .workspace-content textarea {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Thanh điều hướng cố định dưới màn hình */
+
+    .pt-mobile-nav {
+        box-sizing: border-box;
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1000;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        align-items: stretch;
+        gap: 4px;
+        width: 100%;
+        min-height: 72px;
+        padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
+        background: #101827;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 -5px 20px rgba(16, 24, 39, 0.12);
+    }
+
+    .pt-mobile-nav a {
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        min-width: 0;
+        min-height: 54px;
+        padding: 6px 2px;
+        border-radius: 12px;
+        color: #aebbd0;
+        background: transparent;
+        font-size: 10px;
+        font-weight: 500;
+        line-height: 1.25;
+        text-align: center;
+        text-decoration: none;
+        white-space: nowrap;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .pt-mobile-nav a svg {
+        display: block;
+        width: 21px;
+        height: 21px;
+        flex-shrink: 0;
+    }
+
+    .pt-mobile-nav a.active,
+    .pt-mobile-nav a[aria-current="page"] {
+        color: #ffca20;
+        background: rgba(255, 202, 32, 0.09);
+        font-weight: 700;
+    }
+
+    .pt-mobile-nav a:focus-visible {
+        outline: 2px solid #ffca20;
+        outline-offset: -2px;
+    }
+
+    /* Dashboard */
+
+    body.workspace-page .pulse-dashboard {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding-top: 28px;
+    }
+
+    body.workspace-page .dashboard-hero {
+        margin-bottom: 22px;
+    }
+
+    body.workspace-page .dashboard-hero-content h1 {
+        margin-bottom: 8px;
+        font-size: 30px;
+        line-height: 1.2;
+    }
+
+    body.workspace-page .dashboard-hero-content p {
+        max-width: 100%;
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    body.workspace-page .dashboard-stats {
+        gap: 12px;
+    }
+
+    body.workspace-page .dt-panel {
+        box-sizing: border-box;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    body.workspace-page .dt-table-scroll {
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Trang Dự án và các trang workspace */
+
+    body.workspace-page .workspace-heading {
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    body.workspace-page .workspace-heading h1 {
+        font-size: 29px;
+        letter-spacing: -0.8px;
+    }
+
+    body.workspace-page .workspace-topline {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 380px) {
+
+    body.workspace-page .app-header,
+    body.workspace-page:has(.pulse-dashboard) .app-header {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    body.workspace-page .app-header .brand {
+        font-size: 17px;
+    }
+
+    body.workspace-page .workspace-content {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .pt-mobile-nav {
+        gap: 2px;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    .pt-mobile-nav a {
+        font-size: 9px;
+    }
+}
+
+/* HEADER MOBILE - LOGO TRAI, AVATAR PHAI */
+
+@media (max-width: 620px) {
+    body .app-header,
+    body.workspace-page .app-header,
+    body.workspace-page:has(.pulse-dashboard) .app-header {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 12px !important;
+        width: 100%;
+        min-height: 66px;
+        padding: 12px 16px !important;
+        box-sizing: border-box;
+    }
+
+    body .app-header > .brand {
+        flex: 0 1 auto !important;
+        align-self: center !important;
+        margin: 0 !important;
+        white-space: nowrap;
+    }
+
+    body .app-header > nav {
+        display: flex !important;
+        flex: 0 0 auto !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        width: auto !important;
+        min-width: 0 !important;
+        margin: 0 0 0 auto !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+    }
+
+    body .app-header > nav > .pt-main-nav-link,
+    body .app-header > nav > .logout-button {
+        display: none !important;
+    }
+
+    body .app-header > nav > .pt-nav-profile {
+        display: flex !important;
+        position: relative;
+        flex: 0 0 auto !important;
+        align-items: center;
+        margin: 0 0 0 auto !important;
+    }
+
+    body .app-header .pt-nav-profile-trigger {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 40px;
+        width: 40px;
+        height: 40px;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body .app-header .pt-nav-dropdown {
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        left: auto;
+        z-index: 1200;
+        max-width: calc(100vw - 32px);
+    }
+
+    body .app-header .pt-nav-dropdown[hidden] {
+        display: none !important;
+    }
+}
+
+/* ==========================================
+   FIX MOBILE HEADER - PULSE TRACK
+   ========================================== */
+
+@media (max-width: 620px) {
+
+    body .app-header,
+    body.workspace-page .app-header,
+    body.workspace-page:has(.pulse-dashboard) .app-header {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+        min-height: 66px;
+        padding: 12px 16px !important;
+        box-sizing: border-box;
+    }
+
+    body .app-header > .brand,
+    body.workspace-page .app-header > .brand {
+        display: inline-flex !important;
+        flex: 0 0 auto !important;
+        align-items: center !important;
+        margin: 0 !important;
+        white-space: nowrap;
+    }
+
+    body .app-header > nav,
+    body.workspace-page .app-header > nav,
+    body.workspace-page:has(.pulse-dashboard) .app-header > nav {
+        display: flex !important;
+        flex: 0 0 auto !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        width: auto !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        margin-left: auto !important;
+        margin-right: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+    }
+
+    body .app-header > nav > a.pt-main-nav-link,
+    body .app-header > nav > button.logout-button {
+        display: none !important;
+    }
+
+    body .app-header > nav > .pt-nav-profile {
+        display: flex !important;
+        position: relative;
+        flex: 0 0 auto !important;
+        align-items: center;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body .app-header .pt-nav-profile-trigger {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body .app-header .pt-nav-dropdown {
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        left: auto;
+        z-index: 1200;
+    }
+
+    body .app-header .pt-nav-dropdown[hidden] {
+        display: none !important;
+    }
+}
+
+/* ==========================================
+   PROFILE DROPDOWN - MOBILE COMPACT
+   ========================================== */
+
+@media (max-width: 620px) {
+
+    body .app-header .pt-nav-profile {
+        position: relative;
+    }
+
+    body .app-header .pt-nav-dropdown {
+        position: absolute !important;
+        top: calc(100% + 10px) !important;
+        right: 0 !important;
+        left: auto !important;
+
+        box-sizing: border-box;
+        width: 268px !important;
+        min-width: 0 !important;
+        max-width: calc(100vw - 24px) !important;
+
+        padding: 10px !important;
+        border: 1px solid #e6ebf4 !important;
+        border-radius: 14px !important;
+        background: #ffffff !important;
+
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16) !important;
+        z-index: 1200;
+    }
+
+    body .app-header .pt-nav-dropdown[hidden] {
+        display: none !important;
+    }
+
+    /* Thông tin tài khoản */
+
+    body .app-header .pt-nav-dropdown-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 6px 11px;
+    }
+
+    body .app-header .pt-nav-dropdown-user .pt-nav-avatar {
+        display: grid;
+        place-items: center;
+        flex: 0 0 34px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        font-size: 11px;
+    }
+
+    body .app-header .pt-nav-dropdown-info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        gap: 3px;
+    }
+
+    body .app-header .pt-nav-dropdown-info strong {
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    body .app-header .pt-nav-dropdown-info small {
+        display: block;
+        max-width: 190px;
+        overflow: hidden;
+        color: #8794aa;
+        font-size: 10px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Các mục trong menu */
+
+    body .app-header .pt-nav-dropdown > a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        width: 100%;
+        min-height: 36px;
+        margin: 1px 0;
+        padding: 8px 9px !important;
+
+        border-radius: 8px;
+        color: #344563;
+        font-size: 11px !important;
+        font-weight: 600;
+        line-height: 1.4;
+        text-decoration: none;
+    }
+
+    body .app-header .pt-nav-dropdown > a:hover {
+        background: #f2f6ff;
+        color: #1765ed;
+    }
+
+    body .app-header .pt-nav-menu-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 17px;
+        width: 17px;
+        font-size: 14px;
+    }
+
+    body .app-header .pt-nav-menu-divider {
+        height: 1px;
+        margin: 7px 3px;
+        background: #edf0f5;
+    }
+
+    /* Đăng xuất */
+
+    body .app-header .pt-nav-logout-slot {
+        width: 100%;
+    }
+
+    body .app-header .pt-nav-logout-button {
+        display: flex !important;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+
+        width: 100%;
+        min-height: 36px;
+        padding: 8px 9px !important;
+
+        border: 0 !important;
+        border-radius: 8px;
+        background: transparent !important;
+        color: #dc3545 !important;
+        font-size: 11px !important;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    body .app-header .pt-nav-logout-button:hover {
+        background: #fff1f2 !important;
+    }
+}
+
+/* PROFILE MENU - SMALLER MOBILE */
+
+@media (max-width: 620px) {
+    body .app-header .pt-nav-dropdown {
+        width: 232px !important;
+        max-width: calc(100vw - 24px) !important;
+        padding: 8px !important;
+        border-radius: 12px !important;
+    }
+
+    body .app-header .pt-nav-dropdown-user {
+        gap: 8px !important;
+        padding: 5px 5px 8px !important;
+    }
+
+    body .app-header .pt-nav-dropdown-user .pt-nav-avatar {
+        width: 30px !important;
+        height: 30px !important;
+        flex-basis: 30px !important;
+    }
+
+    body .app-header .pt-nav-dropdown-info strong {
+        font-size: 11px !important;
+    }
+
+    body .app-header .pt-nav-dropdown-info small {
+        max-width: 165px !important;
+        font-size: 9px !important;
+    }
+
+    body .app-header .pt-nav-dropdown > a,
+    body .app-header .pt-nav-logout-button {
+        min-height: 32px !important;
+        padding: 6px 8px !important;
+        font-size: 11px !important;
+    }
+
+    body .app-header .pt-nav-menu-divider {
+        margin: 5px 3px !important;
+    }
+}
+
+/* ==========================================
+   PROJECTS - FILTERS AND VIEW SWITCH
+   ========================================== */
+
+@media (max-width: 620px) {
+
+    body.workspace-page .projects-controls {
+        display: grid !important;
+        grid-template-columns:
+            minmax(0, 1.15fr)
+            minmax(0, 1fr)
+            auto !important;
+        align-items: center;
+        gap: 8px !important;
+        width: 100%;
+        min-width: 0;
+    }
+
+    /* Tìm kiếm vẫn chiếm một hàng riêng */
+
+    body.workspace-page .projects-search {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+        min-width: 0;
+        margin: 0 !important;
+    }
+
+    /* Hai bộ lọc nằm cùng hàng với nút xem */
+
+    body.workspace-page .projects-controls select {
+        grid-column: auto !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 40px !important;
+        padding: 0 5px !important;
+        font-size: 10px !important;
+        text-overflow: ellipsis;
+        margin: 0 !important;
+    }
+
+    /* Hai nút dạng lưới / danh sách */
+
+    body.workspace-page .projects-view-switch {
+        grid-column: 3 !important;
+        display: inline-flex !important;
+        align-items: center;
+        justify-self: end;
+        gap: 2px;
+        width: auto !important;
+        height: 40px;
+        margin: 0 !important;
+        padding: 3px !important;
+        white-space: nowrap;
+    }
+
+    body.workspace-page .projects-view-switch button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 28px;
+        width: 28px;
+        height: 32px;
+        min-width: 0;
+        padding: 0 !important;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 380px) {
+
+    body.workspace-page .projects-controls {
+        gap: 5px !important;
+    }
+
+    body.workspace-page .projects-controls select {
+        font-size: 9px !important;
+        padding: 0 3px !important;
+    }
+
+    body.workspace-page .projects-view-switch button {
+        flex-basis: 25px;
+        width: 25px;
+    }
+}
+
+/* DASHBOARD - MOBILE TITLE AND DESCRIPTION */
+
+@media (max-width: 620px) {
+    body.workspace-page .dashboard-hero-content h1 {
+        font-size: 30px !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+    }
+
+    body.workspace-page .dashboard-hero-content p {
+        font-size: 11px !important;
+        line-height: 1.5 !important;
+        letter-spacing: -0.2px;
+        max-width: 100% !important;
+        margin-top: 8px;
+    }
+}

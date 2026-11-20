@@ -3119,3 +3119,58 @@
     }
 }
 
+/* F12 - Dong bo nut Tao Task va AI Planner */
+
+#kanban-main-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 14px 0 18px;
+}
+
+#kanban-main-actions[hidden] {
+    display: none !important;
+}
+
+#kanban-main-actions #btn-new-task,
+#kanban-main-actions #btn-ai-planner {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 16px;
+    margin: 0;
+    border: 1px solid #1455e8;
+    border-radius: 10px;
+    background: linear-gradient(110deg, #1455e8, #0788f5);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+#kanban-main-actions #btn-new-task:hover,
+#kanban-main-actions #btn-ai-planner:hover {
+    background: linear-gradient(110deg, #1045c5, #0877dd);
+    color: #ffffff;
+}
+
+@media (max-width: 480px) {
+    #kanban-main-actions {
+        gap: 8px;
+    }
+
+    #kanban-main-actions #btn-new-task,
+    #kanban-main-actions #btn-ai-planner {
+        padding: 0 12px;
+        font-size: 12px;
+    }
+}
+

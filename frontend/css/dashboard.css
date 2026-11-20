@@ -1259,3 +1259,308 @@
 .dt-search input {
     padding-left: 42px;
 }
+
+
+/* ==========================================
+   F16 - DASHBOARD MOBILE RESPONSIVE
+   Giữ nguyên giao diện Desktop
+   ========================================== */
+
+@media (max-width: 620px) {
+
+    /* Header điện thoại */
+    body.workspace-page:has(.pulse-dashboard) .app-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        gap: 12px;
+        min-height: 66px;
+        padding: 10px 16px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard) .app-header .brand {
+        display: inline-flex;
+        align-items: center;
+        flex-shrink: 0;
+        gap: 7px;
+        margin: 0;
+        font-size: 19px;
+        white-space: nowrap;
+    }
+
+    body.workspace-page:has(.pulse-dashboard) .app-header .brand .pulse {
+        font-size: 24px;
+    }
+
+    /* Giữ avatar tài khoản gốc */
+    body.workspace-page:has(.pulse-dashboard) .app-header nav {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+        gap: 0;
+        width: auto;
+        min-width: 0;
+        margin-left: auto;
+        overflow: visible;
+    }
+
+    /* Ẩn các mục điều hướng Desktop trên điện thoại */
+    body.workspace-page:has(.pulse-dashboard)
+    .app-header nav .pt-main-nav-link {
+        display: none !important;
+    }
+
+    /* Không hiển thị nút đăng xuất riêng trên Header */
+    body.workspace-page:has(.pulse-dashboard)
+    .app-header nav > .logout-button {
+        display: none !important;
+    }
+
+    /* Avatar gốc vẫn nằm ở bên phải */
+    body.workspace-page:has(.pulse-dashboard)
+    .app-header nav > a[data-user-name] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin: 0;
+    }
+
+    /* Nội dung Dashboard */
+    body.workspace-page:has(.pulse-dashboard) .pulse-dashboard {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin: 0 auto;
+        padding: 22px 16px 100px;
+    }
+
+    /* Phần giới thiệu */
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-hero {
+        display: block;
+        min-height: auto;
+        margin-bottom: 22px;
+        padding: 4px 0 8px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-hero-art {
+        display: none;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-eyebrow {
+        margin-bottom: 12px;
+        font-size: 10px;
+        letter-spacing: 1px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-hero-content h1 {
+        margin: 0 0 8px;
+        font-size: 30px;
+        line-height: 1.2;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-hero-content p {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.55;
+    }
+
+    /* Ba thẻ thống kê */
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stats {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stat {
+        height: 132px;
+        padding: 18px;
+        border-radius: 17px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stat-content {
+        gap: 14px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stat-icon {
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
+        border-radius: 13px;
+        font-size: 25px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stat-info h2 {
+        margin: 3px 0 8px;
+        font-size: 14px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stat-info strong {
+        font-size: 32px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stat-wave {
+        width: 65%;
+        height: 65px;
+    }
+
+    /* Bảng công việc */
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-panel {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        margin: 18px 0;
+        padding: 15px;
+        border-radius: 17px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-panel-heading {
+        gap: 10px;
+        padding: 12px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-panel-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 21px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-title-line h2 {
+        font-size: 17px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-filters {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-filters input,
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-filters select {
+        min-height: 44px;
+        font-size: 13px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-table-scroll {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-table {
+        min-width: 780px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dt-footer {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    /* Banner quy trình */
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-workflow {
+        min-height: auto;
+        padding: 24px 18px;
+        border-radius: 18px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-workflow-content h2 {
+        font-size: 23px;
+        line-height: 1.3;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-workflow-content > p {
+        font-size: 12px;
+        line-height: 1.65;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-workflow-steps {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin: 18px 0;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .workflow-step {
+        min-height: 30px;
+        padding: 7px 10px;
+        font-size: 10px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .workflow-arrow {
+        display: none;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-kanban-art {
+        display: none;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-project-button {
+        min-height: 42px;
+        padding: 10px 17px;
+    }
+}
+
+/* Màn hình điện thoại nhỏ */
+@media (max-width: 380px) {
+
+    body.workspace-page:has(.pulse-dashboard)
+    .app-header {
+        padding: 10px 12px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .app-header .brand {
+        font-size: 17px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .pulse-dashboard {
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-hero-content h1 {
+        font-size: 28px;
+    }
+
+    body.workspace-page:has(.pulse-dashboard)
+    .dashboard-stat {
+        padding: 15px;
+    }
+}

@@ -9,9 +9,11 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="css/projects.css">
+    <link rel="stylesheet" href="css/mobile-nav.css">
 </head>
 
-<body class="auth-checking">
+<body class="auth-checking workspace-page">
+
     <div id="auth-guard-message"
          role="status"
          aria-live="polite">
@@ -51,6 +53,11 @@
                 Quản lý công việc
             </a>
 
+            <a href="weekly-report.html"
+               class="pt-main-nav-link">
+                Báo cáo tuần
+            </a>
+
             <a href="profile.html" data-user-name>
                 Tài khoản
             </a>
@@ -64,6 +71,7 @@
     </header>
 
     <main class="content projects-page">
+
         <section class="projects-hero">
             <div>
                 <span class="eyebrow">
@@ -108,6 +116,7 @@
         </section>
 
         <section class="projects-workspace">
+
             <div class="projects-section-title">
                 <div>
                     <h2>Danh sách dự án</h2>
@@ -118,6 +127,7 @@
             </div>
 
             <div class="projects-controls">
+
                 <label class="projects-search">
                     <svg viewBox="0 0 24 24"
                          width="19"
@@ -202,5 +212,6 @@
     <script defer src="js/api.js"></script>
     <script defer src="js/router.js"></script>
     <script defer src="js/projects.js"></script>
+    <script defer src="js/mobile-nav.js"></script>
 </body>
 </html>

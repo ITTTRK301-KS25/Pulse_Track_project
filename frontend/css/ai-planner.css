@@ -326,7 +326,7 @@ button:disabled {
     opacity: .55;
 }
 
-/* LAPTOP - MÀN HÌNH THẤP */
+/* LAPTOP - MAN HINH THAP */
 
 @media (max-height: 850px) and (min-width: 701px) {
     .ai-planner-page {
@@ -374,7 +374,7 @@ button:disabled {
     }
 }
 
-/* ĐIỆN THOẠI */
+/* DIEN THOAI */
 
 @media (max-width: 700px) {
     .ai-planner-page {
@@ -415,6 +415,77 @@ button:disabled {
 
     .ai-actions button,
     .ai-form-actions button {
+        width: 100%;
+    }
+}
+
+/* MODAL XAC NHAN F12 */
+
+.ai-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(9, 20, 43, .62);
+    backdrop-filter: blur(3px);
+}
+
+.ai-confirm-dialog {
+    box-sizing: border-box;
+    width: min(100%, 470px);
+    padding: 28px;
+    border: 1px solid #e1e8f4;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 24px 75px rgba(12, 27, 59, .25);
+}
+
+.ai-confirm-dialog h2 {
+    margin: 0 0 12px;
+    color: #122445;
+    font-size: 21px;
+    line-height: 1.4;
+}
+
+.ai-confirm-dialog p {
+    margin: 0;
+    color: #5d6d88;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+.ai-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 26px;
+}
+
+.ai-confirm-danger {
+    background: #d93645;
+    color: #fff;
+    border: 1px solid #d93645;
+    cursor: pointer;
+}
+
+.ai-confirm-danger:hover {
+    background: #b92232;
+}
+
+@media (max-width: 480px) {
+    .ai-confirm-dialog {
+        padding: 22px 18px;
+    }
+
+    .ai-confirm-actions {
+        flex-direction: column-reverse;
+    }
+
+    .ai-confirm-actions button {
         width: 100%;
     }
 }

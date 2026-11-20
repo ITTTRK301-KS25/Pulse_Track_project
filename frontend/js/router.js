@@ -7,7 +7,8 @@
         "projects.html",
         "kanban.html",
         "profile.html",
-        "ai-planner.html"
+        "ai-planner.html",
+        "weekly-report.html"
     ]);
 
     const currentPage =
