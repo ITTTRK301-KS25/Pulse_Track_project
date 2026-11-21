@@ -10,13 +10,13 @@ from datetime import date, datetime, timedelta, timezone
 
 from app.ai.adapter import get_ai_adapter
 from app.ai.errors import AIError
-from app.ai.http import to_http_exception
 from app.schemas.weekly_report import (
     WeeklyNarrativeOutput,
     format_metrics,
 )
+from app.services.ai_call_log_service import make_ai_call_recorder
 from app.services import project_access as access
-from app.services.weekly_metrics_service import (
+from app.services.metrics_service import (
     calculate_weekly_metrics,
 )
 
@@ -141,6 +141,10 @@ def create_weekly_preview(
         )
     }
 
+    ai_error = None
+    request_id = None
+    ai_narrative = None
+    is_mock = False
     try:
         ai_result = get_ai_adapter().complete_json(
             "REPORT",
@@ -148,9 +152,14 @@ def create_weekly_preview(
             user_prompt,
             WeeklyNarrativeOutput,
             mock_payload=mock_payload,
+            recorder=make_ai_call_recorder(project_id, user.id),
         )
+        ai_narrative = ai_result.data.narrative
+        request_id = ai_result.request_id
+        is_mock = ai_result.is_mock
     except AIError as exc:
-        raise to_http_exception(exc) from None
+        ai_error = {"code": exc.code, "message": exc.message}
+        request_id = exc.request_id
 
     now = _utcnow()
     expires_at = now + timedelta(
@@ -166,8 +175,8 @@ def create_weekly_preview(
         "week_start": week_start.isoformat(),
         "snapshot_hash": snapshot_hash,
         "snapshot": snapshot,
-        "ai_narrative": ai_result.data.narrative,
-        "is_mock": ai_result.is_mock,
+        "ai_narrative": ai_narrative,
+        "is_mock": is_mock,
         "created_at": now,
         "expires_at": expires_at,
     }
@@ -183,10 +192,13 @@ def create_weekly_preview(
         "week_start": week_start.isoformat(),
         "timezone": metrics_result["timezone"],
         "metrics": format_metrics(values),
-        "ai_narrative": ai_result.data.narrative,
+        "ai_narrative": ai_narrative,
         "snapshot_hash": snapshot_hash,
         "expires_at": expires_at.isoformat(),
-        "is_mock": ai_result.is_mock,
-        "label": ai_result.label,
-        "request_id": ai_result.request_id,
+        "is_mock": is_mock,
+        "label": "MOCK" if is_mock else None,
+        "request_id": request_id,
+        "ai_error": ai_error,
+        "warnings": metrics_result.get("warnings", []),
+        "complete": metrics_result.get("complete", True),
     }

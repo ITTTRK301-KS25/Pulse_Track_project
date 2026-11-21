@@ -54,10 +54,15 @@ def preview_weekly_report(
         week_start=week_start,
     )
 
+    message = (
+        "Đã tính chỉ số; dịch vụ AI chưa thể tạo nhận xét"
+        if data.get("ai_error")
+        else "Tạo bản xem trước báo cáo tuần thành công"
+    )
     return create_response(
         request,
         200,
-        "Tao ban xem truoc bao cao tuan thanh cong",
+        message,
         data,
         None,
     )

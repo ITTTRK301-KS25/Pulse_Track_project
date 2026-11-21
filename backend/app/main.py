@@ -32,6 +32,7 @@ from app.api import breakdown as breakdown_api
 from app.api import breakdown_drafts as breakdown_drafts_api
 
 from app.api import reports as reports_api
+from app.api import dashboard as dashboard_api
 
 from app.core.exception import register_exception_handler
 
@@ -63,6 +64,7 @@ app.include_router(breakdown_api.router)
 app.include_router(breakdown_drafts_api.router)
 
 app.include_router(reports_api.router)
+app.include_router(dashboard_api.router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -76,6 +78,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 from app.models.weekly_report import WeeklyReport
+from app.models.ai_call_log import AICallLog
 Base.metadata.create_all(bind=engine)
 
 
