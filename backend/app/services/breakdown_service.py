@@ -15,6 +15,7 @@ from app.models.ai_draft import AIDraft
 from app.models.task import Task
 from app.models.user import User
 from app.schemas.breakdown import BreakdownOutput, BreakdownRequest
+from app.services.ai_call_log_service import make_ai_call_recorder
 from app.services import project_access as access
 
 _SYSTEM_PROMPT = """Bạn là trợ lý phân rã công việc.
@@ -65,7 +66,8 @@ def create_breakdown_draft(db: Session, user: User, task_id: int, request: Break
 
     try:
         result = get_ai_adapter().complete_json("BREAKDOWN", _SYSTEM_PROMPT, prompt, BreakdownOutput,
-                                                mock_payload=_MOCK_PAYLOAD)
+                                                mock_payload=_MOCK_PAYLOAD,
+                                                recorder=make_ai_call_recorder(project_id, user_id))
     except AIError as err:
         raise to_http_exception(err) from None
     items = [i.model_dump(mode="json") for i in result.data.items]

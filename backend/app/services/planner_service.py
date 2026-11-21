@@ -9,6 +9,7 @@ from app.ai.http import to_http_exception
 from app.models.ai_draft import AIDraft
 from app.models.user import User
 from app.schemas.planner import PlannerOutput, PlannerRequest
+from app.services.ai_call_log_service import make_ai_call_recorder
 from app.services import project_access as access
 
 _SYSTEM_PROMPT = """Bạn là trợ lý lập kế hoạch dự án.
@@ -59,6 +60,7 @@ def create_planner_draft(
             user_prompt,
             PlannerOutput,
             mock_payload=_MOCK_PAYLOAD,
+            recorder=make_ai_call_recorder(project_id, user_id),
         )
     except AIError as err:
         raise to_http_exception(err) from None

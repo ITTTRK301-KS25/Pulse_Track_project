@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.models.weekly_report import WeeklyReport
 from app.services import project_access as access
-from app.services.weekly_metrics_service import (
+from app.services.metrics_service import (
     calculate_weekly_metrics,
 )
 from app.services.weekly_report_service import (
