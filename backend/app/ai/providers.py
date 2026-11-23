@@ -10,12 +10,16 @@ def build_request(cfg: AIConfig, system: str, user: str) -> HttpRequest:
         body = {"model": cfg.model, "max_tokens": cfg.max_output_tokens, "system": system,
                 "messages": [{"role": "user", "content": user}]}
         headers = {"content-type": "application/json", "x-api-key": cfg.api_key,
-                   "anthropic-version": "2023-06-01"}
+                   "anthropic-version": "2023-06-01", "user-agent": "PulseTrack/1.0"}
         return HttpRequest(cfg.base_url + "/v1/messages", headers, json.dumps(body).encode("utf-8"))
     body = {"model": cfg.model, "max_tokens": cfg.max_output_tokens,
             "response_format": {"type": "json_object"},
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
-    headers = {"content-type": "application/json", "authorization": "Bearer " + cfg.api_key}
+    headers = {
+        "content-type": "application/json",
+        "authorization": "Bearer " + cfg.api_key,
+        "user-agent": "PulseTrack/1.0",
+    }
     return HttpRequest(cfg.base_url + "/chat/completions", headers, json.dumps(body).encode("utf-8"))
 
 
