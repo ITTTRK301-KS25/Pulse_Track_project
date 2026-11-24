@@ -126,6 +126,8 @@ def test_dashboard_limits_counts_and_metrics_to_parent_project_tasks(db):
     assert result["task_counts"] == {
         "TODO": 1,
         "IN_PROGRESS": 0,
+        "TESTING_QA": 0,
+        "IN_REVIEW": 0,
         "DONE": 1,
         "TOTAL": 2,
     }

@@ -49,7 +49,13 @@ def get_dashboard(
         )
         .group_by(Task.status)
     ).all()
-    task_counts = {"TODO": 0, "IN_PROGRESS": 0, "DONE": 0}
+    task_counts = {
+        "TODO": 0,
+        "IN_PROGRESS": 0,
+        "TESTING_QA": 0,
+        "IN_REVIEW": 0,
+        "DONE": 0,
+    }
     for task_status, count in status_rows:
         if task_status in task_counts:
             task_counts[task_status] = count

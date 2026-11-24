@@ -30,7 +30,13 @@
     const dueDateFilter = document.getElementById("filter-task-due-date");
     const clearFiltersButton = document.getElementById("clear-task-filters");
     const filterSummary = document.getElementById("kanban-filter-summary");
-    const STATUSES = ["TODO", "IN_PROGRESS", "DONE"];
+    const STATUSES = [
+        "TODO",
+        "IN_PROGRESS",
+        "TESTING_QA",
+        "IN_REVIEW",
+        "DONE"
+    ];
 
     let project = null;
     let tasks = [];
@@ -64,6 +70,49 @@
             !project.archived_at &&
             (project.my_role || project.role) === "OWNER"
         );
+    }
+
+    function currentUserId() {
+        return window.PulseCurrentUser?.id ??
+            window.PulseAuth?.user?.id ??
+            null;
+    }
+
+    function canMoveTask(task, newStatus) {
+        const allowedNext = {
+            TODO: ["IN_PROGRESS"],
+            IN_PROGRESS: ["TODO", "TESTING_QA"],
+            TESTING_QA: ["TODO", "IN_REVIEW"],
+            IN_REVIEW: ["TODO", "DONE"]
+        }[task?.status];
+
+        if (!allowedNext?.includes(newStatus) || !canCreate()) return false;
+
+        if (
+            (task.status === "TODO" && newStatus === "IN_PROGRESS") ||
+            (task.status === "IN_PROGRESS" && newStatus === "TESTING_QA")
+        ) {
+            const userId = currentUserId();
+            return userId != null &&
+                String(task.assignee_id) === String(userId);
+        }
+
+        if (
+            ["IN_PROGRESS", "TESTING_QA", "IN_REVIEW"].includes(task.status) &&
+            newStatus === "TODO"
+        ) {
+            const userId = currentUserId();
+            return canEdit() ||
+                (userId != null &&
+                    String(task.assignee_id) === String(userId));
+        }
+
+        if (newStatus === "DONE") return canEdit();
+        return true;
+    }
+
+    function canDragTask(task) {
+        return STATUSES.some(status => canMoveTask(task, status));
     }
 
     function showMessage(text, type = "") {
@@ -250,7 +299,7 @@
             <article
                 class="kanban-task"
                 data-task-id="${esc(task.id)}"
-                ${canEdit() ? 'draggable="true"' : ""}
+                ${canDragTask(task) ? 'draggable="true"' : ""}
             >
                 <button
                     type="button"
@@ -927,17 +976,10 @@
                                 <button
                                     type="button"
                                     class="subtask-save-btn"
-                                    disabled
-                                    title="Chờ Backend hỗ trợ"
                                 >
                                     Lưu thay đổi
                                 </button>
                             </div>
-
-                            <p class="subtask-demo-note">
-                                Giao diện đã sẵn sàng.
-                                Chức năng lưu đang chờ Backend.
-                            </p>
                         </div>
                     `;
 
@@ -945,9 +987,60 @@
                         "[data-cancel-subtask]"
                     ).addEventListener("click", closePanels);
 
-                    panel.querySelector(
+                    const input = panel.querySelector(
                         ".subtask-edit-input"
-                    ).focus();
+                    );
+                    const saveButton = panel.querySelector(
+                        ".subtask-save-btn"
+                    );
+
+                    saveButton.addEventListener("click", async () => {
+                        const title = input.value.trim();
+                        if (!title) {
+                            showTaskMessage(
+                                "Tên subtask không được để trống.",
+                                "error"
+                            );
+                            input.focus();
+                            return;
+                        }
+
+                        saveButton.disabled = true;
+                        showTaskMessage("");
+
+                        try {
+                            const response = await API.patch(
+                                `/tasks/${encodeURIComponent(task.id)}`,
+                                { title, version: task.version }
+                            );
+                            if (!response?.data || response.data.id == null) {
+                                throw new Error(
+                                    "Máy chủ trả về subtask không hợp lệ."
+                                );
+                            }
+
+                            await refreshTasks();
+                            renderSubtasks(parentTask, list);
+                            toast("Đã cập nhật subtask.", "success");
+                        } catch (error) {
+                            saveButton.disabled = false;
+                            if (error.status === 401) return;
+                            if (error.status === 409) {
+                                const reloaded =
+                                    await reloadTasksAfterConflict();
+                                if (reloaded) {
+                                    renderSubtasks(parentTask, list);
+                                }
+                                return;
+                            }
+                            showTaskMessage(
+                                error.message || "Không thể sửa subtask.",
+                                "error"
+                            );
+                        }
+                    });
+
+                    input.focus();
                 });
             });
 
@@ -1003,23 +1096,42 @@
                                 <button
                                     type="button"
                                     class="subtask-confirm-delete-btn"
-                                    disabled
-                                    title="Chờ Backend hỗ trợ"
                                 >
                                     Xác nhận xóa
                                 </button>
                             </div>
-
-                            <p class="subtask-demo-note">
-                                Chức năng xóa đang chờ Backend.
-                                Chưa có dữ liệu nào bị xóa.
-                            </p>
                         </div>
                     `;
 
                     panel.querySelector(
                         "[data-cancel-subtask]"
                     ).addEventListener("click", closePanels);
+
+                    panel.querySelector(
+                        ".subtask-confirm-delete-btn"
+                    ).addEventListener("click", async event => {
+                        const confirmButton = event.currentTarget;
+                        confirmButton.disabled = true;
+                        showTaskMessage("");
+
+                        try {
+                            await API.delete(
+                                `/tasks/${encodeURIComponent(parentTask.id)}` +
+                                `/subtasks/${encodeURIComponent(task.id)}`
+                            );
+                            await refreshTasks();
+                            renderSubtasks(parentTask, list);
+                            toast("Đã xóa subtask.", "success");
+                        } catch (error) {
+                            confirmButton.disabled = false;
+                            if (error.status === 401) return;
+                            showTaskMessage(
+                                error.message ||
+                                "Không thể xóa subtask.",
+                                "error"
+                            );
+                        }
+                    });
                 });
             });
     }
@@ -1651,12 +1763,18 @@
             ".kanban-task[data-task-id]"
         );
 
-        if (!card || !canEdit()) {
+        if (!card || !canCreate()) {
             event.preventDefault();
             return;
         }
 
         draggedTaskId = card.dataset.taskId;
+        const task = taskById(draggedTaskId);
+        if (!task || !canDragTask(task)) {
+            event.preventDefault();
+            draggedTaskId = "";
+            return;
+        }
 
         if (event.dataTransfer) {
             event.dataTransfer.effectAllowed = "move";
@@ -1688,7 +1806,7 @@
             ".lane[data-status]"
         );
 
-        if (!lane || !canEdit() || !draggedTaskId) {
+        if (!lane || !canCreate() || !draggedTaskId) {
             return;
         }
 
@@ -1727,7 +1845,7 @@
             ".lane[data-status]"
         );
 
-        if (!lane || !canEdit()) return;
+        if (!lane || !canCreate()) return;
 
         const newStatus = lane.dataset.status;
 
@@ -1747,6 +1865,33 @@
         const task = taskById(taskId);
 
         if (!task || task.status === newStatus) {
+            return;
+        }
+
+        if (!canMoveTask(task, newStatus)) {
+            let errorMessage = "Chỉ OWNER mới được chuyển task sang Done.";
+
+            if (
+                task.status === "TODO" &&
+                newStatus === "IN_PROGRESS"
+            ) {
+                errorMessage =
+                    "Chỉ người được giao mới có thể bắt đầu task.";
+            } else if (
+                ["IN_PROGRESS", "TESTING_QA", "IN_REVIEW"].includes(task.status) &&
+                newStatus === "TODO"
+            ) {
+                errorMessage =
+                    "Chỉ người được giao hoặc OWNER có thể trả task về backlog.";
+            } else if (task.status === "IN_PROGRESS") {
+                errorMessage =
+                    "Task cần được kiểm thử QA trước khi chuyển tiếp.";
+            } else if (task.status === "TESTING_QA") {
+                errorMessage =
+                    "Task cần qua QA trước khi chuyển sang review.";
+            }
+
+            toast(errorMessage, "error");
             return;
         }
 

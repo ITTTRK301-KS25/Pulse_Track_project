@@ -4,7 +4,7 @@ from pydantic_core import PydanticCustomError
 
 from app.schemas.task import clean_assignee, clean_description, clean_due_date, clean_title
 
-STATUSES = ("TODO", "IN_PROGRESS", "DONE")
+STATUSES = ("TODO", "IN_PROGRESS", "TESTING_QA", "IN_REVIEW", "DONE")
 
 
 class UpdateTaskRequest(BaseModel):
@@ -34,7 +34,10 @@ class UpdateTaskRequest(BaseModel):
             raise PydanticCustomError("invalid_status", "Trạng thái không được để trống")
         v = v.strip().upper()
         if v not in STATUSES:
-            raise PydanticCustomError("invalid_status", "Trạng thái phải là TODO, IN_PROGRESS hoặc DONE")
+            raise PydanticCustomError(
+                "invalid_status",
+                "Trạng thái phải là TODO, IN_PROGRESS, TESTING_QA, IN_REVIEW hoặc DONE",
+            )
         return v
 
     @field_validator("due_date")

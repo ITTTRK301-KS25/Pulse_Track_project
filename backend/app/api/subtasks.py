@@ -21,6 +21,13 @@ def create_subtask(req: Request, task_id: int, body: CreateTaskRequest,
     return create_response(req, 201, "Đã tạo subtask", data, None)
 
 
+@router.delete("/{task_id}/subtasks/{subtask_id}")
+def delete_subtask(req: Request, task_id: int, subtask_id: int,
+                   user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    data = subtask_service.delete_subtask(db, user, task_id, subtask_id)
+    return create_response(req, 200, "Đã xóa subtask", data, None)
+
+
 @router.patch("/{task_id}/status")
 def set_status(req: Request, task_id: int, body: SetStatusRequest,
                user: User = Depends(get_current_user), db: Session = Depends(get_db)):

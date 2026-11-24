@@ -27,7 +27,7 @@ def create_task(req: Request, project_id: int, body: CreateTaskRequest,
 def list_tasks(
     req: Request,
     project_id: int,
-    status: Literal["TODO", "IN_PROGRESS", "DONE"] | None = None,
+    status: Literal["TODO", "IN_PROGRESS", "TESTING_QA", "IN_REVIEW", "DONE"] | None = None,
     assignee_id: int | None = None,
     keyword: str | None = None,
     due_date: date | None = None,

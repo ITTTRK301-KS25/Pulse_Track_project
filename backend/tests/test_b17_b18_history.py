@@ -32,6 +32,16 @@ def test_unknown_event_type_rejected():
 
 def test_field_events():
     assert H.validate_event("STATUS_CHANGE", {"status": "TODO"}, {"status": "DONE"}) == []
+    assert H.validate_event(
+        "STATUS_CHANGE",
+        {"status": "IN_PROGRESS"},
+        {"status": "TESTING_QA"},
+    ) == []
+    assert H.validate_event(
+        "STATUS_CHANGE",
+        {"status": "TESTING_QA"},
+        {"status": "IN_REVIEW"},
+    ) == []
     assert H.validate_event("STATUS_CHANGE", {"status": "TODO"}, {"status": "TODO"})
     assert H.validate_event("STATUS_CHANGE", {"status": "TODO"}, {"status": "X"})
     assert H.validate_event("DUE_CHANGE", {"due_date": None}, {"due_date": "2026-12-01"}) == []

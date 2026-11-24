@@ -18,7 +18,7 @@ _FIELD_EVENTS = {
     "ASSIGNEE_CHANGE": {"assignee_id"},
     "PARENT_CHANGE": {"parent_id"},
 }
-STATUSES = ("TODO", "IN_PROGRESS", "DONE")
+STATUSES = ("TODO", "IN_PROGRESS", "TESTING_QA", "IN_REVIEW", "DONE")
 
 
 def validate_event(event_type: str, before, after) -> list[str]:

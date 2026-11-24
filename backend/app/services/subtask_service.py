@@ -1,4 +1,4 @@
-"""B14: tạo subtask (tối đa một cấp) và đổi trạng thái nhanh.
+"""Tạo subtask (tối đa một cấp), đổi trạng thái nhanh và lưu trữ khi xóa.
 
 Tạo subtask dưới task cha {task_id}:
 - Task cha không tồn tại -> 404; người ngoài dự án / VIEWER -> 403; dự án đã lưu trữ -> 409.
@@ -17,6 +17,7 @@ from app.core import subtask_rules
 from app.models.task import Task
 from app.models.user import User
 from app.services import project_access as access
+from app.services import task_archive_service
 from app.services import task_update_service
 from app.services.assignee_service import validate_assignee
 from app.services.task_history_service import add_event, task_snapshot
@@ -57,3 +58,10 @@ def set_status(db: Session, user: User, task_id: int, new_status: str, version: 
     return task_update_service.update_task(
         db, user, task_id, version, {"status": new_status}, subtask_only=True
     )
+
+
+def delete_subtask(db: Session, user: User, parent_id: int, task_id: int) -> dict:
+    task = db.get(Task, task_id)
+    if task is None or task.parent_id != parent_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Không tìm thấy subtask")
+    return task_archive_service.archive_task(db, user, task_id)

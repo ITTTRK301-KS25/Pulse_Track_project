@@ -12,7 +12,10 @@ def _utcnow() -> datetime:
 class Task(Base):
     __tablename__ = "tasks"
     __table_args__ = (
-        CheckConstraint("status IN ('TODO','IN_PROGRESS','DONE')", name="ck_tasks_status"),
+        CheckConstraint(
+            "status IN ('TODO','IN_PROGRESS','TESTING_QA','IN_REVIEW','DONE')",
+            name="ck_tasks_status",
+        ),
         CheckConstraint("length(trim(title)) BETWEEN 1 AND 200", name="ck_tasks_title"),
         Index("ix_tasks_project_status", "project_id", "status"),
         Index("ix_tasks_assignee", "assignee_id"),

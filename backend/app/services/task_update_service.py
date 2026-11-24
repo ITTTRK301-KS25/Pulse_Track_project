@@ -1,8 +1,9 @@
-"""B12: sửa thông tin task và đổi trạng thái Kanban (khóa lạc quan).
+"""Sửa task và đổi trạng thái Kanban theo luồng (khóa lạc quan).
 
 Quy trình (một giao dịch):
 1. Khóa dòng dự án (FOR UPDATE) -> các cập nhật cùng dự án xếp hàng, không ghi đè nhau.
-2. Kiểm tra quyền (chỉ OWNER), dự án và task chưa lưu trữ.
+2. Kiểm tra quyền, dự án và task chưa lưu trữ.
+   Chỉ OWNER sửa nội dung; assignee bắt đầu/gửi QA; OWNER duyệt hoàn thành.
 3. version client gửi khác version hiện tại -> 409, KHÔNG ghi gì.
 4. Chỉ trường thực sự đổi mới ghi: cập nhật task, version + 1, thêm sự kiện lịch sử tương ứng.
 Gửi đúng giá trị cũ cho mọi trường -> 200, không tăng version, không ghi lịch sử.
@@ -36,7 +37,6 @@ def update_task(
     if task is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Không tìm thấy task")
     project, role = access.get_project_and_role(db, task.project_id, user, lock=True)
-    access.require(role, "task.edit")
     access.require_active(project)
     db.refresh(task)
     if task.archived_at is not None:
@@ -49,7 +49,43 @@ def update_task(
     current = task_snapshot(task)
     changes = changed_fields(current, requested)
     if not changes:
+        access.require(role, "task.edit")
         return task_to_dict(task)
+
+    if "status" in changes and task.parent_id is None:
+        access.require(role, "task.write")
+        allowed_next = {
+            "TODO": {"IN_PROGRESS"},
+            "IN_PROGRESS": {"TODO", "TESTING_QA"},
+            "TESTING_QA": {"TODO", "IN_REVIEW"},
+            "IN_REVIEW": {"TODO", "DONE"},
+        }
+        new_status = changes["status"]
+        if new_status not in allowed_next.get(task.status, set()):
+            raise HTTPException(
+                status.HTTP_409_CONFLICT,
+                "Trạng thái task không hợp lệ hoặc đã bỏ qua bước QA/Testing, In review",
+            )
+        if (
+            (task.status == "TODO" and new_status == "IN_PROGRESS")
+            or (task.status == "IN_PROGRESS" and new_status == "TESTING_QA")
+        ) and task.assignee_id != user.id:
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN,
+                "Chỉ người được giao mới có thể bắt đầu hoặc gửi task đi QA/Testing",
+            )
+        if (
+            task.status in ("IN_PROGRESS", "TESTING_QA", "IN_REVIEW")
+            and new_status == "TODO"
+            and task.assignee_id != user.id
+        ):
+            access.require(role, "task.edit")
+        if new_status == "DONE":
+            access.require(role, "task.edit")
+
+    if set(changes) - {"status"} or task.parent_id is not None:
+        access.require(role, "task.edit")
+
     if "assignee_id" in changes:
         validate_assignee(db, task.project_id, changes["assignee_id"])
 
