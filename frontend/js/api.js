@@ -1,4 +1,3 @@
-
 (function () {
     "use strict";
 
@@ -11,6 +10,7 @@
     class ApiError extends Error {
         constructor(message, status, code, details) {
             super(message);
+
             this.name = "ApiError";
             this.status = status;
             this.code = code || null;
@@ -137,6 +137,7 @@
                 body: isJson ? JSON.stringify(body) : body,
                 signal: controller.signal
             });
+
         } catch (error) {
             if (error.name === "AbortError") {
                 throw new ApiError(
@@ -151,6 +152,7 @@
                 0,
                 "NETWORK_ERROR"
             );
+
         } finally {
             clearTimeout(timer);
 
@@ -168,6 +170,7 @@
             if (contentType.includes("json")) {
                 try {
                     data = await response.json();
+
                 } catch {
                     throw new ApiError(
                         "Backend trả về JSON không hợp lệ",
@@ -182,9 +185,11 @@
 
         if (!response.ok) {
             const message =
-                (data &&
+                (
+                    data &&
                     typeof data === "object" &&
-                    (data.message || data.detail)) ||
+                    (data.message || data.detail)
+                ) ||
                 `Yêu cầu thất bại (HTTP ${response.status})`;
 
             const error = new ApiError(
@@ -226,8 +231,8 @@
         return data;
     }
 
-    // Backend tách dự án hoạt động và đã lưu trữ.
-    // Gộp hai danh sách để projects.js lọc chính xác.
+    // Gộp danh sách dự án hoạt động và đã lưu trữ.
+
     async function get(path, options = {}) {
         if (path === "/projects" && !options.query) {
             const [active, archived] = await Promise.all([
@@ -235,6 +240,7 @@
                     ...options,
                     query: { status: "active" }
                 }),
+
                 request("/projects", {
                     ...options,
                     query: { status: "archived" }
@@ -276,280 +282,32 @@
 
     const API = Object.freeze({
         request,
+
         get,
+
         post: (path, body, options) =>
             request(path, {
                 ...options,
                 method: "POST",
                 body
             }),
+
         patch: (path, body, options) =>
             request(path, {
                 ...options,
                 method: "PATCH",
                 body
             }),
+
         delete: (path, options) =>
             request(path, {
                 ...options,
                 method: "DELETE"
             }),
+
         ApiError
     });
 
     window.PulseAPI = API;
 
-    // =========================================
-    // POPUP XÁC NHẬN LƯU TRỮ / KHÔI PHỤC
-    // =========================================
-
-    function showArchivePopup(projectName, isArchive) {
-        return new Promise(resolve => {
-            const overlay = document.createElement("div");
-
-            overlay.style.cssText = `
-                position: fixed;
-                inset: 0;
-                z-index: 999999;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 20px;
-                background: rgba(8, 20, 44, .58);
-                backdrop-filter: blur(5px);
-            `;
-
-            const dialog = document.createElement("div");
-
-            dialog.setAttribute("role", "dialog");
-            dialog.setAttribute("aria-modal", "true");
-            dialog.setAttribute(
-                "aria-label",
-                isArchive ? "Xác nhận lưu trữ" : "Xác nhận khôi phục"
-            );
-
-            dialog.style.cssText = `
-                width: 100%;
-                max-width: 440px;
-                padding: 30px;
-                background: #ffffff;
-                border: 1px solid #e3eaf5;
-                border-radius: 20px;
-                box-shadow: 0 25px 80px rgba(0,0,0,.22);
-                font-family: inherit;
-                color: #142442;
-            `;
-
-            const icon = document.createElement("div");
-
-            icon.textContent = isArchive ? "▣" : "↺";
-
-            icon.style.cssText = `
-                display: grid;
-                place-items: center;
-                width: 54px;
-                height: 54px;
-                margin-bottom: 18px;
-                border-radius: 15px;
-                background: ${isArchive ? "#fff0ee" : "#eaf3ff"};
-                color: ${isArchive ? "#d84444" : "#1764d8"};
-                font-size: 27px;
-                font-weight: 700;
-            `;
-
-            const title = document.createElement("h2");
-
-            title.textContent = isArchive
-                ? "Lưu trữ dự án?"
-                : "Khôi phục dự án?";
-
-            title.style.cssText = `
-                margin: 0 0 12px;
-                font-size: 22px;
-                font-weight: 800;
-                color: #11244a;
-            `;
-
-            const description = document.createElement("p");
-
-            description.textContent = isArchive
-                ? `Dự án "${projectName}" sẽ được chuyển sang danh sách Đã lưu trữ. Bạn có thể khôi phục dự án khi cần.`
-                : `Bạn muốn khôi phục dự án "${projectName}" về danh sách Đang hoạt động?`;
-
-            description.style.cssText = `
-                margin: 0 0 26px;
-                color: #64748b;
-                font-size: 14px;
-                line-height: 1.7;
-            `;
-
-            const actions = document.createElement("div");
-
-            actions.style.cssText = `
-                display: flex;
-                justify-content: flex-end;
-                gap: 12px;
-            `;
-
-            function makeButton(text, primary) {
-                const button = document.createElement("button");
-
-                button.type = "button";
-                button.textContent = text;
-
-                button.style.cssText = `
-                    min-height: 43px;
-                    padding: 0 20px;
-                    border-radius: 10px;
-                    border: 1px solid ${
-                        primary ? "transparent" : "#d9e3f2"
-                    };
-                    background: ${
-                        primary
-                            ? isArchive ? "#e24b4b" : "#1769ed"
-                            : "#ffffff"
-                    };
-                    color: ${primary ? "#ffffff" : "#334155"};
-                    font-family: inherit;
-                    font-size: 14px;
-                    font-weight: 700;
-                    cursor: pointer;
-                `;
-
-                return button;
-            }
-
-            const cancel = makeButton("Hủy", false);
-
-            const confirmButton = makeButton(
-                isArchive ? "Lưu trữ dự án" : "Khôi phục",
-                true
-            );
-
-            actions.append(cancel, confirmButton);
-
-            dialog.append(icon, title, description, actions);
-            overlay.appendChild(dialog);
-            document.body.appendChild(overlay);
-
-            function finish(value) {
-                document.removeEventListener("keydown", onKey);
-                overlay.remove();
-                resolve(value);
-            }
-
-            function onKey(event) {
-                if (event.key === "Escape") {
-                    finish(false);
-                }
-            }
-
-            cancel.addEventListener("click", () => finish(false));
-
-            confirmButton.addEventListener(
-                "click",
-                () => finish(true)
-            );
-
-            overlay.addEventListener("click", event => {
-                if (event.target === overlay) {
-                    finish(false);
-                }
-            });
-
-            document.addEventListener("keydown", onKey);
-
-            confirmButton.focus();
-        });
-    }
-
-    // =========================================
-    // XỬ LÝ NÚT LƯU TRỮ / KHÔI PHỤC
-    // =========================================
-
-    if (window.location.pathname.endsWith("projects.html")) {
-        const pendingFilter = sessionStorage.getItem(
-            "pulse-project-filter-once"
-        );
-
-        if (pendingFilter) {
-            const filter = document.getElementById("filter-status");
-
-            if (filter) {
-                filter.value = pendingFilter;
-            }
-
-            sessionStorage.removeItem(
-                "pulse-project-filter-once"
-            );
-        }
-
-        let processing = false;
-
-        document.addEventListener(
-            "click",
-            async event => {
-                const button = event.target.closest(
-                    '[data-act="archive"], [data-act="restore"]'
-                );
-
-                if (!button || processing) return;
-
-                event.preventDefault();
-                event.stopPropagation();
-                event.stopImmediatePropagation();
-
-                const card = button.closest("[data-id]");
-
-                if (!card) return;
-
-                const projectId = card.dataset.id;
-                const projectName =
-                    card.querySelector("h3")?.textContent?.trim() ||
-                    "Dự án";
-
-                const action = button.dataset.act;
-                const isArchive = action === "archive";
-
-                const confirmed = await showArchivePopup(
-                    projectName,
-                    isArchive
-                );
-
-                if (!confirmed) return;
-
-                processing = true;
-                button.disabled = true;
-
-                const originalText = button.textContent;
-
-                button.textContent = isArchive
-                    ? "Đang lưu trữ..."
-                    : "Đang khôi phục...";
-
-                try {
-                    await API.post(
-                        `/projects/${encodeURIComponent(projectId)}/${action}`
-                    );
-
-                    sessionStorage.setItem(
-                        "pulse-project-filter-once",
-                        isArchive ? "archived" : "active"
-                    );
-
-                    window.location.reload();
-                } catch (error) {
-                    processing = false;
-                    button.disabled = false;
-                    button.textContent = originalText;
-
-                    alert(
-                        error.message ||
-                        "Không thể cập nhật trạng thái dự án"
-                    );
-                }
-            },
-            true
-        );
-    }
 })();

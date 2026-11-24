@@ -1,4 +1,3 @@
-
 "use strict";
 
 (function () {
@@ -22,8 +21,8 @@
     let currentPage = 1;
     let currentView = "grid";
 
+    const deletingProjects = new Set();
     const PAGE_SIZE = 6;
-
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     function esc(value) {
@@ -38,15 +37,19 @@
 
     function fmtDate(value) {
         if (!value) return "";
+
         const [y, m, d] = String(value).slice(0, 10).split("-");
+
         return y && m && d ? `${d}/${m}/${y}` : "";
     }
 
     function toApiDate(value) {
         const text = value.trim();
+
         if (!text) return { valid: true, value: null };
 
         const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(text);
+
         if (!match) return { valid: false, value: null };
 
         const d = Number(match[1]);
@@ -89,8 +92,10 @@
         }
 
         const el = document.createElement("div");
+
         el.className = `toast ${type}`;
         el.textContent = message;
+
         wrap.appendChild(el);
 
         setTimeout(() => el.remove(), 4500);
@@ -98,6 +103,10 @@
 
     function openModal(html) {
         const back = document.createElement("div");
+        const previousFocus = document.activeElement;
+
+        let locked = false;
+
         back.className = "modal-backdrop";
 
         back.innerHTML = `
@@ -107,16 +116,27 @@
         `;
 
         const onKey = event => {
-            if (event.key === "Escape") close();
+            if (event.key === "Escape" && !locked) {
+                close();
+            }
         };
 
         function close() {
+            if (locked) return;
+
             back.remove();
+
             document.removeEventListener("keydown", onKey);
+
+            if (previousFocus?.isConnected) {
+                previousFocus.focus();
+            }
         }
 
         back.addEventListener("mousedown", event => {
-            if (event.target === back) close();
+            if (event.target === back && !locked) {
+                close();
+            }
         });
 
         document.addEventListener("keydown", onKey);
@@ -124,7 +144,10 @@
 
         return {
             el: back.firstElementChild,
-            close
+            close,
+            setLocked(value) {
+                locked = Boolean(value);
+            }
         };
     }
 
@@ -149,29 +172,23 @@
         ]));
     }
 
+    function updateProjectStats() {
+        const total = allProjects.length;
 
-function updateProjectStats() {
-    const total = allProjects.length;
+        const active = allProjects.filter(
+            project => !project.archived_at
+        ).length;
 
-    const active = allProjects.filter(
-        project => !project.archived_at
-    ).length;
+        const archived = total - active;
 
-    const archived = total - active;
+        const totalEl = document.getElementById("project-stat-total");
+        const activeEl = document.getElementById("project-stat-active");
+        const archivedEl = document.getElementById("project-stat-archived");
 
-    document.getElementById(
-        "project-stat-total"
-    ).textContent = total;
-
-    document.getElementById(
-        "project-stat-active"
-    ).textContent = active;
-
-    document.getElementById(
-        "project-stat-archived"
-    ).textContent = archived;
-}
-
+        if (totalEl) totalEl.textContent = total;
+        if (activeEl) activeEl.textContent = active;
+        if (archivedEl) archivedEl.textContent = archived;
+    }
 
     function applyProjectFilters() {
         const keyword = (searchEl?.value || "")
@@ -180,7 +197,6 @@ function updateProjectStats() {
 
         const status = filterEl.value;
         const role = roleEl?.value || "all";
-
         const isSearching = keyword.length > 0;
 
         const filtered = allProjects.filter(project => {
@@ -192,8 +208,6 @@ function updateProjectStats() {
             const matchesSearch =
                 !isSearching || searchableText.includes(keyword);
 
-            // Có từ khóa: tìm trên cả dự án hoạt động và đã lưu trữ.
-            // Không có từ khóa: lọc theo trạng thái đang chọn.
             const matchesStatus =
                 isSearching ||
                 status === "all" ||
@@ -268,19 +282,19 @@ function updateProjectStats() {
             </div>
         `;
 
-        paginationEl.querySelectorAll("[data-page]").forEach(button => {
-            button.addEventListener("click", () => {
-                if (button.dataset.page === "prev") {
-                    currentPage--;
-                } else {
-                    currentPage++;
-                }
+        paginationEl.querySelectorAll("[data-page]")
+            .forEach(button => {
+                button.addEventListener("click", () => {
+                    if (button.dataset.page === "prev") {
+                        currentPage--;
+                    } else {
+                        currentPage++;
+                    }
 
-                applyProjectFilters();
+                    applyProjectFilters();
+                });
             });
-        });
     }
-
 
     async function load() {
         listEl.innerHTML = `
@@ -290,13 +304,17 @@ function updateProjectStats() {
         `;
 
         try {
-            const [activeResponse, archivedResponse] = await Promise.all([
-                API.get("/projects?status=active"),
-                API.get("/projects?status=archived")
-            ]);
+            const [activeResponse, archivedResponse] =
+                await Promise.all([
+                    API.get("/projects?status=active"),
+                    API.get("/projects?status=archived")
+                ]);
 
-            const activeData = activeResponse?.data ?? activeResponse;
-            const archivedData = archivedResponse?.data ?? archivedResponse;
+            const activeData =
+                activeResponse?.data ?? activeResponse;
+
+            const archivedData =
+                archivedResponse?.data ?? archivedResponse;
 
             const activeProjects = Array.isArray(activeData)
                 ? activeData
@@ -306,21 +324,13 @@ function updateProjectStats() {
                 ? archivedData
                 : archivedData?.items ?? archivedData?.projects ?? [];
 
-            const response = {
-                data: [
-                    ...new Map(
-                        [...activeProjects, ...archivedProjects].map(
-                            project => [String(project.id), project]
-                        )
-                    ).values()
-                ]
-            };
-
-            if (!Array.isArray(response?.data)) {
-                throw new Error("Dữ liệu dự án không hợp lệ");
-            }
-
-            allProjects = response.data;
+            allProjects = [
+                ...new Map(
+                    [...activeProjects, ...archivedProjects].map(
+                        project => [String(project.id), project]
+                    )
+                ).values()
+            ];
 
             updateProjectStats();
             applyProjectFilters();
@@ -356,7 +366,6 @@ function updateProjectStats() {
         }
     }
 
-
     function openProjectBoard(project) {
         if (!project || project.id == null) return;
 
@@ -384,6 +393,7 @@ function updateProjectStats() {
             <form class="form-grid" novalidate>
                 <label>
                     Dự án đang chọn
+
                     <input
                         type="text"
                         name="project_name"
@@ -395,6 +405,7 @@ function updateProjectStats() {
 
                 <label>
                     Email thành viên *
+
                     <input
                         type="email"
                         name="email"
@@ -403,6 +414,7 @@ function updateProjectStats() {
                         autocomplete="off"
                         required
                     >
+
                     <span
                         class="field-error"
                         data-err="email"
@@ -411,6 +423,7 @@ function updateProjectStats() {
 
                 <label>
                     Tên thành viên
+
                     <input
                         type="text"
                         name="display_name"
@@ -418,6 +431,7 @@ function updateProjectStats() {
                         class="project-readonly"
                         readonly
                     >
+
                     <span
                         class="member-lookup-status"
                         aria-live="polite"
@@ -426,6 +440,7 @@ function updateProjectStats() {
 
                 <label>
                     Vai trò *
+
                     <select name="role" required>
                         <option value="MEMBER">Member</option>
                         <option value="VIEWER">Viewer</option>
@@ -434,6 +449,7 @@ function updateProjectStats() {
 
                 <label>
                     Mô tả chức vụ
+
                     <textarea
                         name="job_description"
                         placeholder="Ví dụ: Phụ trách Frontend"
@@ -475,13 +491,12 @@ function updateProjectStats() {
         const roleInput = form.elements.role;
         const descriptionInput = form.elements.job_description;
 
-        const emailError = form.querySelector(
-            '[data-err="email"]'
-        );
+        const emailError = form.querySelector('[data-err="email"]');
 
         const statusEl = form.querySelector(
             ".member-lookup-status"
         );
+
         const submitBtn = form.querySelector(
             'button[type="submit"]'
         );
@@ -494,12 +509,15 @@ function updateProjectStats() {
         function closeMemberModal() {
             closed = true;
             lookupVersion++;
+
             clearTimeout(lookupTimer);
+
             modal.close();
         }
 
         emailInput.addEventListener("input", function () {
             clearTimeout(lookupTimer);
+
             lookupVersion++;
 
             const version = lookupVersion;
@@ -520,6 +538,7 @@ function updateProjectStats() {
             }
 
             statusEl.textContent = "Đang kiểm tra tài khoản...";
+
             lookupTimer = setTimeout(async () => {
                 try {
                     const response = await API.get(
@@ -529,6 +548,7 @@ function updateProjectStats() {
 
                     if (
                         closed ||
+                        !modal.el.isConnected ||
                         version !== lookupVersion ||
                         emailInput.value.trim().toLowerCase() !== email
                     ) {
@@ -536,27 +556,40 @@ function updateProjectStats() {
                     }
 
                     const account = response?.data;
+
                     if (!account?.display_name) {
-                        throw new Error("Thông tin tài khoản không hợp lệ");
+                        throw new Error(
+                            "Thông tin tài khoản không hợp lệ"
+                        );
                     }
 
                     nameInput.value = account.display_name;
                     verifiedEmail = email;
-                    statusEl.textContent = "Đã tìm thấy tài khoản";
+
+                    statusEl.textContent =
+                        "Đã tìm thấy tài khoản";
+
                     statusEl.classList.add("success");
                     submitBtn.disabled = false;
+
                 } catch (err) {
-                    if (closed || version !== lookupVersion) return;
+                    if (
+                        closed ||
+                        !modal.el.isConnected ||
+                        version !== lookupVersion
+                    ) return;
 
                     statusEl.textContent = err.status === 404
                         ? "Không tìm thấy tài khoản với email này"
                         : "Không thể kiểm tra tài khoản";
+
                     statusEl.classList.add("error");
                 }
             }, 500);
         });
 
-        modal.el.querySelector("[data-close]").onclick = closeMemberModal;
+        modal.el.querySelector("[data-close]").onclick =
+            closeMemberModal;
 
         form.addEventListener("submit", async event => {
             event.preventDefault();
@@ -569,7 +602,8 @@ function updateProjectStats() {
             const description = descriptionInput.value.trim();
 
             if (!email || verifiedEmail !== email) {
-                banner.textContent = "Vui lòng nhập email đã được xác thực.";
+                banner.textContent =
+                    "Vui lòng nhập email đã được xác thực.";
 
                 banner.hidden = false;
                 return;
@@ -590,18 +624,23 @@ function updateProjectStats() {
                     { email, role }
                 );
 
-                // Chỉ lưu mô tả tại trình duyệt.
-                // Chưa đồng bộ mô tả với Backend.
                 if (description) {
-                    localStorage.setItem(
-                        `pulse_member_description_${project.id}_${email}`,
-                        description
-                    );
+                    try {
+                        localStorage.setItem(
+                            `pulse_member_description_${project.id}_${email}`,
+                            description
+                        );
+                    } catch (error) {
+                        console.warn("Không lưu được mô tả chức vụ.");
+                    }
                 }
 
                 closeMemberModal();
+
                 toast("Thêm thành viên thành công", "success");
+
                 await load();
+
             } catch (err) {
                 if (err.status === 401) return;
 
@@ -617,267 +656,998 @@ function updateProjectStats() {
         emailInput.focus();
     }
 
+    function render(items) {
+        if (!items.length) {
+            listEl.innerHTML = `
+                <div class="empty-box upgraded-empty">
+                    <strong>Không tìm thấy dự án phù hợp</strong>
 
-        function render(items) {
-            if (!items.length) {
-                listEl.innerHTML = `
-                    <div class="empty-box upgraded-empty">
-                        <strong>Không tìm thấy dự án phù hợp</strong>
-                        <p>
-                            Thử thay đổi từ khóa hoặc bộ lọc
-                            để xem thêm dự án.
-                        </p>
+                    <p>
+                        Thử thay đổi từ khóa hoặc bộ lọc
+                        để xem thêm dự án.
+                    </p>
+                </div>
+            `;
+
+            return;
+        }
+
+        listEl.innerHTML = items.map(project => {
+            const archived = Boolean(project.archived_at);
+            const owner = project.my_role === "OWNER";
+            const deleting = deletingProjects.has(String(project.id));
+
+            const firstLetter = (project.name || "D")
+                .trim()
+                .slice(0, 1)
+                .toLocaleUpperCase("vi");
+
+            const startDate = fmtDate(project.start_date) || "—";
+            const endDate = fmtDate(project.end_date) || "—";
+
+            return `
+                <article
+                    class="card project-card upgraded-project-card"
+                    data-id="${esc(project.id)}"
+                >
+                    <div class="project-card-top">
+                        <div class="project-avatar" aria-hidden="true">
+                            ${esc(firstLetter)}
+                        </div>
+
+                        <div class="project-badges">
+                            <span class="badge role-${esc(project.my_role)}">
+                                ${esc(project.my_role || "MEMBER")}
+                            </span>
+
+                            <span class="project-state ${
+                                archived ? "is-archived" : ""
+                            }">
+                                ${
+                                    archived
+                                        ? "Đã lưu trữ"
+                                        : "Đang hoạt động"
+                                }
+                            </span>
+                        </div>
                     </div>
-                `;
-                return;
-            }
 
-            listEl.innerHTML = items.map(project => {
-                const archived = Boolean(project.archived_at);
-                const owner = project.my_role === "OWNER";
+                    <h3>${esc(project.name)}</h3>
 
-                const firstLetter = (project.name || "D")
-                    .trim()
-                    .slice(0, 1)
-                    .toLocaleUpperCase("vi");
+                    <p class="project-description">
+                        ${esc(project.description || "Chưa có mô tả dự án")}
+                    </p>
 
-                const startDate = fmtDate(project.start_date) || "—";
-                const endDate = fmtDate(project.end_date) || "—";
+                    <div class="project-facts">
+                        <span>
+                            👥 ${esc(project.member_count ?? 0)}
+                            thành viên
+                        </span>
 
-                return `
-                    <article
-                        class="card project-card upgraded-project-card"
-                        data-id="${esc(project.id)}"
-                    >
-                        <div class="project-card-top">
-                            <div class="project-avatar" aria-hidden="true">
-                                ${esc(firstLetter)}
-                            </div>
+                        <span>
+                            ◷ ${esc(project.timezone || DEFAULT_TZ)}
+                        </span>
+                    </div>
 
-                            <div class="project-badges">
-                                <span class="badge role-${esc(project.my_role)}">
-                                    ${esc(project.my_role || "MEMBER")}
-                                </span>
+                    <div class="project-dates">
+                        ${
+                            project.start_date || project.end_date
+                                ? `📅 ${esc(startDate)} – ${esc(endDate)}`
+                                : "📅 Chưa thiết lập thời gian"
+                        }
+                    </div>
 
-                                <span class="project-state ${
-                                    archived ? "is-archived" : ""
-                                }">
-                                    ${
-                                        archived
-                                            ? "Đã lưu trữ"
-                                            : "Đang hoạt động"
-                                    }
-                                </span>
-                            </div>
-                        </div>
+                    <div class="project-card-actions">
+                        <button
+                            type="button"
+                            class="btn btn-small project-open"
+                            data-act="open"
+                            ${deleting ? "disabled" : ""}
+                        >
+                            Mở dự án ↗
+                        </button>
 
-                        <h3>${esc(project.name)}</h3>
+                        ${
+                            owner && !archived
+                                ? `
+                                    <button
+                                        type="button"
+                                        class="btn btn-small"
+                                        data-act="add-member"
+                                    >
+                                        Thêm thành viên
+                                    </button>
+                                `
+                                : ""
+                        }
 
-                        <p class="project-description">
-                            ${esc(project.description || "Chưa có mô tả dự án")}
-                        </p>
+                        ${
+                            owner
+                                ? `
+                                    <button
+                                        type="button"
+                                        class="btn btn-small"
+                                        data-act="edit"
+                                        ${deleting ? "disabled" : ""}
+                                    >
+                                        Sửa
+                                    </button>
 
-                        <div class="project-facts">
-                            <span>
-                                👥 ${esc(project.member_count ?? 0)}
-                                thành viên
-                            </span>
+                                    <button
+                                        type="button"
+                                        class="btn btn-small ${
+                                            archived ? "" : "btn-danger"
+                                        }"
+                                        data-act="${
+                                            archived ? "restore" : "archive"
+                                        }"
+                                        ${deleting ? "disabled" : ""}
+                                    >
+                                        ${
+                                            archived
+                                                ? "Khôi phục"
+                                                : "Lưu trữ"
+                                        }
+                                    </button>
+                                `
+                                : ""
+                        }
 
-                            <span>
-                                ◷ ${esc(project.timezone || DEFAULT_TZ)}
-                            </span>
-                        </div>
+                        ${
+                            owner && archived
+                                ? `
+                                    <button
+                                        type="button"
+                                        class="btn btn-small btn-danger"
+                                        data-act="delete"
+                                        ${deleting ? "disabled" : ""}
+                                    >
+                                        ${
+                                            deleting
+                                                ? "Đang xóa..."
+                                                : "Xóa dự án"
+                                        }
+                                    </button>
+                                `
+                                : ""
+                        }
+                    </div>
+                </article>
+            `;
+        }).join("");
 
-                        <div class="project-dates">
-                            ${
-                                project.start_date || project.end_date
-                                    ? `📅 ${esc(startDate)} – ${esc(endDate)}`
-                                    : "📅 Chưa thiết lập thời gian"
-                            }
-                        </div>
+        listEl.querySelectorAll(".project-card").forEach(card => {
+            const project = items.find(
+                item => String(item.id) === card.dataset.id
+            );
 
-                        <div class="project-card-actions">
-                            <button
-                                type="button"
-                                class="btn btn-small project-open"
-                                data-act="open"
-                            >
-                                Mở dự án ↗
-                            </button>
+            if (!project) return;
 
-                            ${
-                                owner && !archived
-                                    ? `
-                                        <button
-                                            type="button"
-                                            class="btn btn-small"
-                                            data-act="add-member"
-                                        >
-                                            Thêm thành viên
-                                        </button>
-                                    `
-                                    : ""
-                            }
+            card.style.cursor = "pointer";
+            card.tabIndex = 0;
 
-                            ${
-                                owner
-                                    ? `
-                                        <button
-                                            type="button"
-                                            class="btn btn-small"
-                                            data-act="edit"
-                                        >
-                                            Sửa
-                                        </button>
+            card.setAttribute("role", "link");
 
-                                        <button
-                                            type="button"
-                                            class="btn btn-small ${
-                                                archived ? "" : "btn-danger"
-                                            }"
-                                            data-act="${
-                                                archived ? "restore" : "archive"
-                                            }"
-                                        >
-                                            ${
-                                                archived
-                                                    ? "Khôi phục"
-                                                    : "Lưu trữ"
-                                            }
-                                        </button>
-                                    `
-                                    : ""
-                            }
-                        </div>
-                    </article>
-                `;
-            }).join("");
+            card.setAttribute(
+                "aria-label",
+                "Mở bảng công việc dự án " + project.name
+            );
 
-            listEl.querySelectorAll(".project-card").forEach(card => {
+            card.addEventListener("click", event => {
+                if (deletingProjects.has(String(project.id))) return;
+
+                if (
+                    event.target.closest(
+                        "button, a, input, select, textarea"
+                    )
+                ) {
+                    return;
+                }
+
+                openProjectBoard(project);
+            });
+
+            card.addEventListener("keydown", event => {
+                if (event.target !== card) return;
+
+                if (deletingProjects.has(String(project.id))) return;
+
+                if (
+                    event.key === "Enter" ||
+                    event.key === " "
+                ) {
+                    event.preventDefault();
+
+                    openProjectBoard(project);
+                }
+            });
+        });
+
+        listEl.querySelectorAll("[data-act]").forEach(button => {
+            button.addEventListener("click", event => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const card = button.closest("[data-id]");
+
+                if (!card) return;
+
                 const project = items.find(
                     item => String(item.id) === card.dataset.id
                 );
 
                 if (!project) return;
 
-                card.style.cursor = "pointer";
-                card.tabIndex = 0;
-                card.setAttribute("role", "link");
+                if (deletingProjects.has(String(project.id))) return;
 
-                card.setAttribute(
-                    "aria-label",
-                    "Mở bảng công việc dự án " + project.name
-                );
-
-                card.addEventListener("click", event => {
-                    if (
-                        event.target.closest(
-                            "button, a, input, select, textarea"
-                        )
-                    ) {
-                        return;
-                    }
-
-                    openProjectBoard(project);
-                });
-
-                card.addEventListener("keydown", event => {
-                    if (event.target !== card) return;
-
-                    if (
-                        event.key === "Enter" ||
-                        event.key === " "
-                    ) {
-                        event.preventDefault();
+                switch (button.dataset.act) {
+                    case "open":
                         openProjectBoard(project);
-                    }
-                });
+                        break;
+
+                    case "add-member":
+                        openAddMemberModal(project);
+                        break;
+
+                    case "edit":
+                        openForm(project);
+                        break;
+
+                    case "archive":
+                    case "restore":
+                        toggleArchive(project, button.dataset.act);
+                        break;
+
+                    case "delete":
+                        openDeleteModal(project);
+                        break;
+                }
             });
+        });
+    }
 
-            listEl.querySelectorAll("[data-act]").forEach(button => {
-                button.addEventListener("click", () => {
-                    const card = button.closest("[data-id]");
+    function openDeleteModal(project) {
+        if (!project || project.id == null) return;
 
-                    const project = items.find(
-                        item => String(item.id) === card.dataset.id
-                    );
-
-                    if (!project) return;
-
-                    switch (button.dataset.act) {
-                        case "open":
-                            openProjectBoard(project);
-                            break;
-
-                        case "add-member":
-                            openAddMemberModal(project);
-                            break;
-
-                        case "edit":
-                            openForm(project);
-                            break;
-
-                        case "archive":
-                        case "restore":
-                            toggleArchive(project, button.dataset.act);
-                            break;
-                    }
-                });
-            });
+        if (project.my_role !== "OWNER") {
+            toast("Chỉ OWNER mới được xóa dự án.", "error");
+            return;
         }
 
+        if (!project.archived_at) {
+            toast("Phải lưu trữ dự án trước khi xóa.", "error");
+            return;
+        }
 
+        const projectId = String(project.id);
 
+        if (deletingProjects.has(projectId)) return;
 
-        async function toggleArchive(project, action) {
-            const isArchiving = action === "archive";
+        const firstLetter = (project.name || "D")
+            .trim()
+            .charAt(0)
+            .toLocaleUpperCase("vi") || "D";
 
-            if (
-                isArchiving &&
-                !confirm(
-                    `Bạn có chắc muốn lưu trữ dự án "${project.name}"?`
-                )
-            ) {
+        const modal = openModal(`
+            <div class="delete-modal-header">
+                <div class="delete-modal-icon">
+                    <svg
+                        width="26"
+                        height="26"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M3 6h18"/>
+                        <path d="M8 6V4h8v2"/>
+                        <path d="M19 6l-1 14H6L5 6"/>
+                        <path d="M10 10v6M14 10v6"/>
+                    </svg>
+                </div>
+
+                <button
+                    type="button"
+                    class="delete-modal-close"
+                    data-dismiss
+                    aria-label="Đóng"
+                >
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M6 6l12 12M18 6L6 18"/>
+                    </svg>
+                </button>
+            </div>
+
+            <h2
+                class="delete-modal-title"
+                id="delete-project-title"
+            >
+                Xóa vĩnh viễn dự án
+            </h2>
+
+            <p
+                class="delete-modal-subtitle"
+                id="delete-project-subtitle"
+            >
+                Vui lòng xác nhận dự án bạn muốn xóa khỏi hệ thống.
+            </p>
+
+            <form class="delete-project-form" novalidate>
+                <div class="delete-project-preview">
+                    <div class="delete-project-avatar">
+                        ${esc(firstLetter)}
+                    </div>
+
+                    <div class="delete-project-info">
+                        <strong>${esc(project.name)}</strong>
+
+                        <span>
+                            Đã lưu trữ · OWNER
+                        </span>
+                    </div>
+
+                    <div class="delete-project-verified">
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.7"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <circle cx="12" cy="12" r="9"/>
+                            <path d="m8 12 3 3 5-6"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="delete-project-details">
+                    <strong>Dữ liệu sẽ bị xóa bao gồm</strong>
+
+                    <div class="delete-detail-item">
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.7"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <rect x="4" y="3" width="16" height="18" rx="2"/>
+                            <path d="m7 9 2 2 4-4M7 16h10"/>
+                        </svg>
+
+                        <span>Công việc và công việc con</span>
+                    </div>
+
+                    <div class="delete-detail-item">
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.7"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <circle cx="9" cy="7" r="3"/>
+                            <path d="M3 21v-3a6 6 0 0 1 12 0v3"/>
+                            <path d="M16 4a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4 5v2"/>
+                        </svg>
+
+                        <span>Thành viên và phân quyền</span>
+                    </div>
+
+                    <div class="delete-detail-item">
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.7"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M21 11a8 8 0 0 1-8 8H4l2-5a8 8 0 1 1 15-3Z"/>
+                        </svg>
+
+                        <span>Bình luận và dữ liệu liên quan</span>
+                    </div>
+                </div>
+
+                <div class="delete-project-warning">
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        aria-hidden="true"
+                    >
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="M12 7v6M12 16v1"/>
+                    </svg>
+
+                    <span>
+                        Hành động này không thể hoàn tác.
+                    </span>
+                </div>
+
+                <div
+                    class="form-banner delete-error-banner"
+                    role="alert"
+                    hidden
+                ></div>
+
+                <div class="delete-modal-actions">
+                    <button
+                        type="button"
+                        class="delete-cancel-btn"
+                        data-close
+                    >
+                        Hủy bỏ
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="delete-confirm-btn"
+                    >
+                        <svg
+                            width="17"
+                            height="17"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M3 6h18M8 6V4h8v2"/>
+                            <path d="M19 6l-1 14H6L5 6"/>
+                            <path d="M10 10v6M14 10v6"/>
+                        </svg>
+
+                        <span data-delete-label>
+                            Xóa vĩnh viễn
+                        </span>
+                    </button>
+                </div>
+            </form>
+        `);
+
+        modal.el.classList.add("delete-project-modal");
+
+        modal.el.setAttribute(
+            "aria-labelledby",
+            "delete-project-title"
+        );
+
+        modal.el.setAttribute(
+            "aria-describedby",
+            "delete-project-subtitle"
+        );
+
+        const form = modal.el.querySelector("form");
+        const cancelBtn = form.querySelector("[data-close]");
+        const dismissBtn = modal.el.querySelector("[data-dismiss]");
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const submitLabel = submitBtn.querySelector("[data-delete-label]");
+        const banner = form.querySelector(".form-banner");
+
+        cancelBtn.onclick = modal.close;
+        dismissBtn.onclick = modal.close;
+
+        function setLoading(loading) {
+            modal.setLocked(loading);
+
+            submitBtn.disabled = loading;
+            cancelBtn.disabled = loading;
+            dismissBtn.disabled = loading;
+
+            submitBtn.classList.toggle("is-loading", loading);
+
+            submitLabel.textContent = loading
+                ? "Đang xóa..."
+                : "Xóa vĩnh viễn";
+
+            form.setAttribute("aria-busy", String(loading));
+        }
+
+        function showError(message) {
+            banner.textContent = message;
+            banner.hidden = false;
+        }
+
+        form.addEventListener("submit", async event => {
+            event.preventDefault();
+
+            if (deletingProjects.has(projectId)) return;
+
+            banner.hidden = true;
+            banner.textContent = "";
+
+            const latestProject = allProjects.find(
+                item => String(item.id) === projectId
+            );
+
+            if (!latestProject) {
+                showError("Dự án không còn tồn tại.");
                 return;
             }
+
+            if (latestProject.my_role !== "OWNER") {
+                showError("Chỉ OWNER mới được xóa dự án.");
+                return;
+            }
+
+            if (!latestProject.archived_at) {
+                showError("Phải lưu trữ dự án trước khi xóa.");
+                return;
+            }
+
+            deletingProjects.add(projectId);
+
+            setLoading(true);
+            applyProjectFilters();
+
+            try {
+                await API.delete(
+                    `/projects/${encodeURIComponent(project.id)}`
+                );
+
+            } catch (err) {
+                deletingProjects.delete(projectId);
+
+                setLoading(false);
+
+                showError(
+                    err.message || "Không thể xóa dự án."
+                );
+
+                applyProjectFilters();
+
+                return;
+            }
+
+            deletingProjects.delete(projectId);
+
+            allProjects = allProjects.filter(
+                item => String(item.id) !== projectId
+            );
+
+            try {
+                if (
+                    sessionStorage.getItem("selectedProjectId")
+                    === projectId
+                ) {
+                    sessionStorage.removeItem("selectedProjectId");
+                    sessionStorage.removeItem("selectedProjectName");
+                }
+
+                const prefix =
+                    `pulse_member_description_${projectId}_`;
+
+                const keys = [];
+
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+
+                    if (key && key.startsWith(prefix)) {
+                        keys.push(key);
+                    }
+                }
+
+                keys.forEach(key => {
+                    localStorage.removeItem(key);
+                });
+
+            } catch (error) {
+                console.warn(
+                    "Không thể dọn dữ liệu lưu cục bộ."
+                );
+            }
+
+            setLoading(false);
+            modal.close();
+
+            updateProjectStats();
+            applyProjectFilters();
+
+            toast("Xóa dự án thành công.", "success");
+
+            await load();
+        });
+
+        cancelBtn.focus();
+    }
+
+    async function toggleArchive(project, action) {
+        if (!project || project.id == null) return;
+        if (!["archive", "restore"].includes(action)) return;
+
+        if (project.my_role !== "OWNER") {
+            toast("Chỉ OWNER mới được thực hiện thao tác này.", "error");
+            return;
+        }
+
+        const projectId = String(project.id);
+
+        if (deletingProjects.has(projectId)) return;
+
+        const isArchiving = action === "archive";
+
+        const title = isArchiving
+            ? "Lưu trữ dự án"
+            : "Khôi phục dự án";
+
+        const subtitle = isArchiving
+            ? "Chuyển dự án khỏi danh sách đang hoạt động."
+            : "Đưa dự án trở lại danh sách đang hoạt động.";
+
+        const firstLetter = (project.name || "D")
+            .trim()
+            .charAt(0)
+            .toLocaleUpperCase("vi") || "D";
+
+        function svg(content) {
+            return `
+                <svg viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true">
+                    ${content}
+                </svg>
+            `;
+        }
+
+        const archiveIcon = svg(`
+            <rect x="3" y="4" width="18" height="5" rx="1"/>
+            <path d="M5 9v11h14V9M10 13h4"/>
+        `);
+
+        const restoreIcon = svg(`
+            <path d="M3 12a9 9 0 1 1 3 6.7"/>
+            <path d="M3 4v8h8"/>
+        `);
+
+        const shieldIcon = svg(`
+            <path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6z"/>
+            <path d="m9 12 2 2 4-4"/>
+        `);
+
+        const checkIcon = svg(`
+            <circle cx="12" cy="12" r="9"/>
+            <path d="m8 12 3 3 5-6"/>
+        `);
+
+        const closeIcon = svg(`
+            <path d="M6 6l12 12M18 6L6 18"/>
+        `);
+
+        const actionIcon = isArchiving
+            ? archiveIcon
+            : restoreIcon;
+
+        const modal = openModal(`
+            <div class="delete-modal-header">
+
+                <div class="delete-modal-icon">
+                    ${actionIcon}
+                </div>
+
+                <button
+                    type="button"
+                    class="delete-modal-close"
+                    data-dismiss
+                    aria-label="Đóng"
+                >
+                    ${closeIcon}
+                </button>
+
+            </div>
+
+            <h2
+                class="delete-modal-title"
+                id="project-status-title"
+            >
+                ${title}
+            </h2>
+
+            <p
+                class="delete-modal-subtitle"
+                id="project-status-subtitle"
+            >
+                ${subtitle}
+            </p>
+
+            <form class="delete-project-form" novalidate>
+
+                <div class="delete-project-preview">
+
+                    <div class="delete-project-avatar">
+                        ${esc(firstLetter)}
+                    </div>
+
+                    <div class="delete-project-info">
+
+                        <strong>
+                            ${esc(project.name)}
+                        </strong>
+
+                        <span>OWNER · Chủ dự án</span>
+
+                    </div>
+
+                    <span class="project-modal-status ${
+                        isArchiving
+                            ? "status-active"
+                            : "status-archived"
+                    }">
+                        ${
+                            isArchiving
+                                ? "Đang hoạt động"
+                                : "Đã lưu trữ"
+                        }
+                    </span>
+
+                </div>
+
+                <div class="delete-project-details">
+
+                    <strong>
+                        ${
+                            isArchiving
+                                ? "Sau khi lưu trữ"
+                                : "Sau khi khôi phục"
+                        }
+                    </strong>
+
+                    <div class="delete-detail-item">
+
+                        ${isArchiving ? archiveIcon : checkIcon}
+
+                        <span>
+                            ${
+                                isArchiving
+                                    ? "Chuyển vào danh sách dự án đã lưu trữ."
+                                    : "Khôi phục trạng thái hoạt động."
+                            }
+                        </span>
+
+                    </div>
+
+                    <div class="delete-detail-item">
+
+                        ${shieldIcon}
+
+                        <span>
+                            Toàn bộ dữ liệu và thành viên được giữ nguyên.
+                        </span>
+
+                    </div>
+
+                    <div class="delete-detail-item">
+
+                        ${isArchiving ? restoreIcon : archiveIcon}
+
+                        <span>
+                            ${
+                                isArchiving
+                                    ? "Có thể khôi phục dự án khi cần."
+                                    : "Có thể lưu trữ lại dự án khi cần."
+                            }
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="project-status-note">
+
+                    ${checkIcon}
+
+                    <span>
+                        Thao tác này không làm mất dữ liệu dự án.
+                    </span>
+
+                </div>
+
+                <div
+                    class="form-banner delete-error-banner"
+                    role="alert"
+                    hidden
+                ></div>
+
+                <div class="delete-modal-actions">
+
+                    <button
+                        type="button"
+                        class="delete-cancel-btn"
+                        data-close
+                    >
+                        Hủy bỏ
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="delete-confirm-btn"
+                    >
+                        ${actionIcon}
+
+                        <span data-action-label>
+                            ${title}
+                        </span>
+
+                    </button>
+
+                </div>
+
+            </form>
+        `);
+
+        modal.el.classList.add(
+            "delete-project-modal",
+            "project-status-modal",
+            isArchiving ? "archive-modal" : "restore-modal"
+        );
+
+        modal.el.setAttribute(
+            "aria-labelledby",
+            "project-status-title"
+        );
+
+        modal.el.setAttribute(
+            "aria-describedby",
+            "project-status-subtitle"
+        );
+
+        const form = modal.el.querySelector("form");
+
+        const cancelBtn = form.querySelector("[data-close]");
+
+        const dismissBtn = modal.el.querySelector("[data-dismiss]");
+
+        const submitBtn = form.querySelector(
+            'button[type="submit"]'
+        );
+
+        const submitLabel = submitBtn.querySelector(
+            "[data-action-label]"
+        );
+
+        const banner = form.querySelector(".form-banner");
+
+        let processing = false;
+
+        cancelBtn.onclick = modal.close;
+        dismissBtn.onclick = modal.close;
+
+        function setLoading(loading) {
+            processing = loading;
+
+            modal.setLocked(loading);
+
+            cancelBtn.disabled = loading;
+            dismissBtn.disabled = loading;
+            submitBtn.disabled = loading;
+
+            submitBtn.classList.toggle(
+                "is-loading",
+                loading
+            );
+
+            submitLabel.textContent = loading
+                ? isArchiving
+                    ? "Đang lưu trữ..."
+                    : "Đang khôi phục..."
+                : title;
+
+            form.setAttribute(
+                "aria-busy",
+                String(loading)
+            );
+        }
+
+        function showError(message) {
+            banner.textContent = message;
+            banner.hidden = false;
+        }
+
+        form.addEventListener("submit", async event => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (processing) return;
+
+            banner.hidden = true;
+            banner.textContent = "";
+
+            const latestProject = allProjects.find(
+                item => String(item.id) === projectId
+            );
+
+            if (!latestProject) {
+                showError("Dự án không còn tồn tại.");
+                return;
+            }
+
+            if (latestProject.my_role !== "OWNER") {
+                showError(
+                    "Bạn không có quyền thực hiện thao tác này."
+                );
+
+                return;
+            }
+
+            if (isArchiving && latestProject.archived_at) {
+                showError("Dự án đã được lưu trữ.");
+                return;
+            }
+
+            if (!isArchiving && !latestProject.archived_at) {
+                showError("Dự án đang hoạt động.");
+                return;
+            }
+
+            if (deletingProjects.has(projectId)) {
+                showError("Dự án đang được xử lý.");
+                return;
+            }
+
+            setLoading(true);
 
             try {
                 await API.post(
                     `/projects/${encodeURIComponent(project.id)}/${action}`
                 );
 
-                // Hiển thị danh sách tương ứng sau thao tác
-                filterEl.value = isArchiving ? "archived" : "active";
-
-                // Bỏ bộ lọc có thể khiến dự án bị ẩn
-                if (searchEl) {
-                    searchEl.value = "";
-                }
-
-                if (roleEl) {
-                    roleEl.value = "all";
-                }
-
-                currentPage = 1;
-
-                // Tải lại danh sách từ Backend
-                await load();
-
-                toast(
-                    isArchiving
-                        ? "Đã lưu trữ dự án. Đang hiển thị danh sách lưu trữ."
-                        : "Đã khôi phục dự án về danh sách hoạt động.",
-                    "success"
-                );
-
             } catch (err) {
-                toast(
-                    err.message || "Không thể cập nhật dự án",
-                    "error"
-                );
-            }
-        }
+                setLoading(false);
 
+                showError(
+                    err.message ||
+                    "Không thể cập nhật trạng thái dự án."
+                );
+
+                return;
+            }
+
+            setLoading(false);
+
+            modal.close();
+
+            toast(
+                isArchiving
+                    ? "Lưu trữ dự án thành công."
+                    : "Khôi phục dự án thành công.",
+                "success"
+            );
+
+            await load();
+        });
+
+        cancelBtn.focus();
+    }
 
     function openForm(project) {
         const editing = Boolean(project);
@@ -901,12 +1671,14 @@ function updateProjectStats() {
             <form class="form-grid" novalidate>
                 <label>
                     Tên dự án *
+
                     <input
                         name="name"
                         maxlength="150"
                         value="${esc(project?.name || "")}"
                         required
                     >
+
                     <span
                         class="field-error"
                         data-err="name"
@@ -915,6 +1687,7 @@ function updateProjectStats() {
 
                 <label>
                     Mô tả
+
                     <textarea
                         name="description"
                         maxlength="2000"
@@ -929,15 +1702,15 @@ function updateProjectStats() {
                 <div class="row2">
                     <label>
                         Ngày bắt đầu
+
                         <input
-                            type="text"
                             name="start_date"
-                            inputmode="numeric"
+                            type="text"
                             placeholder="dd/mm/yyyy"
                             maxlength="10"
-                            autocomplete="off"
                             value="${esc(fmtDate(project?.start_date))}"
                         >
+
                         <span
                             class="field-error"
                             data-err="start_date"
@@ -946,15 +1719,15 @@ function updateProjectStats() {
 
                     <label>
                         Ngày kết thúc
+
                         <input
-                            type="text"
                             name="end_date"
-                            inputmode="numeric"
+                            type="text"
                             placeholder="dd/mm/yyyy"
                             maxlength="10"
-                            autocomplete="off"
                             value="${esc(fmtDate(project?.end_date))}"
                         >
+
                         <span
                             class="field-error"
                             data-err="end_date"
@@ -963,11 +1736,7 @@ function updateProjectStats() {
                 </div>
 
                 <label>
-                    Múi giờ ${
-                        editing
-                            ? "(không đổi được sau khi tạo)"
-                            : ""
-                    }
+                    Múi giờ
 
                     <select
                         name="timezone"
@@ -977,7 +1746,11 @@ function updateProjectStats() {
                     </select>
                 </label>
 
-                <div class="form-banner" hidden></div>
+                <div
+                    class="form-banner"
+                    role="alert"
+                    hidden
+                ></div>
 
                 <div class="modal-actions">
                     <button
@@ -992,7 +1765,7 @@ function updateProjectStats() {
                         type="submit"
                         class="btn btn-primary"
                     >
-                        ${editing ? "Lưu" : "Tạo dự án"}
+                        ${editing ? "Lưu thay đổi" : "Tạo dự án"}
                     </button>
                 </div>
             </form>
@@ -1001,28 +1774,37 @@ function updateProjectStats() {
         const form = modal.el.querySelector("form");
         const banner = form.querySelector(".form-banner");
 
-        function setErr(field, message = "") {
-            const el = form.querySelector(
-                `[data-err="${field}"]`
-            );
-
-            if (el) el.textContent = message;
-        }
+        const submitBtn = form.querySelector(
+            'button[type="submit"]'
+        );
 
         modal.el.querySelector("[data-close]").onclick =
             modal.close;
 
+        function setError(field, message) {
+            const errorEl = form.querySelector(
+                `[data-err="${field}"]`
+            );
+
+            if (errorEl) {
+                errorEl.textContent = message;
+            }
+        }
+
         form.addEventListener("submit", async event => {
             event.preventDefault();
 
-            [
-                "name",
-                "description",
-                "start_date",
-                "end_date"
-            ].forEach(field => setErr(field));
-
             banner.hidden = true;
+            banner.textContent = "";
+
+            form.querySelectorAll(".field-error").forEach(el => {
+                el.textContent = "";
+            });
+
+            const name = form.elements.name.value.trim();
+
+            const description =
+                form.elements.description.value.trim();
 
             const startDate = toApiDate(
                 form.elements.start_date.value
@@ -1032,74 +1814,75 @@ function updateProjectStats() {
                 form.elements.end_date.value
             );
 
-            const body = {
-                name: form.elements.name.value.trim(),
-                description:
-                    form.elements.description.value.trim() || null,
-                start_date: startDate.value,
-                end_date: endDate.value
-            };
+            let valid = true;
 
-            let invalid = false;
-
-            if (!body.name || body.name.length > 150) {
-                setErr(
+            if (!name) {
+                setError("name", "Vui lòng nhập tên dự án.");
+                valid = false;
+            } else if (name.length > 150) {
+                setError(
                     "name",
-                    "Tên dự án phải từ 1 đến 150 ký tự"
+                    "Tên dự án không được vượt quá 150 ký tự."
                 );
-                invalid = true;
+
+                valid = false;
             }
 
-            if (
-                body.description &&
-                body.description.length > 2000
-            ) {
-                setErr(
+            if (description.length > 2000) {
+                setError(
                     "description",
-                    "Mô tả tối đa 2000 ký tự"
+                    "Mô tả không được vượt quá 2000 ký tự."
                 );
-                invalid = true;
+
+                valid = false;
             }
 
             if (!startDate.valid) {
-                setErr(
+                setError(
                     "start_date",
-                    "Nhập ngày hợp lệ theo dd/mm/yyyy"
+                    "Ngày bắt đầu không hợp lệ."
                 );
-                invalid = true;
+
+                valid = false;
             }
 
             if (!endDate.valid) {
-                setErr(
+                setError(
                     "end_date",
-                    "Nhập ngày hợp lệ theo dd/mm/yyyy"
+                    "Ngày kết thúc không hợp lệ."
                 );
-                invalid = true;
+
+                valid = false;
             }
 
             if (
                 startDate.valid &&
                 endDate.valid &&
-                body.start_date &&
-                body.end_date &&
-                body.start_date > body.end_date
+                startDate.value &&
+                endDate.value &&
+                endDate.value < startDate.value
             ) {
-                setErr(
+                setError(
                     "end_date",
-                    "Ngày kết thúc phải sau hoặc bằng ngày bắt đầu"
+                    "Ngày kết thúc không được trước ngày bắt đầu."
                 );
-                invalid = true;
+
+                valid = false;
             }
 
-            if (invalid) return;
+            if (!valid) return;
+
+            const body = {
+                name,
+                description: description || null,
+                start_date: startDate.value,
+                end_date: endDate.value
+            };
 
             if (!editing) {
-                body.timezone = form.elements.timezone.value;
+                body.timezone =
+                    form.elements.timezone.value || DEFAULT_TZ;
             }
-
-            const submitBtn = form.querySelector(
-                '[type="submit"]'
-            );
 
             submitBtn.disabled = true;
 
@@ -1123,10 +1906,12 @@ function updateProjectStats() {
                 );
 
                 await load();
+
             } catch (err) {
                 if (err.status === 401) return;
 
                 banner.hidden = false;
+
                 banner.textContent =
                     err.message || "Không lưu được dự án";
 
@@ -1190,12 +1975,13 @@ function updateProjectStats() {
         setProjectView("list");
     });
 
-
     let started = false;
 
     function start() {
         if (started) return;
+
         started = true;
+
         load();
     }
 
@@ -1211,4 +1997,5 @@ function updateProjectStats() {
             start();
         }
     });
+
 })();

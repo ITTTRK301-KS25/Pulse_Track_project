@@ -101,3 +101,43 @@ def set_archived(db: Session, user: User, project_id: int, archive: bool) -> dic
     db.commit()
     db.refresh(project)
     return project_to_dict(project, role)
+def delete_project(db: Session, user: User, project_id: int) -> None:
+    from sqlalchemy import delete, update
+    from app.models.ai_draft import AIDraft
+    from app.models.task import Task
+
+    try:
+        project, role = access.get_project_and_role(
+            db, project_id, user, lock=True
+        )
+
+        if role != access.OWNER:
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN,
+                "Chỉ OWNER mới được xóa dự án"
+            )
+
+        if project.archived_at is None:
+            raise HTTPException(
+                status.HTTP_409_CONFLICT,
+                "Phải lưu trữ dự án trước khi xóa"
+            )
+
+        db.execute(
+            delete(AIDraft).where(
+                AIDraft.project_id == project_id
+            )
+        )
+
+        db.execute(
+            update(Task)
+            .where(Task.project_id == project_id)
+            .values(parent_id=None)
+        )
+
+        db.delete(project)
+        db.commit()
+
+    except Exception:
+        db.rollback()
+        raise

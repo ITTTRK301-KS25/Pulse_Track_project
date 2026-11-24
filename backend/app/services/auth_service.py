@@ -74,3 +74,56 @@ def resolve_session(db: Session, token: Optional[str]) -> tuple[User, UserSessio
 def revoke_session(db: Session, session: UserSession) -> None:
     if session.revoked_at is None:
         session_repository.revoke(db, session, _now())
+def change_password(
+    db: Session,
+    user: User,
+    current_password: str,
+    new_password: str,
+    confirm_password: str,
+) -> None:
+    from sqlalchemy import select, update
+
+    locked_user = db.scalar(
+        select(User)
+        .where(User.id == user.id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+
+    if locked_user is None:
+        raise HTTPException(404, "Không tìm thấy tài khoản")
+
+    if not security.verify_password(
+        current_password, locked_user.password_hash
+    ):
+        raise HTTPException(400, "Mật khẩu hiện tại không chính xác")
+
+    if new_password != confirm_password:
+        raise HTTPException(400, "Xác nhận mật khẩu không khớp")
+
+    if new_password == current_password:
+        raise HTTPException(400, "Mật khẩu mới phải khác mật khẩu hiện tại")
+
+    try:
+        password_hash = security.hash_password(new_password)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+    try:
+        locked_user.password_hash = password_hash
+        locked_user.updated_at = _now()
+
+        db.execute(
+            update(UserSession)
+            .where(
+                UserSession.user_id == locked_user.id,
+                UserSession.revoked_at.is_(None),
+            )
+            .values(revoked_at=_now())
+        )
+
+        db.commit()
+
+    except Exception:
+        db.rollback()
+        raise

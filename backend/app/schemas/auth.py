@@ -76,3 +76,18 @@ class UserOut(BaseModel):
     email: str
     display_name: str
     created_at: datetime
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+    confirm_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def _password(cls, v: str) -> str:
+        try:
+            return _validate_password(v)
+        except ValueError as exc:
+            raise PydanticCustomError(
+                "invalid_value", str(exc)
+            ) from exc
