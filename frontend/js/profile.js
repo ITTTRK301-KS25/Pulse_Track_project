@@ -1,4 +1,3 @@
-
 "use strict";
 
 (function () {
@@ -17,10 +16,15 @@
     let currentUser = null;
     let saving = false;
     let loadingForUser = null;
+    let changingPassword = false;
 
     function setText(id, value) {
         const el = $(id);
-        if (el) el.textContent = value == null || value === "" ? "—" : String(value);
+        if (el) {
+            el.textContent = value == null || value === ""
+                ? "—"
+                : String(value);
+        }
     }
 
     function showMessage(text, type = "error") {
@@ -30,8 +34,11 @@
 
     function formatDate(value) {
         if (!value) return "—";
+
         const date = new Date(value);
+
         if (Number.isNaN(date.getTime())) return "—";
+
         return new Intl.DateTimeFormat("vi-VN", {
             day: "2-digit",
             month: "2-digit",
@@ -40,14 +47,25 @@
     }
 
     function initials(name) {
-        const words = String(name || "").trim().split(/\s+/).filter(Boolean);
+        const words = String(name || "")
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean);
+
         if (!words.length) return "U";
-        if (words.length === 1) return words[0][0].toUpperCase();
-        return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+
+        if (words.length === 1) {
+            return words[0][0].toUpperCase();
+        }
+
+        return (
+            words[0][0] + words[words.length - 1][0]
+        ).toUpperCase();
     }
 
     function renderUser(user) {
         currentUser = user;
+
         const name = user.display_name || user.name || "Người dùng";
         const email = user.email || "";
 
@@ -60,12 +78,27 @@
 
         nameInput.value = user.display_name || user.name || "";
         emailInput.value = email;
+
         saveButton.disabled = saving;
+    }
+
+    function resetPasswordForm() {
+        $("password-preview-form").reset();
+
+        $("toggle-password-visibility").checked = false;
+
+        ["current-password", "new-password", "confirm-password"]
+            .forEach(id => {
+                $(id).type = "password";
+            });
     }
 
     function openSection(section) {
         const valid = ["overview", "settings", "password"];
-        if (!valid.includes(section)) section = "overview";
+
+        if (!valid.includes(section)) {
+            section = "overview";
+        }
 
         document.querySelectorAll("[data-profile-section]")
             .forEach(el => {
@@ -75,32 +108,47 @@
         document.querySelectorAll("[data-section]")
             .forEach(button => {
                 const active = button.dataset.section === section;
+
                 button.classList.toggle("is-active", active);
-                if (active) button.setAttribute("aria-current", "page");
-                else button.removeAttribute("aria-current");
+
+                if (active) {
+                    button.setAttribute("aria-current", "page");
+                } else {
+                    button.removeAttribute("aria-current");
+                }
             });
 
-        if (section !== "password") {
-            $("password-preview-form").reset();
-            ["current-password", "new-password", "confirm-password"]
-                .forEach(id => { $(id).type = "password"; });
+        if (section !== "password" && !changingPassword) {
+            resetPasswordForm();
+
+            const passwordMessage = $("password-message");
+
+            passwordMessage.textContent =
+                "Mật khẩu mới phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, chữ số và ký tự đặc biệt.";
+
+            passwordMessage.style.color = "";
         }
 
         if (section === "settings" && currentUser) {
             nameInput.value =
                 currentUser.display_name || currentUser.name || "";
+
             nameError.textContent = "";
             showMessage("");
         }
 
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
     }
 
     document.querySelectorAll("[data-section], [data-open-section]")
         .forEach(button => {
             button.addEventListener("click", () => {
                 openSection(
-                    button.dataset.section || button.dataset.openSection
+                    button.dataset.section ||
+                    button.dataset.openSection
                 );
             });
         });
@@ -111,78 +159,274 @@
 
     openSection(location.hash.slice(1));
 
-    $("toggle-password-visibility").addEventListener("change", event => {
-        const type = event.target.checked ? "text" : "password";
-        ["current-password", "new-password", "confirm-password"]
-            .forEach(id => { $(id).type = type; });
-    });
+    $("toggle-password-visibility")
+        .addEventListener("change", event => {
+            const type = event.target.checked
+                ? "text"
+                : "password";
 
-    $("password-preview-form").addEventListener("submit", event => {
-        event.preventDefault();
-    });
+            ["current-password", "new-password", "confirm-password"]
+                .forEach(id => {
+                    $(id).type = type;
+                });
+        });
+
+    function validatePassword(password) {
+        if (Array.from(password).length < 8) {
+            return "Mật khẩu mới phải có ít nhất 8 ký tự.";
+        }
+
+        if (new TextEncoder().encode(password).length > 72) {
+            return "Mật khẩu mới không được vượt quá 72 byte.";
+        }
+
+        if (/\s/.test(password)) {
+            return "Mật khẩu mới không được chứa khoảng trắng.";
+        }
+
+        if (!/[A-Z]/.test(password)) {
+            return "Mật khẩu mới phải có ít nhất 1 chữ hoa.";
+        }
+
+        if (!/[a-z]/.test(password)) {
+            return "Mật khẩu mới phải có ít nhất 1 chữ thường.";
+        }
+
+        if (!/[0-9]/.test(password)) {
+            return "Mật khẩu mới phải có ít nhất 1 chữ số.";
+        }
+
+        if (!/[^a-zA-Z0-9\s]/.test(password)) {
+            return "Mật khẩu mới phải có ít nhất 1 ký tự đặc biệt.";
+        }
+
+        return "";
+    }
+
+    $("password-preview-form")
+        .addEventListener("submit", async event => {
+            event.preventDefault();
+
+            if (changingPassword) return;
+
+            const passwordButton = $("save-password");
+            const passwordMessage = $("password-message");
+
+            const currentPassword = $("current-password").value;
+            const newPassword = $("new-password").value;
+            const confirmPassword = $("confirm-password").value;
+
+            function notify(text, success = false) {
+                passwordMessage.textContent = text;
+
+                passwordMessage.style.color = success
+                    ? "#15803d"
+                    : "#dc2626";
+            }
+
+            if (!currentUser) {
+                notify("Vui lòng đăng nhập lại.");
+                return;
+            }
+
+            if (!currentPassword) {
+                notify("Vui lòng nhập mật khẩu hiện tại.");
+                $("current-password").focus();
+                return;
+            }
+
+            if (!newPassword) {
+                notify("Vui lòng nhập mật khẩu mới.");
+                $("new-password").focus();
+                return;
+            }
+
+            if (!confirmPassword) {
+                notify("Vui lòng xác nhận mật khẩu mới.");
+                $("confirm-password").focus();
+                return;
+            }
+
+            if (newPassword === currentPassword) {
+                notify("Mật khẩu mới phải khác mật khẩu hiện tại.");
+                $("new-password").focus();
+                return;
+            }
+
+            const validationError = validatePassword(newPassword);
+
+            if (validationError) {
+                notify(validationError);
+                $("new-password").focus();
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                notify("Xác nhận mật khẩu mới không khớp.");
+                $("confirm-password").focus();
+                return;
+            }
+
+            changingPassword = true;
+            passwordButton.disabled = true;
+            passwordButton.textContent = "Đang cập nhật...";
+            passwordMessage.textContent = "";
+
+            let success = false;
+
+            try {
+                await API.post(
+                    "/auth/change-password",
+                    {
+                        current_password: currentPassword,
+                        new_password: newPassword,
+                        confirm_password: confirmPassword
+                    },
+                    {
+                        skipAuthRedirect: true
+                    }
+                );
+
+                success = true;
+
+                resetPasswordForm();
+
+                notify(
+                    "Đổi mật khẩu thành công. Vui lòng đăng nhập lại.",
+                    true
+                );
+
+                passwordButton.textContent = "Đã cập nhật";
+
+                setTimeout(() => {
+                    location.replace("login.html");
+                }, 1800);
+
+            } catch (error) {
+                if (error.status === 401) {
+                    location.replace("login.html");
+                    return;
+                }
+
+                notify(
+                    error.message ||
+                    "Không thể đổi mật khẩu. Vui lòng thử lại."
+                );
+
+            } finally {
+                if (!success) {
+                    changingPassword = false;
+                    passwordButton.disabled = false;
+                    passwordButton.textContent = "Cập nhật mật khẩu";
+                }
+            }
+        });
 
     function validateName() {
-        const name = nameInput.value.trim().replace(/\s+/g, " ");
+        const name = nameInput.value
+            .trim()
+            .replace(/\s+/g, " ");
+
         let error = "";
 
-        if (!name) error = "Vui lòng nhập họ và tên.";
-        else if (name.length < 2) error = "Họ tên phải có ít nhất 2 ký tự.";
-        else if (name.length > 100) error = "Họ tên không quá 100 ký tự.";
+        if (!name) {
+            error = "Vui lòng nhập họ và tên.";
+        } else if (name.length < 2) {
+            error = "Họ tên phải có ít nhất 2 ký tự.";
+        } else if (name.length > 100) {
+            error = "Họ tên không quá 100 ký tự.";
+        }
 
         nameError.textContent = error;
-        nameInput.setAttribute("aria-invalid", String(Boolean(error)));
+
+        nameInput.setAttribute(
+            "aria-invalid",
+            String(Boolean(error))
+        );
+
         return error ? null : name;
     }
 
     nameInput.addEventListener("input", () => {
-        if (nameError.textContent) validateName();
+        if (nameError.textContent) {
+            validateName();
+        }
+
         showMessage("");
     });
 
     form.addEventListener("submit", async event => {
         event.preventDefault();
+
         if (!currentUser || saving) return;
 
         const name = validateName();
+
         if (!name) return;
 
         const oldName = (
-            currentUser.display_name || currentUser.name || ""
+            currentUser.display_name ||
+            currentUser.name ||
+            ""
         ).trim().replace(/\s+/g, " ");
 
         if (name === oldName) {
-            showMessage("Thông tin chưa có thay đổi.", "success");
+            showMessage(
+                "Thông tin chưa có thay đổi.",
+                "success"
+            );
             return;
         }
 
         saving = true;
         saveButton.disabled = true;
         saveButton.textContent = "Đang lưu...";
+
         showMessage("");
 
         try {
             const response = await API.patch(
                 "/auth/me",
-                { display_name: name },
-                { skipAuthRedirect: true }
+                {
+                    display_name: name
+                },
+                {
+                    skipAuthRedirect: true
+                }
             );
 
             const user = response?.data;
+
             if (!user || typeof user !== "object" || !user.email) {
-                throw new Error("Backend trả về thông tin không hợp lệ.");
+                throw new Error(
+                    "Backend trả về thông tin không hợp lệ."
+                );
             }
 
             renderUser(user);
-            window.dispatchEvent(new CustomEvent("pulse:user-updated", {
-                detail: { user }
-            }));
-            showMessage("Cập nhật hồ sơ thành công.", "success");
+
+            window.dispatchEvent(
+                new CustomEvent("pulse:user-updated", {
+                    detail: { user }
+                })
+            );
+
+            showMessage(
+                "Cập nhật hồ sơ thành công.",
+                "success"
+            );
+
         } catch (error) {
             if (error.status === 401) {
                 location.replace("login.html");
                 return;
             }
-            showMessage(error.message || "Không thể cập nhật hồ sơ.");
+
+            showMessage(
+                error.message ||
+                "Không thể cập nhật hồ sơ."
+            );
+
         } finally {
             saving = false;
             saveButton.disabled = !currentUser;
@@ -192,38 +436,58 @@
 
     function projectRow(project) {
         const row = document.createElement("a");
+
         row.className = "pt-project-row";
-        row.href = "kanban.html?project=" + encodeURIComponent(project.id);
+        row.href =
+            "kanban.html?project=" +
+            encodeURIComponent(project.id);
 
         const icon = document.createElement("span");
+
         icon.className = "pt-project-icon";
         icon.textContent = "▦";
 
         const info = document.createElement("span");
+
         info.className = "pt-project-info";
 
         const title = document.createElement("strong");
-        title.textContent = project.name || project.title || "Dự án";
+
+        title.textContent =
+            project.name ||
+            project.title ||
+            "Dự án";
 
         const description = document.createElement("small");
-        description.textContent = project.description || "Quản lý công việc nhóm";
+
+        description.textContent =
+            project.description ||
+            "Quản lý công việc nhóm";
 
         info.append(title, description);
 
         const role = document.createElement("span");
-        const roleName = project.my_role || project.role || "MEMBER";
+
+        const roleName =
+            project.my_role ||
+            project.role ||
+            "MEMBER";
+
         role.className = "pt-role-badge pt-role-" + (
             ["OWNER", "MEMBER", "VIEWER"].includes(roleName)
                 ? roleName.toLowerCase()
                 : "member"
         );
+
         role.textContent = roleName;
 
         const arrow = document.createElement("span");
+
         arrow.className = "pt-project-arrow";
         arrow.textContent = "›";
 
         row.append(icon, info, role, arrow);
+
         return row;
     }
 
@@ -232,7 +496,9 @@
         const statsMessage = $("stats-message");
 
         container.textContent = "Đang tải dự án...";
-        statsMessage.textContent = "Đang tải thống kê công việc...";
+
+        statsMessage.textContent =
+            "Đang tải thống kê công việc...";
 
         ["stat-assigned", "stat-progress", "stat-done"]
             .forEach(id => setText(id, "—"));
@@ -241,14 +507,24 @@
 
         try {
             const response = await API.get("/projects");
+
             if (!Array.isArray(response?.data)) {
-                throw new Error("Danh sách dự án không hợp lệ.");
+                throw new Error(
+                    "Danh sách dự án không hợp lệ."
+                );
             }
-            projects = response.data.filter(project => !project.archived_at);
+
+            projects = response.data.filter(
+                project => !project.archived_at
+            );
+
         } catch (error) {
-            container.textContent = "Không tải được danh sách dự án.";
+            container.textContent =
+                "Không tải được danh sách dự án.";
+
             statsMessage.textContent =
                 "Không thể thống kê công việc khi chưa tải được dự án.";
+
             return;
         }
 
@@ -256,9 +532,12 @@
 
         if (!projects.length) {
             const empty = document.createElement("p");
+
             empty.className = "pt-data-message";
             empty.textContent = "Bạn chưa tham gia dự án nào.";
+
             container.appendChild(empty);
+
         } else {
             projects.forEach(project => {
                 container.appendChild(projectRow(project));
@@ -267,7 +546,9 @@
 
         const results = await Promise.allSettled(
             projects.map(project =>
-                API.get(`/projects/${encodeURIComponent(project.id)}/tasks`)
+                API.get(
+                    `/projects/${encodeURIComponent(project.id)}/tasks`
+                )
             )
         );
 
@@ -291,11 +572,19 @@
                     task.archived_at ||
                     task.assignee_id == null ||
                     String(task.assignee_id) !== String(user.id)
-                ) return;
+                ) {
+                    return;
+                }
 
                 assigned++;
-                if (task.status === "IN_PROGRESS") progress++;
-                if (task.status === "DONE") done++;
+
+                if (task.status === "IN_PROGRESS") {
+                    progress++;
+                }
+
+                if (task.status === "DONE") {
+                    done++;
+                }
             });
         });
 
@@ -303,12 +592,14 @@
             statsMessage.textContent =
                 `Chưa tải được công việc của ${failed} dự án. ` +
                 "Số liệu chưa đầy đủ.";
+
             return;
         }
 
         setText("stat-assigned", assigned);
         setText("stat-progress", progress);
         setText("stat-done", done);
+
         statsMessage.textContent = "";
     }
 
@@ -318,18 +609,23 @@
         if (user.id == null) {
             $("stats-message").textContent =
                 "Backend chưa trả về ID người dùng để thống kê.";
+
             return;
         }
 
         const key = String(user.id);
+
         if (loadingForUser === key) return;
+
         loadingForUser = key;
+
         await loadProjectsAndStats(user);
     }
 
     window.addEventListener("pulse:auth-changed", event => {
         if (event.detail?.status === "authenticated") {
             onAuthenticated(event.detail.user);
+
         } else {
             currentUser = null;
             loadingForUser = null;
@@ -339,6 +635,7 @@
 
     if (window.PulseAuth?.status === "authenticated") {
         onAuthenticated(window.PulseAuth.user);
+
     } else {
         saveButton.disabled = true;
     }

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -22,7 +21,7 @@
 
     <div id="app-error-message" role="alert" hidden></div>
 
-    <!-- NAVBAR ĐỒNG BỘ -->
+    <!-- NAVBAR -->
     <header class="app-header">
         <a href="dashboard.html" class="brand">
             <span class="pulse">⌁</span>
@@ -65,6 +64,10 @@
                     </svg>
                 </span>
                 <span>Quản lý công việc</span>
+            </a>
+
+            <a href="weekly-report.html" class="pt-main-nav-link">
+                <span>Báo cáo tuần</span>
             </a>
 
             <a href="profile.html"
@@ -214,6 +217,7 @@
                         <div class="pt-panel-heading">
                             <div>
                                 <h3>Tổng quan công việc</h3>
+
                                 <p>
                                     Thống kê các Task được phân công cho bạn
                                 </p>
@@ -277,6 +281,7 @@
                         <div class="pt-panel-heading">
                             <div>
                                 <h3>Cài đặt tài khoản</h3>
+
                                 <p>
                                     Cập nhật thông tin hiển thị của bạn
                                 </p>
@@ -347,6 +352,7 @@
                         <div class="pt-panel-heading">
                             <div>
                                 <h3>Đổi mật khẩu</h3>
+
                                 <p>
                                     Tăng cường bảo mật cho tài khoản
                                 </p>
@@ -391,9 +397,11 @@
                                 Hiển thị mật khẩu
                             </label>
 
-                            <p class="pt-password-notice">
-                                Giao diện đã sẵn sàng. Chức năng đổi mật khẩu
-                                đang chờ API Backend.
+                            <p class="pt-password-notice"
+                               id="password-message"
+                               role="status"
+                               aria-live="polite">
+                                Mật khẩu mới phải có ít nhất 8 ký tự.
                             </p>
 
                             <div class="pt-form-actions">
@@ -403,9 +411,9 @@
                                     Quay lại
                                 </button>
 
-                                <button type="button"
-                                        class="pt-primary-button"
-                                        disabled>
+                                <button type="submit"
+                                        id="save-password"
+                                        class="pt-primary-button">
                                     Cập nhật mật khẩu
                                 </button>
                             </div>

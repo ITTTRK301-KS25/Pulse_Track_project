@@ -52,3 +52,19 @@ def archive_project(req: Request, project_id: int, user: User = Depends(get_curr
 def restore_project(req: Request, project_id: int, user: User = Depends(get_current_user),
                     db: Session = Depends(get_db)):
     return create_response(req, 200, "Đã khôi phục dự án", project_service.set_archived(db, user, project_id, False), None)
+@router.delete("/{project_id}")
+def delete_project(
+    req: Request,
+    project_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    project_service.delete_project(db, user, project_id)
+
+    return create_response(
+        req,
+        200,
+        "Xóa dự án thành công",
+        None,
+        None
+    )
