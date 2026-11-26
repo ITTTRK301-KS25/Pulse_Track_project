@@ -31,14 +31,14 @@ def db():
         engine.dispose()
 
 
-def _register(db, email="Alice@Example.com", password="12345678", name="Alice"):
+def _register(db, email="Alice@Example.com", password="Abc@12345", name="Alice"):
     return user_service.register(db, email=email, password=password, display_name=name)
 
 
 def test_register_normalizes_email_and_hashes_password(db):
     user = _register(db, email="  Alice@Example.COM ")
     assert user.email == "alice@example.com"
-    assert user.password_hash != "12345678"
+    assert user.password_hash != "Abc@12345"
     assert user.password_hash.startswith("$2")
 
 
@@ -51,10 +51,10 @@ def test_register_duplicate_email_returns_409_even_with_different_case(db):
 
 def test_authenticate_success(db):
     created = _register(db)
-    assert user_service.authenticate(db, email="ALICE@example.com", password="12345678").id == created.id
+    assert user_service.authenticate(db, email="ALICE@example.com", password="Abc@12345").id == created.id
 
 
-@pytest.mark.parametrize("email,password", [("alice@example.com", "wrong-pass"), ("nobody@example.com", "12345678")])
+@pytest.mark.parametrize("email,password", [("alice@example.com", "wrong-pass"), ("nobody@example.com", "Abc@12345")])
 def test_authenticate_failure_returns_same_401(db, email, password):
     _register(db)
     with pytest.raises(HTTPException) as e:

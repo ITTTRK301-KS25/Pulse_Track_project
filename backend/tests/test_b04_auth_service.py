@@ -36,7 +36,7 @@ def db():
 
 @pytest.fixture()
 def user(db):
-    return user_service.register(db, email="a@example.com", password="12345678", display_name="A")
+    return user_service.register(db, email="a@example.com", password="Abc@12345", display_name="A")
 
 
 def _utc(value):

@@ -17,12 +17,12 @@ def test_validate_password_rejects_invalid_lengths(password):
 
 
 def test_password_hash_and_verification():
-    password_hash = security.hash_password("correct-horse")
+    password_hash = security.hash_password("Correct-Horse1")
 
-    assert security.verify_password("correct-horse", password_hash)
+    assert security.verify_password("Correct-Horse1", password_hash)
     assert not security.verify_password("wrong-password", password_hash)
     assert not security.verify_password("x" * 73, password_hash)
-    assert not security.verify_password("correct-horse", "invalid-hash")
+    assert not security.verify_password("Correct-Horse1", "invalid-hash")
 
 
 def test_session_tokens_are_random_and_stored_as_hashes():
