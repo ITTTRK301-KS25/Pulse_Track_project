@@ -21,14 +21,14 @@ auth = _load("auth_schemas", "schemas/auth.py")
 
 
 def test_email_is_trimmed_and_lowercased():
-    r = auth.RegisterRequest(email="  Alice@Example.COM ", password="12345678", display_name="A")
+    r = auth.RegisterRequest(email="  Alice@Example.COM ", password="Abc@12345", display_name="A")
     assert r.email == "alice@example.com"
 
 
 @pytest.mark.parametrize("bad", ["abc", "a@b", "@x.com", "a b@x.com", ""])
 def test_invalid_email_rejected(bad):
     with pytest.raises(ValidationError):
-        auth.RegisterRequest(email=bad, password="12345678", display_name="A")
+        auth.RegisterRequest(email=bad, password="Abc@12345", display_name="A")
 
 
 def test_password_rules():
@@ -36,7 +36,7 @@ def test_password_rules():
         auth.RegisterRequest(email="a@b.co", password="1234567", display_name="A")
     with pytest.raises(ValidationError):
         auth.RegisterRequest(email="a@b.co", password="x" * 73, display_name="A")
-    auth.RegisterRequest(email="a@b.co", password="x" * 72, display_name="A")
+    auth.RegisterRequest(email="a@b.co", password="Aa1!" + "x" * 68, display_name="A")
 
 
 def test_display_name_rules():
